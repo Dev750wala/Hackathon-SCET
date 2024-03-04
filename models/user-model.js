@@ -57,6 +57,26 @@ const userSchema = new mongoose.Schema({
             type: String,
         },
     },
-    
+    participationHistory: [{
+        eventName: {
+            type: String,
+        },
+        date: {
+            type: String
+        },
+        awards: {
+            type: [String],
+        }
+    }],
+    availability: {
+        type: Boolean,
+    },
+    registrationDate: {
+        type: Date,
+        default: Date.now(),
+    }
+});
 
-})
+const USER = mongoose.model('user', userSchema);
+
+module.exports = USER;
