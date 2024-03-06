@@ -3,6 +3,11 @@
 const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema({
+    enrollmentNumber: {
+        type: String,
+        unique: true,
+        required: true,
+    },
     username: {
         type: String,
         rquired: true,
@@ -36,10 +41,10 @@ const userSchema = new mongoose.Schema({
     contact_no: {
         type: String,
     },
-    address: {
-        type: String,
-        required: true,
-    },
+    // address: {
+    //     type: String,
+    //     required: true,
+    // },
     skills: {
         type: [String],
     },
