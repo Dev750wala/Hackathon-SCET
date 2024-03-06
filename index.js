@@ -8,6 +8,8 @@ const staticRoute = require("./routes/staticRoutes");
 
 const app = express();
 
+app.set("view engine", "ejs");
+
 // All the routes to handle the req.
 app.use("/", staticRoute);
 app.use("/user", userRoute);

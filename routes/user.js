@@ -11,9 +11,9 @@ router
     .post("/signup", handleUserSignup)
     
     .post("/login", handleUserLogin)
+
+    .get("/logout", handleUserLogout)
     
-    .get("/:username", handleUserProfile)
-    
-    .get("/logout", handleUserLogout);
+    .get("/:username", handleUserProfile);
 
 module.exports = router;

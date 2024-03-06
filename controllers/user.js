@@ -1,16 +1,16 @@
-const handleUserSignup = async function (req, res) {
+async function handleUserSignup (req, res) {
     res.send("You are at signup page");
 }
 
-const handleUserLogin = async function (req, res) {
+async function handleUserLogin (req, res) {
     res.send("You are at login page");
 }
 
-const handleUserProfile = async function (req, res) {
+async function handleUserProfile (req, res) {
     res.send("You are at profile page");
 }
 
-const handleUserLogout = async function (req, res) {
+async function handleUserLogout (req, res) {
     res.send("You are at logout page");
 }
 

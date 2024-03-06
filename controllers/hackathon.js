@@ -1,7 +1,12 @@
-const handleShowAllHackathons = (req, res) => {
+function handleShowAllHackathons (req, res) {
     console.log("You are at show all hackathons page");
 }
 
-const handleDescribeHackathon = (req, res) => {
+function handleDescribeHackathon (req, res) {
     console.log("you are seeing the description of the hackathon");
+}
+
+module.exports = {
+    handleShowAllHackathons,
+    handleDescribeHackathon
 }
