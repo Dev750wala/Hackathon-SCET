@@ -5,15 +5,20 @@ const keys = require("./secrets/key");
 const userRoute = require("./routes/user");
 const hackathonRoute = require("./routes/hackathon");
 const staticRoute = require("./routes/staticRoutes");
+const { connectToDB } = require("./connection");
 
 const app = express();
+connectToDB("mongodb://127.0.0.1:27017/hackathon-scet")
+    .then(() => console.log("MongoDB connected!"))
+    .catch((e) => console.log(`Unexpected error occurred: ${e}`));
 
+app.use(express.json());
 app.set("view engine", "ejs");
+// app.use(express.urlencoded({ extended: false }));
 
 // All the routes to handle the req.
 app.use("/", staticRoute);
 app.use("/user", userRoute);
 app.use("/hackathon", hackathonRoute);
 
-
-app.listen(keys.PORT, () => console.log(`Visit: http://localhost:${keys.PORT}`));
+app.listen(keys.port.PORT, () => console.log(`Visit: http://localhost:${keys.port.PORT}`));

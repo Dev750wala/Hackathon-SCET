@@ -1,6 +1,7 @@
 'use strict';
 
 const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
 
 const userSchema = new mongoose.Schema({
     enrollmentNumber: {
@@ -10,8 +11,8 @@ const userSchema = new mongoose.Schema({
     },
     username: {
         type: String,
-        rquired: true,
         unique: true,
+        required: true,
     },
     password: {
         type: String,
@@ -75,12 +76,40 @@ const userSchema = new mongoose.Schema({
     }],
     availability: {
         type: Boolean,
+        default: false,
     },
     registrationDate: {
         type: Date,
         default: Date.now(),
     }
 });
+
+userSchema.pre("save", async function(next) {
+    try {
+        const salt = await bcrypt.genSalt();
+        this.password = await bcrypt.hash(this.password, salt);
+        next();
+    } catch (error) {
+        next(error); 
+    }
+})
+
+userSchema.statics.login = async function (input, usernameOrEmail, password) {
+    let user;
+
+    if(input === "email") {
+        user = await this.findOne({email: usernameOrEmail});
+    } else {
+        user = await this.findOne({username: usernameOrEmail});
+    }
+    
+    if(user) {
+        const auth = await bcrypt.compare(password, user.password);
+        if (auth) return user;
+        throw Error("Incorrect password");
+    }
+    throw Error("User not found");
+}
 
 const USER = mongoose.model('user', userSchema);
 
