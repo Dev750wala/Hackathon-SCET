@@ -31,14 +31,18 @@ const hackathonSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'user'
     },
-    participants: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'user'
+    maxParticipants: {
+        type: Number,
     },
-    judges: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'user',
-    },
+    judges: [
+        {
+            name: {
+                type: String,
+            },
+        }
+        // type: mongoose.Schema.Types.ObjectId,
+        // ref: 'user',
+    ],
     prizes: {
         type: String,
     },

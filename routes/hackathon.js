@@ -4,9 +4,10 @@
 const express = require("express");
 const router = express.Router();
 const { handleShowAllHackathons, handleDescribeHackathon, handleCreateHackathon } = require("../controllers/hackathon");
+const { requireAuth } = require("../middlewares/user");
 
 router
-    .post("/createHackathon", handleCreateHackathon)
+    .post("/createHackathon", requireAuth,  handleCreateHackathon)
 
     .get("/", handleShowAllHackathons)
 
