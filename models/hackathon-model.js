@@ -1,8 +1,14 @@
 const mongoose = require("mongoose");
+const nanoId = require("nano-id");
 
 const hackathonSchema = new mongoose.Schema({
+    id: {
+        type: String,
+        required: true,
+    },
     name: {
         type: String,
+        unique: true,
         required: true,
     },
     description: {
@@ -43,7 +49,14 @@ const hackathonSchema = new mongoose.Schema({
     theme: {
         type: String,
     },
-    projects: {
+    techTags: [
+        {
+            name: {
+                type: String,
+            }
+        }
+    ],
+    participantTeam: {
         name: String,
         description: String,
         teamMembers: [{
@@ -51,6 +64,12 @@ const hackathonSchema = new mongoose.Schema({
             ref: 'user',
         }]
     }
+})
+
+hackathonSchema.pre('save', (next) => {
+    this.id = nanoId(20);
+    console.log(this.id);
+    next();
 })
 
 const Hackathon = mongoose.model('hackathon', hackathonSchema);

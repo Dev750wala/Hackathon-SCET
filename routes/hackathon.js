@@ -3,11 +3,14 @@
 
 const express = require("express");
 const router = express.Router();
-const { handleShowAllHackathons, handleDescribeHackathon } = require("../controllers/hackathon");
+const { handleShowAllHackathons, handleDescribeHackathon, handleCreateHackathon } = require("../controllers/hackathon");
 
 router
+    .post("/createHackathon", handleCreateHackathon)
+
     .get("/", handleShowAllHackathons)
 
     .get("/:hackathonId", handleDescribeHackathon);
+
 
 module.exports = router;
