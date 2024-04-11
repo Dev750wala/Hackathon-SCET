@@ -5,18 +5,20 @@ const hackathonRoute = require("./routes/hackathon");
 const staticRoute = require("./routes/staticRoutes");
 const { connectToDB } = require("./connection");
 const { checkUser } = require("./middlewares/user");
+const cookieParser = require("cookie-parser");
 
 const app = express();
 connectToDB("mongodb://127.0.0.1:27017/hackathon-scet")
     .then(() => console.log("MongoDB connected!"))
     .catch((e) => console.log(`Unexpected error occurred: ${e}`));
 
+app.use(cookieParser());
 app.use(express.json());
 app.set("view engine", "ejs");
-// app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: false }));
 
 // All the routes to handle the req.
-app.use('*', checkUser);
+// app.use('*', checkUser);
 app.use("/", staticRoute);
 app.use("/user", userRoute);
 app.use("/hackathon", hackathonRoute);

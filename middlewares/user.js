@@ -16,22 +16,29 @@ const requireAuth = (req, res, next) => {
 
 const checkUser = (req, res, next) => {
     const token = req.cookies.jwt;
-
+    // console.log(req.cookies);
     if(token) {
-        jwt.verify(token, keys.tokenSecretKey, async (error, decodedToken) => {
+        jwt.verify(token, keys.tokenSecretKey.key, async (error, decodedToken) => {
             if(error) {
                 req.user = null;
             } else {
-                const user = await USER.findById(decodedToken.id);
-                req.user = user;
-                
+                try {
+                    const user = await USER.findById(decodedToken.id);
+                    req.user = user;
+                    // console.log(`/middleware/checkuser ${req.user}`);
+                    next(); 
+                } catch (err) {
+                    req.user = null;
+                    next();
+                }
             }
         });
     } else {
         req.user = null;
+        next();
     }
-    next();
 }
+
 
 module.exports = {
     requireAuth,

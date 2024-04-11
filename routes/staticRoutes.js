@@ -4,10 +4,15 @@
 
 const express = require("express");
 const router = express.Router();
+const { checkUser } = require("../middlewares/user")
 
 router
-    .get("/", (req, res) => {
-        res.render("home");
+    .get("/", checkUser, (req, res) => {
+        // console.log(`route/staticRoute: ${req.user}`)
+        res.render("home", {
+            title: "Home",
+            user: req.user
+        });
     })
 
     .get("/user/login", (req, res) => {

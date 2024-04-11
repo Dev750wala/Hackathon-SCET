@@ -42,6 +42,7 @@ function handleErrors(err) {
 
 async function handleUserSignup (req, res) {
     const body = req.body;
+    // console.log(body);
 
     try {
         const newUser = await USER.create({
@@ -52,7 +53,7 @@ async function handleUserSignup (req, res) {
             biography: body.biography,
             fullName: body.fullName,
             contact_no: body.contact_no,
-            skills: body.skills,
+            skills: body.skills.split(',').map(item => item.trim()),
             portfolio: body.portfolio,
             socialLinks: {
                 linkedin: body.linkedin,
