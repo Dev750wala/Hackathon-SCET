@@ -32,9 +32,10 @@ function handleErrors(err) {
     }
   
     if (err.message.includes('user validation failed')) {
-        Object.values(err.errors).forEach(({ properties }) => {
-            errors[properties.path] = properties.message;
-        });
+        console.log(err.message);
+        // Object.values(err.errors).forEach(({ properties }) => {
+        //     errors[properties.path] = properties.message;
+        // });
     }
   
     return errors;
@@ -42,7 +43,7 @@ function handleErrors(err) {
 
 async function handleUserSignup (req, res) {
     const body = req.body;
-    // console.log(body);
+    console.log(body);
 
     try {
         const newUser = await USER.create({
@@ -60,6 +61,7 @@ async function handleUserSignup (req, res) {
                 github: body.github,
             }
         });
+        console.log(`newUser: ${newUser}`);
         const token = createToken(newUser._id);
 
         res.cookie("jwt", token, {
@@ -70,7 +72,8 @@ async function handleUserSignup (req, res) {
 
     } catch (error) {
         const err = handleErrors(error);
-        return res.json({ error: err });
+        // console.log(`error: ${err}`)
+        res.json({ error: err });
     }
 }
 
