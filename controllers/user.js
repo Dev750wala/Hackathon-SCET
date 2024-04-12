@@ -3,6 +3,7 @@ const USER = require("../models/user-model")
 const jwt = require("jsonwebtoken");
 const keys = require("../secrets/key");
 const validator = require("validator");
+const { decideRole } = require("../utils/utils");
 
 const maxAge = 3 * 24 * 60 * 60;
 
@@ -46,6 +47,11 @@ async function handleUserSignup (req, res) {
     console.log(body);
 
     try {
+
+        const student = decideRole(body.email);
+        let role;
+        student ? role='student' : role='organizer';
+
         const newUser = await USER.create({
             enrollmentNumber: body.enrollmentNumber,
             username: body.username,
@@ -54,6 +60,7 @@ async function handleUserSignup (req, res) {
             biography: body.biography,
             fullName: body.fullName,
             contact_no: body.contact_no,
+            role: role,
             skills: body.skills.split(',').map(item => item.trim()),
             portfolio: body.portfolio,
             socialLinks: {
