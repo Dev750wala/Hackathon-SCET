@@ -1,5 +1,5 @@
 const decideRole = function (email) {
-    const student;
+    var student;
     email.includes("scet.ac.in") ? student=true : student=false;
 
     return student;

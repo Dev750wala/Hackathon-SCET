@@ -23,10 +23,6 @@ const hackathonSchema = new mongoose.Schema({
         type: Date,
         required: true,
     },
-    location: {
-        type: Date,
-        required: true,
-    },
     organizer: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'user'
