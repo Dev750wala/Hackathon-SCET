@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const nanoId = require("nano-id");
 
-const hackathonSchema = new mongoose.Schema({
+const projectSchema = new mongoose.Schema({
     id: {
         type: String,
         required: true,
@@ -66,12 +66,12 @@ const hackathonSchema = new mongoose.Schema({
     }
 })
 
-hackathonSchema.pre('save', (next) => {
+projectSchema.pre('save', (next) => {
     this.id = nanoId(20);
     console.log(this.id);
     next();
 })
 
-const Hackathon = mongoose.model('hackathon', hackathonSchema);
+const Hackathon = mongoose.model('hackathon', projectSchema);
 
 module.exports = Hackathon;
