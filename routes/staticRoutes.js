@@ -23,8 +23,8 @@ router
         res.render("signup");
     })
 
-    .get("/hackathon/create-new-hackathon", requireAuth, (req, res) => {
-        
+    .get("/hackathon/create-new-hackathon", requireAuth, requireRoleForCreatingHackathon, (req, res) => {
+        res.render("create-new-hackathon");
     })
 
 module.exports = router;

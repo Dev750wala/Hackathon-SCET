@@ -27,9 +27,8 @@ async function handleCreateHackathon (req, res) {
             description: obj.description,
             start: obj.start,
             end: obj.end,
-            location: obj.location,
-            // BHAI aama chhe ne organizer ma pella user check karje cookies mathi, pachi cookies mathi je user male tenu naam organizer ma add karje.
-            // organizer: req.user,
+            // BHAI aama error aavi sake chhe, joje 👇
+            organizer: req.user._id,
             maxParticipants: obj.maxParticipants,
             judges: obj.judges,
             prizes: obj.prizes,
