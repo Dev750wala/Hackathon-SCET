@@ -4,7 +4,7 @@
 
 const express = require("express");
 const router = express.Router();
-const { checkUser } = require("../middlewares/user")
+const { checkUser, requireAuth } = require("../middlewares/user")
 
 router
     .get("/", checkUser, (req, res) => {
@@ -21,6 +21,10 @@ router
 
     .get("/user/signup", (req, res) => {
         res.render("signup");
+    })
+
+    .get("/hackathon/create-new-hackathon", requireAuth, (req, res) => {
+        
     })
 
 module.exports = router;

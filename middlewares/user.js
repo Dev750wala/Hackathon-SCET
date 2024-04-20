@@ -39,8 +39,19 @@ const checkUser = (req, res, next) => {
     }
 }
 
+const requireRoleForCreatingHackathon = (req, res, next) => {
+    const role = req.user.role;
+
+    if(role === "student") {
+        return res.status(401).json({
+            message: "You are not authorized to create a hackathon"
+        });
+    }
+    next();
+}
 
 module.exports = {
     requireAuth,
-    checkUser
+    checkUser,
+    requireRoleForCreatingHackathon
 }

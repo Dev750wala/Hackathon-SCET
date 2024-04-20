@@ -1,7 +1,17 @@
 const mongoose = require("mongoose");
 const Hackathon =require("../models/hackathon-model")
-function handleShowAllHackathons (req, res) {
-    //
+async function handleShowAllHackathons (req, res) {
+    try {
+        await Hackathon.find({}, (err, hackathons) => {
+            if (err) {
+                console.log(err);
+            } else {
+                res.json(hackathons);
+            }
+        })
+    } catch (error) {
+        console.log(error);
+    }
 }
 
 function handleDescribeHackathon (req, res) {

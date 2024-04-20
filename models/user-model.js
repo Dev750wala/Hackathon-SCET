@@ -29,7 +29,7 @@ const userSchema = new mongoose.Schema({
         required: true,
         // af
         enum: ['student', 'organizer',],
-        default: 'participant',
+        // default: 'participant',
     },
     fullName: {
         type: String,
