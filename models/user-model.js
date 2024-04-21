@@ -85,15 +85,15 @@ const userSchema = new mongoose.Schema({
 });
 
 // BHAI aama commnent out karje pacchi
-// userSchema.pre("save", async function(next) {
-//     try {
-//         const salt = await bcrypt.genSalt();
-//         this.password = await bcrypt.hash(this.password, salt);
-//         next();
-//     } catch (error) {
-//         next(error); 
-//     }
-// })
+userSchema.pre("save", async function(next) {
+    try {
+        const salt = await bcrypt.genSalt();
+        this.password = await bcrypt.hash(this.password, salt);
+        next();
+    } catch (error) {
+        next(error); 
+    }
+})
 
 userSchema.statics.login = async function (input, usernameOrEmail, password) {
     let user;
@@ -105,6 +105,7 @@ userSchema.statics.login = async function (input, usernameOrEmail, password) {
     }
     
     if(user) {
+        // console.log(user);
         const auth = await bcrypt.compare(password, user.password);
         if (auth) return user;
         throw Error("Incorrect password");

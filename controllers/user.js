@@ -19,6 +19,7 @@ function handleErrors(err) {
 
     if (err.message === 'User not found') {
         errors.email = 'Incorrect Username';
+        // console.log("H1");
         return errors;
     }
 
@@ -38,7 +39,7 @@ function handleErrors(err) {
         //     errors[properties.path] = properties.message;
         // });
     }
-  
+
     return errors;
 }
 
@@ -86,6 +87,7 @@ async function handleUserSignup (req, res) {
 
 async function handleUserLogin (req, res) {
     const { usernameOrEmail, password } = req.body;
+    // console.log("Hello wORLD");
     var input = "";
     validator.isEmail(usernameOrEmail) ? input="email" : input="username";
     

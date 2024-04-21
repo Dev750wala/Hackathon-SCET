@@ -127,9 +127,9 @@
                 console.log(data);
 
                 if (data.error) {
-                    emailError.textContent = data.errors.email;
-                    usernameError.textContent = data.errors.username;
-                    passwordError.textContent = data.errors.password;
+                    emailError.textContent = data.error.email;
+                    usernameError.textContent = data.error.username;
+                    passwordError.textContent = data.error.password;
                 }
                 if(data.user) {
                     location.assign("/");
