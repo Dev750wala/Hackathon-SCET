@@ -8,10 +8,61 @@
 <body>
     <h1>login</h1>
     <form action="POST">
-        <label for="usernameOrEmail">Email</label>
-        <input type="text" name="usernameOrEmail" placeholder="Enter email">
-        <label for="password">Password</label>
-        <input type="password" name="password" placeholder="Enter password">
+        <div>
+            <label for="usernameOrEmail">Email</label>
+            <input type="text" name="usernameOrEmail" placeholder="Enter email">
+            <label class="error email"></label>
+        </div>
+        <div>
+            <label for="password">Password</label>
+            <input type="password" name="password" placeholder="Enter password">
+            <label class="error password"></label>
+        </div>
+        <button type="submit">Login</button>
     </form>
+
+    <script>
+        const form = document.querySelector("form");
+        const emailError = document.querySelector(".error.email");
+        const passwordError = document.querySelector(".error.password");
+
+        // console.log("First Hello world");
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            emailError.textContent = '';
+            passwordError.textContent = '';
+            // console.log("second Hello world");
+
+            const usernameOrEmail = form.usernameOrEmail.value;
+            // const email = form.email.value;
+            const password = form.password.value;
+
+            try {
+                const res = await fetch('/user/signup', {
+                    method: 'POST',
+                    body: JSON.stringify({ 
+                        usernameOrEmail: usernameOrEmail,
+                        password: password, 
+                     }),
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const data = await res.json();
+                console.log(data);
+
+                if (data.error) {
+                    emailError.textContent = data.errors.email;
+                    passwordError.textContent = data.errors.password;
+                }
+                if(data.user) {
+                    location.assign(window.history.back());
+                }
+
+            } catch (err) {
+                console.log(err);
+            }
+        });
+
+    </script>
 </body>
 </html>

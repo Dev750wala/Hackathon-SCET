@@ -4,7 +4,7 @@
 
 const express = require("express");
 const router = express.Router();
-const { checkUser, requireAuth } = require("../middlewares/user")
+const { checkUser, requireAuth, requireRoleForCreatingHackathon } = require("../middlewares/user")
 
 router
     .get("/", checkUser, (req, res) => {

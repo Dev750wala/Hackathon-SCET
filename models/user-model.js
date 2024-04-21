@@ -84,15 +84,16 @@ const userSchema = new mongoose.Schema({
     }
 });
 
-userSchema.pre("save", async function(next) {
-    try {
-        const salt = await bcrypt.genSalt();
-        this.password = await bcrypt.hash(this.password, salt);
-        next();
-    } catch (error) {
-        next(error); 
-    }
-})
+// BHAI aama commnent out karje pacchi
+// userSchema.pre("save", async function(next) {
+//     try {
+//         const salt = await bcrypt.genSalt();
+//         this.password = await bcrypt.hash(this.password, salt);
+//         next();
+//     } catch (error) {
+//         next(error); 
+//     }
+// })
 
 userSchema.statics.login = async function (input, usernameOrEmail, password) {
     let user;

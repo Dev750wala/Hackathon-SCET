@@ -26,12 +26,12 @@ function handleErrors(err) {
         errors.password = 'Please enter the correct password';
         return errors;
     }
-  
+
     if (err.code === 11000) {
         errors.email = 'The email/id is already registered';
         return errors;
     }
-  
+
     if (err.message.includes('user validation failed')) {
         console.log(err.message);
         // Object.values(err.errors).forEach(({ properties }) => {
@@ -44,7 +44,7 @@ function handleErrors(err) {
 
 async function handleUserSignup (req, res) {
     const body = req.body;
-    console.log(body);
+    // console.log(body);
 
     try {
 
@@ -87,7 +87,7 @@ async function handleUserSignup (req, res) {
 async function handleUserLogin (req, res) {
     const { usernameOrEmail, password } = req.body;
     var input = "";
-    validator.isEmail(usernameOrEmail) ? input="email" : input="password";
+    validator.isEmail(usernameOrEmail) ? input="email" : input="username";
     
     try {
         const user = await USER.login(input, usernameOrEmail, password);

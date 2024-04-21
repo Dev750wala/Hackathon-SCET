@@ -7,10 +7,10 @@ const requireAuth = (req, res, next) => {
 
     if(token) {
         jwt.verify(token, keys.tokenSecretKey, (error, decodedToken) => {
-            error ? res.redirect("user/login") : next();
+            error ? res.redirect("/user/login") : next();
         })
     } else {
-        res.redirect("user/login");
+        res.redirect("/user/login");
     }
 }
 

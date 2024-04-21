@@ -36,12 +36,14 @@ async function handleCreateHackathon (req, res) {
             theme: obj.theme,
             techTags: obj.techTags,
         });
-
+        return res.status(201).json({
+            hackathon: newHackathon,
+        });
 
     } catch (error) {
         console.log(error);
     }
-    console.log("you are seeing the description of the hackathon");
+    // console.log("you are seeing the description of the hackathon");
 }
 
 module.exports = {
