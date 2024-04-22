@@ -97,7 +97,7 @@ userSchema.pre("save", async function(next) {
 
 userSchema.statics.login = async function (input, usernameOrEmail, password) {
     let user;
-
+    // console.log(password);
     if(input === "email") {
         user = await this.findOne({email: usernameOrEmail});
     } else {
@@ -107,6 +107,7 @@ userSchema.statics.login = async function (input, usernameOrEmail, password) {
     if(user) {
         // console.log(user);
         const auth = await bcrypt.compare(password, user.password);
+        // console.log(auth);
         if (auth) return user;
         throw Error("Incorrect password");
     }

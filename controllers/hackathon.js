@@ -22,7 +22,8 @@ async function handleCreateHackathon (req, res) {
     const obj = req.body;
 
     try {
-        const newHackathon = await new Hackathon({
+        const newHackathon = await Hackathon.create({
+            id: obj.id,
             name: obj.name,
             description: obj.description,
             start: obj.start,

@@ -5,10 +5,10 @@
 const express = require("express");
 const router = express.Router();
 const { handleShowAllHackathons, handleDescribeHackathon, handleCreateHackathon } = require("../controllers/hackathon");
-const { requireAuth, requireRoleForCreatingHackathon } = require("../middlewares/user");
+const { requireAuth, checkUser, requireRoleForCreatingHackathon } = require("../middlewares/user");
 
 router
-    .post("/createHackathon", requireAuth, requireRoleForCreatingHackathon, handleCreateHackathon)
+    .post("/createHackathon", requireAuth, checkUser, requireRoleForCreatingHackathon, handleCreateHackathon)
 
     .get("/", handleShowAllHackathons)
 

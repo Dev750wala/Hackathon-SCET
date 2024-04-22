@@ -5,8 +5,10 @@ const keys = require("../secrets/key");
 const requireAuth = (req, res, next) => {
     const token = req.cookies.jwt;
 
+    // console.log(token);
     if(token) {
-        jwt.verify(token, keys.tokenSecretKey, (error, decodedToken) => {
+        jwt.verify(token, keys.tokenSecretKey.key, (error, decodedToken) => {
+            console.log(error);
             error ? res.redirect("/user/login") : next();
         })
     } else {
@@ -40,6 +42,7 @@ const checkUser = (req, res, next) => {
 }
 
 const requireRoleForCreatingHackathon = (req, res, next) => {
+    // console.log(req);
     const role = req.user.role;
 
     if(role === "student") {
