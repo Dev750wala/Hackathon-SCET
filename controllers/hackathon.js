@@ -47,7 +47,6 @@ async function handleCreateHackathon (req, res) {
             description: obj.description,
             start: obj.start,
             end: obj.end,
-            // BHAI aama error aavi sake chhe, joje 👇
             organizer: req.user._id,
             maxParticipants: obj.maxParticipants,
             judges: obj.judges,
@@ -63,7 +62,6 @@ async function handleCreateHackathon (req, res) {
     } catch (error) {
         console.log(error);
     }
-    // console.log("you are seeing the description of the hackathon");
 }
 
 module.exports = {

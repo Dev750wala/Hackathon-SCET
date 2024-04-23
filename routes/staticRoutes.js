@@ -27,4 +27,6 @@ router
         res.render("create-new-hackathon");
     })
 
+    
+
 module.exports = router;

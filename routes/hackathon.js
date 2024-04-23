@@ -12,7 +12,11 @@ router
 
     .get("/", handleShowAllHackathons)
 
-    .get("/:hackathonId", handleDescribeHackathon);
+    .get("/:hackathonId", handleDescribeHackathon)
+
+    // .get("/join/:hackathonId", handleJoinHackathon)
+
+    // .post("/join/:hackathonId", handleJoinHackathon)
 
 
 module.exports = router;
