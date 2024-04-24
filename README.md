@@ -8,7 +8,7 @@
 * POST   /user/signup                       create new user
 * GET    /user/logout                       logout the user
 * GET    /user/:username                    show user profile
-* GET    /hackathon                         render the page where all the projects will be displayed
+* ```GET    /hackathon ```                        render the page where all the projects will be displayed
 * GET    /hackathon/:hackathonId            render the page for specific details about the project
 * POST   /hackathon/createHackathon         creates a new project
 
