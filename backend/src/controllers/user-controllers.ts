@@ -1,28 +1,16 @@
 import { Request, Response, json, response } from "express";
-import { IUser } from "../models/user_model";
 import USER from "../models/user_model";
 import { connectToDB, disConnectfromDB } from "../utilities/connection";
 import mongoose, { Date } from "mongoose";
 import jwt from "jsonwebtoken";
 // import { Strategy, ExtractJwt } from "passport-jwt";
 import validator from "validator";
-import { nanoid } from "nanoid"
+import { nanoid } from "../utilities/nanoid";
 import bcrypt from "bcrypt";
+import { sendMail } from "../utilities/mail";
+import { TokenUser, LoginRequestBody, SignupDetails, IUser, SocialLinks } from "../interfaces/user-interfaces";
 
-export interface TokenUser {
-    _id: mongoose.Schema.Types.ObjectId;
-    name: string;
-    role: string;
-    username: string;
-    email: string;
-    enrollmentNumber: string;
-    verified: boolean;
-}
 
-export interface LoginRequestBody {
-    enrollmentNumberOrEmail: string;
-    password: string;
-}
 
 function signToken(user: TokenUser) {
     const token = jwt.sign(user, process.env.JWT_STRING as string, {
@@ -33,7 +21,7 @@ function signToken(user: TokenUser) {
 }
 
 function tokenCheckUp(token: string) {
-    
+
     try {
         const decoded = jwt.verify(token, process.env.JWT_STRING as string) as TokenUser;
         return decoded;
@@ -43,11 +31,16 @@ function tokenCheckUp(token: string) {
     }
 }
 
-export async function handleUserSignup(req: Request<{}, {}, IUser>, res: Response) {
+export async function handleUserSignup(req: Request, res: Response) {
     await connectToDB();
-    const body: IUser = req.body;
-    
-    if( !validator.matches(body.email, "scet.ac.in")) {
+    const body: SignupDetails = req.body;
+    // console.log(body);
+
+    function getNullKeys<T extends object>(obj: T): (keyof T)[] {
+        return Object.keys(obj).filter(key => obj[key as keyof T] === null) as (keyof T)[];
+    }
+
+    if (!validator.matches(body.email, "scet.ac.in")) {
         return res.status(400).json({ invalidMail: "Please enter only SCET Email address" });
     }
 
@@ -57,17 +50,17 @@ export async function handleUserSignup(req: Request<{}, {}, IUser>, res: Respons
         const userWithSameEnrollment = await USER.findOne({ enrollmentNumber: body.enrollmentNumber });
 
         const duplication = {
-            email: userWithSameEmail? true : false,
-            username: userWithSameUsername? true : false,
-            enrollmentNumber: userWithSameEnrollment? true : false,
+            email: userWithSameEmail ? true : false,
+            username: userWithSameUsername ? true : false,
+            enrollmentNumber: userWithSameEnrollment ? true : false,
         };
 
-        if(Object.values(duplication).some(Boolean)) {
+        if (Object.values(duplication).some(Boolean)) {
             return res.status(400).json({ duplication: duplication });
         }
 
         const verificationString = await bcrypt.hash(nanoid(40), 10);
-        
+
         const newUser = await USER.create({
             enrollmentNumber: body.enrollmentNumber,
             username: body.username,
@@ -83,7 +76,8 @@ export async function handleUserSignup(req: Request<{}, {}, IUser>, res: Respons
                 linkedin: body.socialLinks?.linkedin,
                 github: body.socialLinks?.github,
             },
-            verificationCode: verificationString,
+            'verificationCode.code': verificationString,
+            'verificationCode.createdAt': Date.now(),
             verified: false,
         }) as IUser;
 
@@ -98,7 +92,8 @@ export async function handleUserSignup(req: Request<{}, {}, IUser>, res: Respons
         }
 
         const token = signToken(tokenObject);
-        return res.cookie("jwt_token", token).status(201).json({user: newUser});
+        sendMail(newUser);
+        return res.cookie("jwt_token", token).status(201).json({ user: newUser, message: "Please check your mail inbox to verofy your mail!" });
 
     } catch (error) {
         console.log(`Unexpected error occured during user signup: ${error}`);
@@ -125,8 +120,8 @@ export async function handleUserLogin(req: Request<{}, {}, LoginRequestBody>, re
             if (!user) {
                 return res.status(404).json({ message: "User Not Found" });
             }
-            
-            if(password === user.password) {
+
+            if (password === user.password) {
                 const tokenObject: TokenUser = {
                     _id: user._id as mongoose.Schema.Types.ObjectId,
                     name: user.fullName,
@@ -154,8 +149,8 @@ export async function handleUserLogin(req: Request<{}, {}, LoginRequestBody>, re
             if (!user) {
                 return res.status(404).json({ message: "User Not Found" });
             }
-            
-            if(password === user.password) {
+
+            if (password === user.password) {
                 const tokenObject: TokenUser = {
                     _id: user._id as mongoose.Schema.Types.ObjectId,
                     name: user.fullName,
@@ -200,16 +195,16 @@ export async function handleUserProfile(req: Request, res: Response) {
     try {
         const user = await USER.findOne({ username: username });
 
-        if(!user) {
+        if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
 
-        if( tokenUser && tokenUser.username === user.username ) {
+        if (tokenUser && tokenUser.username === user.username) {
             return res.status(200).json({ ...user, selfProfile: true })
         } else {
             return res.status(200).json({ ...user, selfProfile: false });
         }
-        
+
     } catch (error) {
         console.log(`Unexpected error occured: ${error}`);
         return res.status(500).json({ error: "Internal Server Error" });
@@ -217,8 +212,6 @@ export async function handleUserProfile(req: Request, res: Response) {
         await disConnectfromDB();
     }
 }
-
-
 
 export async function handleVerifyUserEmail(req: Request, res: Response) {
     const currentTime: number = Date.now();
@@ -231,18 +224,18 @@ export async function handleVerifyUserEmail(req: Request, res: Response) {
             { 'verificationCode.code': verificationString },
         );
 
-        if( !user ) {
+        if (!user) {
             return res.status(404).json({ error: "Invalid verification URL" });
         }
 
         const differenceInMilliseconds = currentTime - user.verificationCode?.createdAt;
-        const differenceInMinutes: number = Math.floor((differenceInMilliseconds) / (1000*60));
+        const differenceInMinutes: number = Math.floor((differenceInMilliseconds) / (1000 * 60));
 
-        if( differenceInMinutes > 20 ) {
+        if (differenceInMinutes > 20) {
             return res.status(400).json({ error: "Verification link expired" });
         }
 
-        const updatedUser = await USER.findByIdAndUpdate(user._id, 
+        const updatedUser = await USER.findByIdAndUpdate(user._id,
             { $set: { verified: true } },
             { new: true },
         );

@@ -18,7 +18,7 @@ interface ParticipationTeam extends mongoose.Document {
     teamMembers: mongoose.Types.ObjectId[] | TeamMember[];
 }
 
-export interface HackathonInterface extends mongoose.Document {
+interface IProject extends mongoose.Document {
     id: string;
     name: string;
     description: string;
@@ -26,15 +26,21 @@ export interface HackathonInterface extends mongoose.Document {
     end: Date;
     organizer: mongoose.Types.ObjectId;
     maxParticipants: number;
-    judges: Judge[];
+    judges: { name: string; userId?: mongoose.Types.ObjectId }[];
     prizes?: string;
     rulesAndRegulations: string;
     theme?: string;
-    techTags: TechnologyTag[];
-    participantTeam? : ParticipationTeam[];
+    techTags: { name: string }[];
+    participantTeam: {
+        name: string;
+        description: string;
+        teamMembers: mongoose.Types.ObjectId[];
+    };
+    status: 'planned' | 'ongoing' | 'completed';
 }
 
-const projectSchema = new mongoose.Schema({
+
+const projectSchema = new mongoose.Schema<IProject>({
         id: {
             type: String,
             required: true,
@@ -58,19 +64,24 @@ const projectSchema = new mongoose.Schema({
         },
         organizer: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'user'
+            ref: 'user',
+            required: true,
         },
         maxParticipants: {
             type: Number,
+            required: true,
         },
         judges: [
             {
                 name: {
                     type: String,
+                    required: true,
                 },
-            }
-            // type: mongoose.Schema.Types.ObjectId,
-            // ref: 'user',
+                userId: {
+                    type: mongoose.Schema.Types.ObjectId,
+                    ref: 'user',
+                },
+            },
         ],
         prizes: {
             type: String,
@@ -86,17 +97,30 @@ const projectSchema = new mongoose.Schema({
             {
                 name: {
                     type: String,
-                }
-            }
+                },
+            },
         ],
         participantTeam: {
-            name: String,
-            description: String,
-            teamMembers: [{
-                type: mongoose.Schema.Types.ObjectId,
-                ref: 'user',
-            }]
-        }
+            name: {
+                type: String,
+                required: true,
+            },
+            description: {
+                type: String,
+                required: true,
+            },
+            teamMembers: [
+                {
+                    type: mongoose.Schema.Types.ObjectId,
+                    ref: 'user',
+                },
+            ],
+        },
+        status: {
+            type: String,
+            enum: ['planned', 'ongoing', 'completed'],
+            default: 'planned',
+        },
     }, { timestamps: true },
 )
 

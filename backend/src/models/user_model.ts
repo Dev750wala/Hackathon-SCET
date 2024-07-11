@@ -1,46 +1,12 @@
-import mongoose, { NumberExpression } from "mongoose";
+import mongoose from "mongoose";
+import { IUser } from "../interfaces/user-interfaces";
 
-interface ParticipationHistory {
-    eventName: string;
-    date: string;
-    awards: string[];
-}
-
-interface SocialLinks {
-    linkedin?: string;
-    github?: string;
-}
-
-interface VerificationCode {
-    code: string;
-    createdAt: number;
-}
-
-export interface IUser extends mongoose.Document {
-    enrollmentNumber: string;
-    username: string;
-    password: string;
-    email: string;
-    role: 'student' | 'organizer';
-    fullName: string;
-    profile_pic?: string;
-    contact_no?: string;
-    skills?: string[];
-    biography?: string;
-    portfolio?: string;
-    socialLinks?: SocialLinks;
-    participationHistory?: ParticipationHistory[];
-    availability?: boolean;
-    registrationDate?: Date;
-    verified: boolean;
-    verificationCode: VerificationCode;
-}
 
 const userSchema = new mongoose.Schema<IUser>({
         enrollmentNumber: {
             type: String,
             unique: true,
-            required: true,
+            // required: true,
         },
         username: {
             type: String,
@@ -126,7 +92,6 @@ const userSchema = new mongoose.Schema<IUser>({
                 required: true,
                 default: Date.now(),
             },
-            required: true,
         }
     }, { timestamps: true },
 );

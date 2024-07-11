@@ -5,12 +5,12 @@
 
 import express from 'express';
 import { handleUserLogin, handleUserLogout, handleUserProfile, handleUserSignup, handleVerifyUserEmail } from '../controllers/user-controllers';
-import { onlyLoggedInUsers, checkUser } from '../middlewares/middleware';
+import { onlyLoggedInUsers, checkUser, checkFieldsEmptyOrNot } from '../middlewares/middleware';
 
 const userRoute: express.Router = express.Router();
 
 userRoute
-    .post("/signup", handleUserSignup)
+    .post("/signup", checkFieldsEmptyOrNot, handleUserSignup)
 
     .post("/login", handleUserLogin)
 

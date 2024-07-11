@@ -2,8 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import USER from "../models/user_model";
 import { connectToDB, disConnectfromDB } from "../utilities/connection";
 import jwt from "jsonwebtoken"
-import { TokenUser } from "../controllers/user-controllers";
-
+import { SignupDetails, TokenUser } from "../interfaces/user-interfaces";
 /**
  * middleware function for putting on the protected routes, those are only surfed by the logged in users.
  * @param {Object} req - Express request object
@@ -54,7 +53,6 @@ export async function onlyLoggedInUsers(req: Request, res: Response, next: NextF
     } finally {
         disConnectfromDB();
     }
-
     next();
 }
 
@@ -88,10 +86,27 @@ export async function onlyVerifiedEmails(req: Request, res: Response, next: Next
     const cookie: string = req.cookies?.jwt_token;
 
     const decodedToken: string | jwt.JwtPayload = jwt.verify(cookie, process.env.JWT_STRING);
-    const userFromToken: TokenUser = decodedToken as TokenUser;;
+    const userFromToken: TokenUser = decodedToken as TokenUser;
 
     if ( userFromToken.verified === false ) {
         return res.status(403).json({ message: "Email not verified" });
+    }
+    next();
+}
+
+export async function checkFieldsEmptyOrNot(req: Request, res: Response, next: NextFunction) {
+    const body: SignupDetails = req.body;
+
+    // These two are not compulsory to insert in the form..
+    
+    const optionalFields: (keyof SignupDetails)[] = ['portfolio', 'socialLinks'];
+
+    for (const key in body) {
+        if(!optionalFields.includes(key as keyof SignupDetails)) {
+            if (body[key as keyof SignupDetails] === "" || body[key as keyof SignupDetails] === undefined || body[key as keyof SignupDetails] === null) {
+                return res.status(400).json({ message: `The ${key} field is required` });
+            }
+        }
     }
     next();
 }
