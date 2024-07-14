@@ -5,7 +5,7 @@
 
 import express from 'express';
 import { handleUserLogin, handleUserLogout, handleUserProfile, handleUserSignup, handleVerifyUserEmail } from '../controllers/user-controllers';
-import { onlyLoggedInUsers, checkUser, checkFieldsEmptyOrNot } from '../middlewares/middleware';
+import { onlyLoggedInUsers, checkUser, checkFieldsEmptyOrNot } from '../middlewares/user-middleware';
 
 const userRoute: express.Router = express.Router();
 
@@ -14,7 +14,7 @@ userRoute
 
     .post("/login", handleUserLogin)
 
-    .get("/logout", handleUserLogout)
+    .post("/logout", handleUserLogout)
 
     // to see the other users' as well as their self profile
     .get("/:username", handleUserProfile)

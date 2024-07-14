@@ -1,43 +1,6 @@
 import mongoose from "mongoose";
+import { IProject } from "../interfaces/project-interfaces";
 
-interface Judge {
-    name: string;
-}
-
-interface TechnologyTag {
-    technology: string;
-}
-
-interface TeamMember {
-    _id: mongoose.Types.ObjectId;
-}
-
-interface ParticipationTeam extends mongoose.Document {
-    name: string;
-    description: string;
-    teamMembers: mongoose.Types.ObjectId[] | TeamMember[];
-}
-
-interface IProject extends mongoose.Document {
-    id: string;
-    name: string;
-    description: string;
-    start: Date;
-    end: Date;
-    organizer: mongoose.Types.ObjectId;
-    maxParticipants: number;
-    judges: { name: string; userId?: mongoose.Types.ObjectId }[];
-    prizes?: string;
-    rulesAndRegulations: string;
-    theme?: string;
-    techTags: { name: string }[];
-    participantTeam: {
-        name: string;
-        description: string;
-        teamMembers: mongoose.Types.ObjectId[];
-    };
-    status: 'planned' | 'ongoing' | 'completed';
-}
 
 
 const projectSchema = new mongoose.Schema<IProject>({

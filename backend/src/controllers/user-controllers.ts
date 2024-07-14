@@ -36,10 +36,6 @@ export async function handleUserSignup(req: Request, res: Response) {
     const body: SignupDetails = req.body;
     // console.log(body);
 
-    function getNullKeys<T extends object>(obj: T): (keyof T)[] {
-        return Object.keys(obj).filter(key => obj[key as keyof T] === null) as (keyof T)[];
-    }
-
     if (!validator.matches(body.email, "scet.ac.in")) {
         return res.status(400).json({ invalidMail: "Please enter only SCET Email address" });
     }

@@ -63,3 +63,15 @@ export interface SignupDetails {
     portfolio?: string;
     socialLinks?: SocialLinks;
 }
+
+
+/**
+ * Extending the express Request object with the IUser interface 
+ */
+declare global {
+    namespace Express {
+        interface Request {
+            user?: IUser | null;
+        }
+    }
+}

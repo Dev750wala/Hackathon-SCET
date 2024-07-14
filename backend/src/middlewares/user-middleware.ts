@@ -3,6 +3,7 @@ import USER from "../models/user_model";
 import { connectToDB, disConnectfromDB } from "../utilities/connection";
 import jwt from "jsonwebtoken"
 import { SignupDetails, TokenUser } from "../interfaces/user-interfaces";
+
 /**
  * middleware function for putting on the protected routes, those are only surfed by the logged in users.
  * @param {Object} req - Express request object
@@ -56,6 +57,14 @@ export async function onlyLoggedInUsers(req: Request, res: Response, next: NextF
     next();
 }
 
+
+/**
+ * 
+ * @param req 
+ * @param res 
+ * @param next 
+ * @returns If user is found then request is extended with the user object else req.user will be null
+ */
 export async function checkUser(req: Request, res: Response, next: NextFunction) {
     await connectToDB();
 
@@ -97,16 +106,20 @@ export async function onlyVerifiedEmails(req: Request, res: Response, next: Next
 export async function checkFieldsEmptyOrNot(req: Request, res: Response, next: NextFunction) {
     const body: SignupDetails = req.body;
 
-    // These two are not compulsory to insert in the form..
+    let emptyFields: string[] = [];
     
+    // These two are not compulsory to insert in the form..
     const optionalFields: (keyof SignupDetails)[] = ['portfolio', 'socialLinks'];
 
     for (const key in body) {
         if(!optionalFields.includes(key as keyof SignupDetails)) {
             if (body[key as keyof SignupDetails] === "" || body[key as keyof SignupDetails] === undefined || body[key as keyof SignupDetails] === null) {
-                return res.status(400).json({ message: `The ${key} field is required` });
+                emptyFields.push(key);
             }
         }
+    }
+    if(emptyFields.length > 0) {
+        return res.status(400).json({ emptyFields: emptyFields });
     }
     next();
 }
