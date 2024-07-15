@@ -20,7 +20,7 @@ export async function adminAuth(req: Request, res: Response, next: NextFunction)
         If admin is authenticated, call next()
         If admin is not authenticated, return an error response
     */
-    const adminCookie = req.cookies?.admin_jwt_token;
+    const adminCookie = req.cookies?.admin;
 
     if (!adminCookie) return res.status(401).json({ message: "You're prohibited!" });
 

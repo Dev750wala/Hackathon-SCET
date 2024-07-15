@@ -65,13 +65,3 @@ export interface SignupDetails {
 }
 
 
-/**
- * Extending the express Request object with the IUser interface 
- */
-declare global {
-    namespace Express {
-        interface Request {
-            user?: IUser | null;
-        }
-    }
-}

@@ -1,12 +1,13 @@
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken"
-import USER from "../models/user_model";
+import USER from "../models/user-model";
 import { connectToDB, disConnectfromDB } from "../utilities/connection";
 import validator from "validator";
 import bcrypt from "bcrypt"
 import { nanoid } from "../utilities/nanoid";
+import PROJECT from "../models/project-model";
 // Admin interfaces
-import { AdminTokenUser, AdminLoginRequestBody } from "../interfaces/admin-interafaces";
+import { AdminTokenUser, AdminLoginRequestBody, AdminPayload } from "../interfaces/admin-interafaces";
 import { ProjectCreationDetails, IProject } from "../interfaces/project-interfaces";
 
 function signToken(user: AdminTokenUser) {
@@ -35,14 +36,18 @@ export async function handleAdminAuth(req: Request, res: Response) {
 
     if (password !== process.env.ADMIN_PASSWORD) return res.status(401).json({ message: "Invalid admin password" });
 
+    const isAdmin: AdminPayload = {
+        isAdmin: true,
+    }
+    
     const token = jwt.sign(
-        { isAdmin: true },
+        isAdmin,
         process.env.ADMIN_JWT_STRING,
         { expiresIn: '1h' }
     );
-
+    
     // admin_token
-    res.cookie("admin_jwt_token", token, { httpOnly: true });
+    res.cookie("admin", token, { httpOnly: true });
     return res.status(200).json({ message: "Authenticated successfully" });
 }
 
@@ -108,7 +113,7 @@ export async function handleAdminSignup(req: Request, res: Response) {
         }
 
         const token = signToken(tokenObject);
-        return res.cookie("admin_jwt_token", token).status(201).json({ user: newUser });
+        return res.cookie("jwt_token", token).status(201).json({ user: newUser });
 
     } catch (error) {
         console.log(`Unexpected error occured during user signup: ${error}`);
@@ -167,7 +172,7 @@ export async function handleAdminLogin(req: Request, res: Response) {
             }
             const token = signToken(tokenObject);
 
-            return res.cookie("admin_jwt_token", token).status(200).json({ user: user });
+            return res.cookie("jwt_token", token).status(200).json({ user: user });
         }
 
     } catch (error) {
@@ -189,21 +194,49 @@ export async function handleAdminLogin(req: Request, res: Response) {
  *          }
  */
 export function handleAdminLogout(req: Request, res: Response) {
-    res.clearCookie("admin_jwt_token", { httpOnly: true, secure: true, sameSite: 'strict' });
-
+    res.clearCookie("jwt_token", { httpOnly: true, secure: true, sameSite: 'strict' });
+    res.clearCookie("admin", { httpOnly: true, secure: true, sameSite: 'strict'})
     return res.status(200).json({ message: "Logged out successfully" });
 }
 
 
+
+/**
+ * 
+ * @param req 
+ * @param res 
+ */
+// TODO add the middleware to check if all the necessary fields are filled up or not.
 export async function handleCreateProject(req: Request, res: Response) {
     const body: ProjectCreationDetails = req.body;
-
+    
+    
     await connectToDB();
 
     try {
-        // const newProject = await 
+        const id = nanoid(15);
+
+        const newProject = await PROJECT.create({
+            id: id,
+            name: body.name,
+            description: body.description,
+            start: body.start,
+            end: body.end,
+            organizer: req.user.id,
+            maxParticipants: body.maxParticipants,
+            judges: body.judges,
+            prizes: body.prizes,
+            rulesAndRegulations: body.rulesAndRegulations,
+            theme: body.theme,
+            techTags: body.techTags,
+            status: 'planned',
+        });
+
     } catch (error) {
-        
+        console.log(`Error creating project: ${error}`);
+        return res.status(500).json({ error: "Internal server error" });
+    } finally {
+        disConnectfromDB();
     }
 }
 

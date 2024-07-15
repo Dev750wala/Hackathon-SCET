@@ -1,5 +1,5 @@
 import { Request, Response, json, response } from "express";
-import USER from "../models/user_model";
+import USER from "../models/user-model";
 import { connectToDB, disConnectfromDB } from "../utilities/connection";
 import mongoose, { Date } from "mongoose";
 import jwt from "jsonwebtoken";

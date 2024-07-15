@@ -1,8 +1,29 @@
 import { Request, Response, NextFunction } from "express";
-import USER from "../models/user_model";
+import USER from "../models/user-model";
 import { connectToDB, disConnectfromDB } from "../utilities/connection";
 import jwt from "jsonwebtoken"
-import { SignupDetails, TokenUser } from "../interfaces/user-interfaces";
+import { SignupDetails, TokenUser, IUser } from "../interfaces/user-interfaces";
+
+
+/**
+ * Extending the express Request object with the IUser interface. 
+ * I'm not sure, but I think here admin will also be seen as a user, because the schema of the both is same, so no need to worrym.
+ * 
+ * TODO just add the middleware in app.ts then the express request is modified with extended user.
+ *  TWO CASES:
+ *      1) if declared globally, then no need to specify the interface in route controllers. they are extended by default
+ *      
+ *      2) if declared individually, then we have to extend it by the new interface name. 
+ *          ex. req: ModifiedReqest
+ */
+declare global {
+    namespace Express {
+        interface Request {
+            user?: IUser | null;
+        }
+    }
+}
+
 
 /**
  * middleware function for putting on the protected routes, those are only surfed by the logged in users.
@@ -14,7 +35,7 @@ import { SignupDetails, TokenUser } from "../interfaces/user-interfaces";
 export async function onlyLoggedInUsers(req: Request, res: Response, next: NextFunction) {
     const cookie = req.cookies?.jwt_token;
 
-    if ( !cookie ) {
+    if (!cookie) {
         /*
             if no cookie found named "jwt_token", redirect user to login page
         */
@@ -41,7 +62,7 @@ export async function onlyLoggedInUsers(req: Request, res: Response, next: NextF
 
     try {
         const user = await USER.findById(userFromToken._id);
-        if(!user) {
+        if (!user) {
             disConnectfromDB();
             // redirect user back to the login page.
             return res.status(404).json({ message: "User not found" })
@@ -66,29 +87,36 @@ export async function onlyLoggedInUsers(req: Request, res: Response, next: NextF
  * @returns If user is found then request is extended with the user object else req.user will be null
  */
 export async function checkUser(req: Request, res: Response, next: NextFunction) {
-    await connectToDB();
-
+    
     const cookie = req.cookies?.jwt_token;
-    try {
-        const userFromToken: string | jwt.JwtPayload = jwt.verify(cookie, process.env.JWT_STRING);
-
-        if (typeof userFromToken === 'object') {
-            const user = await USER.findById(userFromToken._id);
-            if(user) {
-                req.user = user;
-                next();
+    await connectToDB();
+    
+    if (!cookie) {
+        req.user = null;
+    } else {
+        try {
+            const userFromToken: string | jwt.JwtPayload = jwt.verify(cookie, process.env.JWT_STRING);
+            
+            if (typeof userFromToken === 'object') {
+                // ERROR might to be occur.
+                const user = await USER.findOne({ email: userFromToken.email });
+                if (user) {
+                    req.user = user;
+                } else {
+                    req.user = null;
+                }
             } else {
-                req.user = undefined;
+                req.user = null;
             }
-        } else {
-            req.user = undefined;
+        } catch (error) {
+            disConnectfromDB();
+            console.error("Error connecting to DB", error);
+            return res.status(500).json({ message: "Internal server error" });
+        } finally {
+            disConnectfromDB();
         }
-
-    } catch (error) {
-        disConnectfromDB();
-        console.error("Error connecting to DB", error);
-        return res.status(500).json({ message: "Internal server error" });
     }
+    next();
 }
 
 export async function onlyVerifiedEmails(req: Request, res: Response, next: NextFunction) {
@@ -97,7 +125,7 @@ export async function onlyVerifiedEmails(req: Request, res: Response, next: Next
     const decodedToken: string | jwt.JwtPayload = jwt.verify(cookie, process.env.JWT_STRING);
     const userFromToken: TokenUser = decodedToken as TokenUser;
 
-    if ( userFromToken.verified === false ) {
+    if (userFromToken.verified === false) {
         return res.status(403).json({ message: "Email not verified" });
     }
     next();
@@ -107,18 +135,18 @@ export async function checkFieldsEmptyOrNot(req: Request, res: Response, next: N
     const body: SignupDetails = req.body;
 
     let emptyFields: string[] = [];
-    
+
     // These two are not compulsory to insert in the form..
     const optionalFields: (keyof SignupDetails)[] = ['portfolio', 'socialLinks'];
 
     for (const key in body) {
-        if(!optionalFields.includes(key as keyof SignupDetails)) {
+        if (!optionalFields.includes(key as keyof SignupDetails)) {
             if (body[key as keyof SignupDetails] === "" || body[key as keyof SignupDetails] === undefined || body[key as keyof SignupDetails] === null) {
                 emptyFields.push(key);
             }
         }
     }
-    if(emptyFields.length > 0) {
+    if (emptyFields.length > 0) {
         return res.status(400).json({ emptyFields: emptyFields });
     }
     next();
