@@ -210,6 +210,8 @@ export function handleAdminLogout(req: Request, res: Response) {
 export async function handleCreateProject(req: Request, res: Response) {
     const body: ProjectCreationDetails = req.body;
     
+    // TODO add the middleware in admin to controllers like createProject and anything related to project
+    // that the user must be authenticated (bypass admin password and bypass admin account)
     
     await connectToDB();
 
