@@ -7,7 +7,6 @@ declare namespace NodeJS {
         NODEMAILER_EMAIL: string;
         NODEMAILER_PASSWORD: string;
         JWT_STRING: string;
-        ADMIN_JWT_STRING: string
         ADMIN_PASSWORD: string;
     }
 }

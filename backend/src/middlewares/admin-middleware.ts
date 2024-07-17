@@ -25,7 +25,7 @@ export async function adminAuth(req: Request, res: Response, next: NextFunction)
     if (!adminCookie) return res.status(401).json({ message: "You're prohibited!" });
 
     try {
-        const decoded = jwt.verify(adminCookie, process.env.ADMIN_JWT_STRING) as AdminPayload;
+        const decoded = jwt.verify(adminCookie, process.env.JWT_STRING) as AdminPayload;
 
         /* 
             Check if the admin is authenticated by verifying the token.

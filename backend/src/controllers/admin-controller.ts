@@ -11,7 +11,7 @@ import { AdminTokenUser, AdminLoginRequestBody, AdminPayload } from "../interfac
 import { ProjectCreationDetails, IProject } from "../interfaces/project-interfaces";
 
 function signToken(user: AdminTokenUser) {
-    const token = jwt.sign(user, process.env.ADMIN_JWT_STRING as string, {
+    const token = jwt.sign(user, process.env.JWT_STRING as string, {
         expiresIn: '1h',
     })
 
@@ -39,13 +39,13 @@ export async function handleAdminAuth(req: Request, res: Response) {
     const isAdmin: AdminPayload = {
         isAdmin: true,
     }
-    
+
     const token = jwt.sign(
         isAdmin,
-        process.env.ADMIN_JWT_STRING,
+        process.env.JWT_STRING,
         { expiresIn: '1h' }
     );
-    
+
     // admin_token
     res.cookie("admin", token, { httpOnly: true });
     return res.status(200).json({ message: "Authenticated successfully" });
@@ -195,7 +195,7 @@ export async function handleAdminLogin(req: Request, res: Response) {
  */
 export function handleAdminLogout(req: Request, res: Response) {
     res.clearCookie("jwt_token", { httpOnly: true, secure: true, sameSite: 'strict' });
-    res.clearCookie("admin", { httpOnly: true, secure: true, sameSite: 'strict'})
+    res.clearCookie("admin", { httpOnly: true, secure: true, sameSite: 'strict' })
     return res.status(200).json({ message: "Logged out successfully" });
 }
 
@@ -204,19 +204,31 @@ export function handleAdminLogout(req: Request, res: Response) {
 /**
  * 
  * @param req 
- * @param res 
+ * @param res
+ * @returns Codes : {
+ *      201 - project created
+ *      302 - jwt_token cookie not found/ cookie not verified
+ *      400 - empty fields in the form / dateError("startDate > endDate"error)
+ *      401 - prohibited / Unauthorized access, invalid token
+ *      403 - forbidden
+ *      404 - user not found
+ *      500 - server error
+ * } 
  */
-// TODO add the middleware to check if all the necessary fields are filled up or not.
 export async function handleCreateProject(req: Request, res: Response) {
     const body: ProjectCreationDetails = req.body;
-    
-    // TODO add the middleware in admin to controllers like createProject and anything related to project
-    // that the user must be authenticated (bypass admin password and bypass admin account)
-    
+
     await connectToDB();
 
     try {
         const id = nanoid(15);
+
+        const startDate = new Date(body.start);
+        const endDate = new Date(body.end);
+
+        if (startDate.getTime() <= endDate.getTime()) {
+            return res.status(400).json({ dateError: "Start date must be before end date" });
+        }
 
         const newProject = await PROJECT.create({
             id: id,
@@ -224,15 +236,18 @@ export async function handleCreateProject(req: Request, res: Response) {
             description: body.description,
             start: body.start,
             end: body.end,
-            organizer: req.user.id,
+            organizer: req.user?.id,
             maxParticipants: body.maxParticipants,
             judges: body.judges,
             prizes: body.prizes,
             rulesAndRegulations: body.rulesAndRegulations,
             theme: body.theme,
             techTags: body.techTags,
-            status: 'planned',
+            status: Date.now() < startDate.getTime() ? 'planned' : 'ongoing',
         });
+
+        return res.status(201).json({ message: "Project created!", project: newProject });
+
 
     } catch (error) {
         console.log(`Error creating project: ${error}`);
@@ -244,7 +259,64 @@ export async function handleCreateProject(req: Request, res: Response) {
 
 
 export async function handleUpdateAdminProfile(req: Request, res: Response) {
+    await connectToDB();
 
+    const { username, email, password, fullName, contact_no, skills, biography, socialLinks } = req.body;
+
+    if (!validator.matches(email, "scet.ac.in")) {
+        return res.status(400).json({ invalidMail: "Please enter only SCET Email address" });
+    }
+
+    try {
+        const userWithSameEmail = await USER.findOne({ email: email });
+        const userWithSameUsername = await USER.findOne({ username: username });
+
+        const duplication = {
+            email: userWithSameEmail ? true : false,
+            username: userWithSameUsername ? true : false,
+        };
+
+        if (Object.values(duplication).some(Boolean)) {
+            return res.status(400).json({ duplication: duplication });
+        }
+
+        const verificationString = await bcrypt.hash(nanoid(40), 10);
+
+        const newUser = await USER.create({
+            username: username,
+            email: email,
+            password: password,
+            biography: biography,
+            fullName: fullName,
+            contact_no: contact_no,
+            role: "organizer",
+            skills: skills,
+            socialLinks: {
+                linkedin: socialLinks?.linkedin,
+                github: socialLinks?.github,
+            },
+            'verificationCode.code': verificationString,
+            'verificationCode.createdAt': Date.now(),
+            verified: true,
+        });
+
+        const tokenObject: AdminTokenUser = {
+            name: newUser.fullName,
+            role: newUser.role,
+            username: newUser.username,
+            email: newUser.email,
+        }
+
+        const token = signToken(tokenObject);
+        return res.cookie("jwt_token", token).status(201).json({ user: newUser });
+
+    } catch (error) {
+        console.log(`Unexpected error occured during user signup: ${error}`);
+        return res.status(500).json({ error: "Internal Server Error" });
+
+    } finally {
+        await disConnectfromDB();
+    }
 }
 
 
