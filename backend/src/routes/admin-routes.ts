@@ -28,9 +28,9 @@ adminRoute
 
     .put("/update-profile", adminAuth, onlyLoggedInUsers, checkAdminSignupFieldsEmptyOrNot, handleUpdateAdminProfile)
 
-    .delete("/projects/:projectId", adminAuth, onlyLoggedInUsers, handleDeleteProject)
-
     .put("/projects/:projectId", adminAuth, onlyLoggedInUsers, handleUpdateProject)
+    
+    .delete("/projects/:projectId", adminAuth, onlyLoggedInUsers, handleDeleteProject)
 
     .get("/my-projects", adminAuth, onlyLoggedInUsers, handleListMyProjects);
 

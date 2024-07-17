@@ -57,7 +57,7 @@ export async function handleAdminAuth(req: Request, res: Response) {
  * @param res 
  * @returns Codes: { 
  *                  201: "created successfully"
- *                  400: "Invalid email"
+ *                  400: "Invalid email" / duplicate fields found
  *                  401: "Admin cookie not found", 
  *                  403: "Not a admin", 
  *                  500: "Internal server error" 
