@@ -27,3 +27,11 @@ export interface AdminLoginRequestBody {
     password: string;
 }
 
+export interface AdminUpdateProfileRequest {
+    username : string;
+    fullName : string;
+    contact_no : string;
+    skills : string[];
+    biography : string;
+    socialLinks?: SocialLinks;
+}
