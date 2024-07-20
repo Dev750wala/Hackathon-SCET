@@ -334,6 +334,22 @@ export async function handleUpdateAdminProfile(req: Request, res: Response) {
 }
 
 
+/**
+ * 
+ * @param req : Express request object
+ * @param res : Express response object
+ * @returns Codes: {
+ *      401 - message: "You're prohibited!",
+ *      403 - message: "Forbidden",
+ *      500 - message: "Internal server error",
+ *      302 - message: "No cookie found"
+ *      302 - message: "Error in verifying token"
+ *      401 - message: "Unauthorized access, invalid token"
+ *      404 - message: "User not found"
+ *      404 - projectNotFound:  "Project not found"
+ *      200 - message: "Project deleted successfully"
+ * }
+ */
 export async function handleDeleteProject(req: Request, res: Response) {
     const projectId = req.params.projectId;
 
@@ -355,18 +371,20 @@ export async function handleDeleteProject(req: Request, res: Response) {
         const project = await PROJECT.findOne({ id: projectId });
 
         if (!project) {
-            return res.status(404).json({ message: "Project not found" });
+            return res.status(404).json({ projectNotFound: "Project not found" });
         }
 
-        // only organizer can control the project stuff. (delete, update, modify)
-        if (user?.role!== 'organizer' && user?.id!== project.organizer) {
+        // only organizer can control the project stuff. (delete, 1111111111111update, modify)
+        if (user?.role !== 'organizer' && user?.id !== project.organizer) {
             return res.status(403).json({ message: "Forbidden" });
         }
 
         const deleteProject = await PROJECT.deleteOne({ id: projectId });
 
         // TODO continue..
-        // if(deleteProject.)
+        if (deleteProject.acknowledged) {
+            return res.status(200).json({ message: "Project deleted successfully" });
+        }
 
     } catch (error) {
         console.log(`Unexpected error occured during deleting the project: ${error}`);
@@ -375,12 +393,63 @@ export async function handleDeleteProject(req: Request, res: Response) {
 }
 
 
+// all the upgradation or updation of propfile or project will be handled by the PUT request.
+// Now PUT request is all about changing the whole document with another one. so, when the user/faculty want to change something, rest of the fields will remain unchanged. so the request from the frontend should contain all the fields, even if user/faculty want to change something.
+
+// TODO fix this later.
 export async function handleUpdateProject(req: Request, res: Response) {
+
+    // TODO
+    const body: ProjectCreationDetails = req.body;
+    await connectToDB();
+
+    try {
+
+        const startDate = new Date(body.start);
+        const endDate = new Date(body.end);
+
+        if (startDate.getTime() <= endDate.getTime()) {
+            return res.status(400).json({ dateError: "Start date must be before end date" });
+        }
+
+        
+
+        const newProject = await PROJECT.create({
+            name: body.name,
+            description: body.description,
+            start: body.start,
+            end: body.end,
+            organizer: req.user?.id,
+            maxParticipants: body.maxParticipants,
+            judges: body.judges,
+            prizes: body.prizes,
+            rulesAndRegulations: body.rulesAndRegulations,
+            theme: body.theme,
+            techTags: body.techTags,
+            status: Date.now() < startDate.getTime() ? 'planned' : 'ongoing',
+        });
+
+        return res.status(201).json({ message: "Project created!", project: newProject });
+
+
+    } catch (error) {
+        console.log(`Error creating project: ${error}`);
+        return res.status(500).json({ error: "Internal server error" });
+    } finally {
+        disConnectfromDB();
+    }
 
 }
 
 
 export async function handleListMyProjects(req: Request, res: Response) {
+    await connectToDB();
 
+    try {
+        // const 
+    } catch (error) {
+        console.log(`Internal server error while listing all the projects: ${error}`);
+        return res.status(500).json({ error: "Internal Server Error" });
+    }
 }
 

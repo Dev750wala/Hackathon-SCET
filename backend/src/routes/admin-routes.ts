@@ -30,7 +30,7 @@ adminRoute
 
     .delete("/projects/:projectId", adminAuth, onlyLoggedInUsers, handleDeleteProject)
     
-    .put("/projects/:projectId", adminAuth, onlyLoggedInUsers, handleUpdateProject)
+    .patch("/projects/:projectId", adminAuth, onlyLoggedInUsers, handleUpdateProject)
 
     .get("/my-projects", adminAuth, onlyLoggedInUsers, handleListMyProjects);
 
