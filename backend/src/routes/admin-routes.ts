@@ -9,7 +9,7 @@
 // list my created projects	    GET	    /admin/my-projects
 
 import express from 'express';
-import { handleAdminLogin, handleAdminLogout, handleAdminSignup, handleCreateProject, handleDeleteProject, handleListMyProjects, handleUpdateAdminProfile, handleUpdateProject, handleAdminAuth } from '../controllers/admin-controller';
+import { handleAdminLogin, handleAdminLogout, handleAdminSignup, handleCreateProject, handleDeleteProject, handleListMyProjects, handleUpdateAdminProfile, handleAdminAuth } from '../controllers/admin-controller';
 import { adminAuth, checkAdminSignupFieldsEmptyOrNot, checkProjectCreationFieldsEmptyOrNot } from "../middlewares/admin-middleware"
 import { onlyLoggedInUsers } from '../middlewares/user-middleware';
 
@@ -30,7 +30,7 @@ adminRoute
 
     .delete("/projects/:projectId", adminAuth, onlyLoggedInUsers, handleDeleteProject)
     
-    .patch("/projects/:projectId", adminAuth, onlyLoggedInUsers, handleUpdateProject)
+    // .patch("/projects/:projectId", adminAuth, onlyLoggedInUsers, handleUpdateProject)
 
     .get("/my-projects", adminAuth, onlyLoggedInUsers, handleListMyProjects);
 

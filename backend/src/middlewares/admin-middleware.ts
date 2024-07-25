@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
+import jwt, { Secret } from "jsonwebtoken";
 import { AdminPayload, AdminSignupDetails } from "../interfaces/admin-interafaces";
 import { ProjectCreationDetails } from "../interfaces/project-interfaces";
 
@@ -20,12 +20,13 @@ export async function adminAuth(req: Request, res: Response, next: NextFunction)
         If admin is authenticated, call next()
         If admin is not authenticated, return an error response
     */
+
     const adminCookie = req.cookies?.admin;
 
     if (!adminCookie) return res.status(401).json({ message: "You're prohibited!" });
 
     try {
-        const decoded = jwt.verify(adminCookie, process.env.JWT_STRING) as AdminPayload;
+        const decoded = jwt.verify(adminCookie, process.env.JWT_STRING as Secret) as AdminPayload;
 
         /* 
             Check if the admin is authenticated by verifying the token.
@@ -40,9 +41,9 @@ export async function adminAuth(req: Request, res: Response, next: NextFunction)
         } else {
             return res.status(403).json({ message: 'Forbidden' });
         }
-    } catch (error: any) {
-        console.log(`Error in vefifying the admin token: ${error}`);
-        return res.status(500).json({ error: "Internal server error" })
+    } catch (error: unknown) {
+        console.log(`Error in verifying the admin token: ${error}`);
+        return res.status(500).json({ error: "Internal server error" });
     }
 }
 
@@ -55,24 +56,39 @@ export async function adminAuth(req: Request, res: Response, next: NextFunction)
  * @returns if any of the required field is empty in the signup form, it will return back, else call next function  
  */
 export async function checkAdminSignupFieldsEmptyOrNot(req: Request, res: Response, next: NextFunction) {
-    const body: AdminSignupDetails = req.body;
+    const body: Partial<AdminSignupDetails> = req.body;
+
+    if (!body) {
+        return res.status(400).json({ message: "Please insert the required fields" });
+    }
 
     let emptyFields: string[] = [];
 
     // This field is not necessary to insert in the form..
     const optionalFields: (keyof AdminSignupDetails)[] = ['socialLinks'];
 
-    for (const key in body) {
-        if (!optionalFields.includes(key as keyof AdminSignupDetails)) {
-            if (body[key as keyof AdminSignupDetails] === "" || body[key as keyof AdminSignupDetails] === undefined || body[key as keyof AdminSignupDetails] === null) {
-                emptyFields.push(key);
-            }
+    const requiredFields: (keyof AdminSignupDetails)[] = [
+        'username',
+        'email',
+        'password',
+        'fullName',
+        'contact_no',
+        'skills',
+        'biography'
+    ];
+
+    for (const field of requiredFields) {
+        if (body[field] === "" || body[field] === undefined || body[field] === null) {
+            emptyFields.push(field);
         }
     }
+
     if (emptyFields.length > 0) {
-        return res.status(400).json({ emptyFields: emptyFields });
+        return res.status(400).json({ message: "Please fill in the required fields", emptyFields });
     }
+
     next();
+
 }
 
 /**
@@ -92,7 +108,7 @@ export function checkProjectCreationFieldsEmptyOrNot(req: Request, res: Response
 
     for (const key in body) {
         if (!optionalFields.includes(key as keyof ProjectCreationDetails)) {
-            if (body[key as keyof ProjectCreationDetails] === "" || body[key as keyof ProjectCreationDetails] === undefined || body[key as keyof ProjectCreationDetails] ===    null) {
+            if (body[key as keyof ProjectCreationDetails] === "" || body[key as keyof ProjectCreationDetails] === undefined || body[key as keyof ProjectCreationDetails] === null) {
                 emptyFields.push(key);
             }
         }

@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import jwt from "jsonwebtoken"
+import jwt, { Secret } from "jsonwebtoken"
 import USER from "../models/user-model";
 import { connectToDB, disConnectfromDB } from "../utilities/connection";
 import validator from "validator";
@@ -9,7 +9,7 @@ import PROJECT from "../models/project-model";
 // Admin interfaces
 import { AdminTokenUser, AdminLoginRequestBody, AdminPayload, AdminUpdateProfileRequest } from "../interfaces/admin-interafaces";
 import { ProjectCreationDetails, IProject } from "../interfaces/project-interfaces";
-import { IUser } from "../interfaces/user-interfaces";
+import { IUser, TokenUser } from "../interfaces/user-interfaces";
 
 function signToken(user: AdminTokenUser) {
     const token = jwt.sign(user, process.env.JWT_STRING as string, {
@@ -32,9 +32,13 @@ function signToken(user: AdminTokenUser) {
  */
 export async function handleAdminAuth(req: Request, res: Response) {
     const { password } = req.body;
+    // console.log("hello world1");
+    // console.log(req);
+    
 
     if (!password) return res.status(400).json({ message: "Password is required" });
 
+    // console.log("hello world2");
     if (password !== process.env.ADMIN_PASSWORD) return res.status(401).json({ message: "Invalid admin password" });
 
     const isAdmin: AdminPayload = {
@@ -43,12 +47,12 @@ export async function handleAdminAuth(req: Request, res: Response) {
 
     const token = jwt.sign(
         isAdmin,
-        process.env.JWT_STRING,
+        process.env.JWT_STRING as string,
         { expiresIn: '1h' }
     );
 
     // admin_token
-    res.cookie("admin", token, { httpOnly: true });
+    res.cookie("admin", token, { httpOnly: true, maxAge: 1000*60*60 });
     return res.status(200).json({ message: "Authenticated successfully" });
 }
 
@@ -59,6 +63,7 @@ export async function handleAdminAuth(req: Request, res: Response) {
  * @returns Codes: { 
  *                  201: "created successfully"
  *                  400: "Invalid email" / duplicate fields found
+ *                  400:  message: "Please insert the required fields"
  *                  401: "Admin cookie not found", 
  *                  403: "Not a admin", 
  *                  500: "Internal server error" 
@@ -67,11 +72,15 @@ export async function handleAdminAuth(req: Request, res: Response) {
 export async function handleAdminSignup(req: Request, res: Response) {
     await connectToDB();
 
+    // console.log(req.body);
+    
+
     const { username, email, password, fullName, contact_no, skills, biography, socialLinks } = req.body;
 
     if (!validator.matches(email, "scet.ac.in")) {
         return res.status(400).json({ invalidMail: "Please enter only SCET Email address" });
     }
+
 
     try {
         const userWithSameEmail = await USER.findOne({ email: email });
@@ -121,7 +130,7 @@ export async function handleAdminSignup(req: Request, res: Response) {
         return res.status(500).json({ error: "Internal Server Error" });
 
     } finally {
-        await disConnectfromDB();
+        disConnectfromDB();
     }
 }
 
@@ -221,7 +230,18 @@ export async function handleCreateProject(req: Request, res: Response) {
 
     await connectToDB();
 
+    const cookie = req.cookies.jwt_token;
+
+    const userFromToken = jwt.verify(cookie, process.env.JWT_STRING as Secret) as AdminTokenUser;
+    
+    if(!userFromToken) {
+        return res.status(302).json({ error: "jwt_token cookie not found or cookie not verified" });
+    }
+
     try {
+
+        const projectCreator = await USER.findOne({ email: userFromToken.email });
+
         const id = nanoid(15);
 
         const startDate = new Date(body.start);
@@ -237,7 +257,7 @@ export async function handleCreateProject(req: Request, res: Response) {
             description: body.description,
             start: body.start,
             end: body.end,
-            organizer: req.user?.id,
+            organizer: projectCreator?._id,
             maxParticipants: body.maxParticipants,
             judges: body.judges,
             prizes: body.prizes,
@@ -283,7 +303,7 @@ export async function handleUpdateAdminProfile(req: Request, res: Response) {
 
     try {
         const cookie = req.cookies?.jwt_token;
-        const userFromToken: jwt.JwtPayload | string = jwt.verify(cookie, process.env.JWT_STRING);
+        const userFromToken: jwt.JwtPayload | string = jwt.verify(cookie, process.env.JWT_STRING as Secret);
 
         // condition never gonna be true, because of middleaware.
         if (typeof userFromToken !== "object" || !userFromToken.id) {
@@ -355,7 +375,7 @@ export async function handleDeleteProject(req: Request, res: Response) {
 
 
     const cookie = req.cookies?.jwt_token;
-    const userFromToken: jwt.JwtPayload | string = jwt.verify(cookie, process.env.JWT_STRING);
+    const userFromToken: jwt.JwtPayload | string = jwt.verify(cookie, process.env.JWT_STRING as Secret);
 
     // condition never gonna be true, because of middleaware.
     if (typeof userFromToken !== "object" || !userFromToken.id) {
@@ -397,59 +417,106 @@ export async function handleDeleteProject(req: Request, res: Response) {
 // Now PUT request is all about changing the whole document with another one. so, when the user/faculty want to change something, rest of the fields will remain unchanged. so the request from the frontend should contain all the fields, even if user/faculty want to change something.
 
 // TODO fix this later.
-export async function handleUpdateProject(req: Request, res: Response) {
+// export async function handleUpdateProject(req: Request, res: Response) {
 
-    // TODO
-    const body: ProjectCreationDetails = req.body;
-    await connectToDB();
+//     // TODO
+//     const body: ProjectCreationDetails = req.body;
+//     await connectToDB();
 
-    try {
+//     try {
 
-        const startDate = new Date(body.start);
-        const endDate = new Date(body.end);
+//         const startDate = new Date(body.start);
+//         const endDate = new Date(body.end);
 
-        if (startDate.getTime() <= endDate.getTime()) {
-            return res.status(400).json({ dateError: "Start date must be before end date" });
-        }
+//         if (startDate.getTime() <= endDate.getTime()) {
+//             return res.status(400).json({ dateError: "Start date must be before end date" });
+//         }
 
         
 
-        const newProject = await PROJECT.create({
-            name: body.name,
-            description: body.description,
-            start: body.start,
-            end: body.end,
-            organizer: req.user?.id,
-            maxParticipants: body.maxParticipants,
-            judges: body.judges,
-            prizes: body.prizes,
-            rulesAndRegulations: body.rulesAndRegulations,
-            theme: body.theme,
-            techTags: body.techTags,
-            status: Date.now() < startDate.getTime() ? 'planned' : 'ongoing',
-        });
+//         const newProject = await PROJECT.create({
+//             name: body.name,
+//             description: body.description,
+//             start: body.start,
+//             end: body.end,
+//             organizer: req.user?.id,
+//             maxParticipants: body.maxParticipants,
+//             judges: body.judges,
+//             prizes: body.prizes,
+//             rulesAndRegulations: body.rulesAndRegulations,
+//             theme: body.theme,
+//             techTags: body.techTags,
+//             status: Date.now() < startDate.getTime() ? 'planned' : 'ongoing',
+//         });
 
-        return res.status(201).json({ message: "Project created!", project: newProject });
-
-
-    } catch (error) {
-        console.log(`Error creating project: ${error}`);
-        return res.status(500).json({ error: "Internal server error" });
-    } finally {
-        disConnectfromDB();
-    }
-
-}
+//         return res.status(201).json({ message: "Project created!", project: newProject });
 
 
+//     } catch (error) {
+//         console.log(`Error creating project: ${error}`);
+//         return res.status(500).json({ error: "Internal server error" });
+//     } finally {
+//         disConnectfromDB();
+//     }
+
+// }
+
+
+/**
+ * 
+ * @param req : Express request object
+ * @param res : Express response object
+ * @returns Codes: {
+ *      401 - message: "You're prohibited!",
+ *      403 - message: "Forbidden",
+ *      500 - message: "Internal server error",
+ *      302 - message: "No cookie found"
+ *      302 - message: "Error in verifying token"
+ *      401 - message: "Unauthorized access, invalid token"
+ *      404 - message: "User not found"
+ *      404 - projectNotFound:  "Project not found"
+ *      200 - allProjects: resultArray
+ * }
+ */
 export async function handleListMyProjects(req: Request, res: Response) {
     await connectToDB();
+    const cookie = req.cookies?.jwt_token;
+    const userFromToken: jwt.JwtPayload | string = jwt.verify(cookie, process.env.JWT_STRING as Secret);
+
+    // condition never gonna be true, because of middleaware.
+    if (typeof userFromToken !== "object" || !userFromToken.id) {
+        return res.status(401).json({ message: "Unauthorized access" });
+    }
 
     try {
-        // const 
+        const user = await USER.findOne({ email: userFromToken.email });
+
+        const projects: IProject[] | null | undefined = await PROJECT.find({ organizer: user?._id });
+        
+        const resultArray = projects.map(project => {
+            return {
+                id: project.id,
+                name: project.name,
+                description: project.description,
+                start: project.start,
+                end: project.end,
+                organizer: project.organizer,
+                maxParticipants: project.maxParticipants,
+                rulesAndRegulations: project.rulesAndRegulations,
+                theme: project.theme,
+                techTags: project.techTags,
+                status: project.status,
+                participantCount: project.participantTeam?.teamMembers.length || 0,
+            };
+        });
+        
+        return res.status(200).json({ allProjects: resultArray });
+
     } catch (error) {
         console.log(`Internal server error while listing all the projects: ${error}`);
         return res.status(500).json({ error: "Internal Server Error" });
+    } finally {
+        disConnectfromDB();
     }
 }
 

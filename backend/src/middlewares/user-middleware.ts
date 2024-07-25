@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import USER from "../models/user-model";
 import { connectToDB, disConnectfromDB } from "../utilities/connection";
-import jwt from "jsonwebtoken"
+import jwt, { Jwt, Secret } from "jsonwebtoken"
 import { SignupDetails, TokenUser, IUser } from "../interfaces/user-interfaces";
 
 
@@ -16,13 +16,13 @@ import { SignupDetails, TokenUser, IUser } from "../interfaces/user-interfaces";
  *      2) if declared individually, then we have to extend it by the new interface name. 
  *          ex. req: ModifiedReqest
  */
-declare global {
-    namespace Express {
-        interface Request {
-            user?: IUser | null;
-        }
-    }
-}
+// declare global {
+//     namespace Express {
+//         interface Request {
+//             user?: IUser | null;
+//         }
+//     }
+// }
 
 
 /**
@@ -44,7 +44,7 @@ export async function onlyLoggedInUsers(req: Request, res: Response, next: NextF
     let userFromToken: TokenUser;
 
     try {
-        const decodedToken: string | jwt.JwtPayload = jwt.verify(cookie, process.env.JWT_STRING);
+        const decodedToken: string | jwt.JwtPayload = jwt.verify(cookie, process.env.JWT_STRING as Secret );
 
         if (typeof decodedToken === 'object') {
             userFromToken = decodedToken as TokenUser;
@@ -86,43 +86,43 @@ export async function onlyLoggedInUsers(req: Request, res: Response, next: NextF
  * @param next 
  * @returns If user is found then request is extended with the user object else req.user will be null
  */
-export async function checkUser(req: Request, res: Response, next: NextFunction) {
+// export async function checkUser(req: Request, res: Response, next: NextFunction) {
     
-    const cookie = req.cookies?.jwt_token;
-    await connectToDB();
+//     const cookie = req.cookies?.jwt_token;
+//     await connectToDB();
     
-    if (!cookie) {
-        req.user = null;
-    } else {
-        try {
-            const userFromToken: string | jwt.JwtPayload = jwt.verify(cookie, process.env.JWT_STRING);
+//     if (!cookie) {
+//         req.user = null;
+//     } else {
+//         try {
+//             const userFromToken: string | jwt.JwtPayload = jwt.verify(cookie, process.env.JWT_STRING as Secret);
             
-            if (typeof userFromToken === 'object') {
-                // ERROR might to be occur.
-                const user = await USER.findOne({ email: userFromToken.email });
-                if (user) {
-                    req.user = user;
-                } else {
-                    req.user = null;
-                }
-            } else {
-                req.user = null;
-            }
-        } catch (error) {
-            disConnectfromDB();
-            console.error("Error connecting to DB", error);
-            return res.status(500).json({ message: "Internal server error" });
-        } finally {
-            disConnectfromDB();
-        }
-    }
-    next();
-}
+//             if (typeof userFromToken === 'object') {
+//                 // ERROR might to be occur.
+//                 const user = await USER.findOne({ email: userFromToken.email });
+//                 if (user) {
+//                     req.user = user;
+//                 } else {
+//                     req.user = null;
+//                 }
+//             } else {
+//                 req.user = null;
+//             }
+//         } catch (error) {
+//             disConnectfromDB();
+//             console.error("Error connecting to DB", error);
+//             return res.status(500).json({ message: "Internal server error" });
+//         } finally {
+//             disConnectfromDB();
+//         }
+//     }
+//     next();
+// }
 
 export async function onlyVerifiedEmails(req: Request, res: Response, next: NextFunction) {
     const cookie: string = req.cookies?.jwt_token;
 
-    const decodedToken: string | jwt.JwtPayload = jwt.verify(cookie, process.env.JWT_STRING);
+    const decodedToken: string | jwt.JwtPayload = jwt.verify(cookie, process.env.JWT_STRING as Secret);
     const userFromToken: TokenUser = decodedToken as TokenUser;
 
     if (userFromToken.verified === false) {

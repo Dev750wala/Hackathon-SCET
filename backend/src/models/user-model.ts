@@ -6,36 +6,36 @@ const userSchema = new mongoose.Schema<IUser>({
         enrollmentNumber: {
             type: String,
             unique: true,
-            // required: true,
+            minlength: [11, "enrollment must be of 11 characters"]
         },
         username: {
             type: String,
             unique: true,
             required: true,
-        },
-        password: {
-            type: String,
-            minlength: 6,
-            required: true,
+            minlength: [9, "username must be atleast of 9 characters"],
+            maxlength: [15, "username must be maximum of 15 characters"],
         },
         email: {
             type: String,
             unique: true,
             required: true,
         },
+        password: {
+            type: String,
+            minlength: [10, "minimum password length is 10"],
+            maxlength: [30, "maximum password length is 30"],
+            required: true,
+        },
         role: {
             type: String,
             required: true,
-            // af
             enum: ['student', 'organizer',],
-            // default: 'participant',
         },
         fullName: {
             type: String,
             required: true,
         },
         profile_pic: {
-            // BHAI aama dhyan rakhje, buffer pn aavi sake
             type: String,
         },
         contact_no: {

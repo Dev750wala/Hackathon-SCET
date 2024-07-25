@@ -5,7 +5,7 @@
 
 import express from 'express';
 import { handleUserLogin, handleUserLogout, handleUserProfile, handleUserSignup, handleVerifyUserEmail } from '../controllers/user-controllers';
-import { onlyLoggedInUsers, checkUser, checkFieldsEmptyOrNot } from '../middlewares/user-middleware';
+import { onlyLoggedInUsers, checkFieldsEmptyOrNot } from '../middlewares/user-middleware';
 
 const userRoute: express.Router = express.Router();
 
