@@ -10,6 +10,7 @@ import PROJECT from "../models/project-model";
 import { AdminTokenUser, AdminLoginRequestBody, AdminPayload, AdminUpdateProfileRequest } from "../interfaces/admin-interafaces";
 import { ProjectCreationDetails, IProject } from "../interfaces/project-interfaces";
 import { IUser, TokenUser } from "../interfaces/user-interfaces";
+import { handleErrors } from "../utilities/handleErrors";
 
 function signToken(user: AdminTokenUser) {
     const token = jwt.sign(user, process.env.JWT_STRING as string, {
@@ -125,9 +126,14 @@ export async function handleAdminSignup(req: Request, res: Response) {
         const token = signToken(tokenObject);
         return res.cookie("jwt_token", token).status(201).json({ user: newUser });
 
-    } catch (error) {
-        console.log(`Unexpected error occured during user signup: ${error}`);
-        return res.status(500).json({ error: "Internal Server Error" });
+    } catch (error: unknown) {
+        console.log(`Unexpected error occured during user signup: ${error}\n\n`);
+        const err = handleErrors(error);
+
+        console.log(`hello world   ${JSON.stringify(err)}\n\n`);
+        
+    
+        return res.status(500).json({ signupErrors: err });
 
     } finally {
         disConnectfromDB();
