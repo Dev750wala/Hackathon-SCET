@@ -5,15 +5,14 @@ import { IUser } from "../interfaces/user-interfaces";
 const userSchema = new mongoose.Schema<IUser>({
         enrollmentNumber: {
             type: String,
-            unique: true,
             minlength: [11, "enrollment must be of 11 characters"]
         },
         username: {
             type: String,
             unique: true,
             required: true,
-            minlength: [9, "username must be atleast of 9 characters"],
-            maxlength: [15, "username must be maximum of 15 characters"],
+            minlength: [7, "username must be atleast of 7 characters"],
+            maxlength: [20, "username must be maximum of 20 characters"],
         },
         email: {
             type: String,
@@ -95,6 +94,23 @@ const userSchema = new mongoose.Schema<IUser>({
         }
     }, { timestamps: true },
 );
+
+userSchema.index(
+    { enrollmentNumber: 1 },
+    {
+        unique: true,
+        partialFilterExpression: { role: 'student' }
+    }
+);
+
+
+userSchema.pre('save', function(next) {
+    if (this.role === 'student' && !this.enrollmentNumber) {
+        return next(new Error('enrollmentNumber is required for students'));
+    }
+    next();
+});
+
 
 const USER = mongoose.model<IUser>('user', userSchema);
 

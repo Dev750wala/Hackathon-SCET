@@ -5,7 +5,7 @@ declare namespace NodeJS {
         BACKEND_PORT: string;
         SESSION_MAX_AGE: string;
         NODEMAILER_EMAIL: string;
-        NODEMAILER_PASSWORD: string;
+        NODEMAILER_PASSKEY: string;
         JWT_STRING: string;
         ADMIN_PASSWORD: string;
     }

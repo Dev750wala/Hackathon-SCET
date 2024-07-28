@@ -1,45 +1,47 @@
 import nodemailer from 'nodemailer';
 import { IUser } from '../interfaces/user-interfaces';
+import fs from "fs"
+import path from "path"
+
+
 
 export function sendMail(user: IUser) {
 
-    nodemailer.createTestAccount((err, account) => {
-        if (err) {
-            console.error('Failed to create a testing account. ' + err.message);
-            return false;
+    let emailBody;
+    try {
+        const data = fs.readFileSync(path.join(__dirname, "emailVerificationMailFormat.txt"), "utf8").replace("[User]", `${user.fullName}`).replace("[VERIFICATION_LINK]", `${process.env.BASE_URL}/users/verifyEmail/${user.username}/${user.verificationCode.code}`);
+
+        emailBody = data;
+    } catch (error) {
+        console.error("Error reading email template file", error);
+        return;
+    }
+
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false,
+        auth: {
+            user: process.env.NODEMAILER_EMAIL,
+            pass: process.env.NODEMAILER_PASSKEY,
         }
-        console.log('Credentials obtained, sending message...');
+    })
 
-        let transporter = nodemailer.createTransport({
-            host: account.smtp.host,
-            port: account.smtp.port,
-            secure: account.smtp.secure,
-            auth: {
-                user: account.user,
-                pass: account.pass
-            }
-        });
+    const mailOptions: nodemailer.SendMailOptions = {
+        from: {
+            name: "Dev Sadisatsowala",
+            address: process.env.NODEMAILER_EMAIL as string
+        },
+        to: user.email,
+        subject: 'Email verification',
+        html: emailBody,
+    };
 
-        const mailOptions: nodemailer.SendMailOptions = {
-            from: process.env.NODEMAILER_EMAIL,
-            to: user.email,
-            subject: 'Email verification',
-            text: `Hi, ${user.fullName}, Your username is ${user.username}.
-            
-
-            Please verify your email by clicking the following link: ${process.env.BASE_URL}/user/verify-email/${user.verificationCode.code}`
-        };
-        
-        transporter.sendMail(mailOptions, (err, info) => {
-            if (err) {
-                console.log('Error occurred. ' + err.message);
-                return false
-            }
-            
-            console.log('Message sent: %s', info.messageId);
-            // Preview only available when sending through an Ethereal account
-            console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
-            return true;
-        });
-    });
+    try {
+        transporter.sendMail(mailOptions);
+    } catch (error) {
+        console.log("There was an error sending email");
+        return;
+    }
 }

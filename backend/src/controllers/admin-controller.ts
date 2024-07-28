@@ -84,6 +84,7 @@ export async function handleAdminSignup(req: Request, res: Response) {
 
 
     try {
+
         const userWithSameEmail = await USER.findOne({ email: email });
         const userWithSameUsername = await USER.findOne({ username: username });
 
@@ -128,13 +129,16 @@ export async function handleAdminSignup(req: Request, res: Response) {
 
     } catch (error: unknown) {
         console.log(`Unexpected error occured during user signup: ${error}\n\n`);
-        const err = handleErrors(error);
+        const err = handleErrors(error, "organizer");
 
         console.log(`hello world   ${JSON.stringify(err)}\n\n`);
         
-    
+        if(err.general.includes("An internal server error occurred.") || err.general.includes("An unexpected error occurred.")) {
+            return res.status(500).json({ serverError: err });
         
-        return res.status(500).json({ signupErrors: err });
+        } else {
+            return res.status(400).json({ signupErrors: err });
+        }
 
     } finally {
         disConnectfromDB();

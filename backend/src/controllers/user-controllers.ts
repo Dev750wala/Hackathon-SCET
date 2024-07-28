@@ -9,8 +9,7 @@ import { nanoid } from "../utilities/nanoid";
 import bcrypt from "bcrypt";
 import { sendMail } from "../utilities/mail";
 import { TokenUser, LoginRequestBody, SignupDetails, IUser, SocialLinks } from "../interfaces/user-interfaces";
-
-
+import { handleErrors } from "../utilities/handleErrors";
 
 function signToken(user: TokenUser) {
     const token = jwt.sign(user, process.env.JWT_STRING as string, {
@@ -31,6 +30,22 @@ function tokenCheckUp(token: string) {
     }
 }
 
+
+/**
+ * Handles user signup requests.
+ *
+ * @remarks
+ * This function is responsible for processing user signup requests. It validates the request body,
+ * checks for duplicate user entries, creates a new user document in the database, sends a verification
+ * email, and returns a response with the user details and a verification message.
+ *
+ * @param req - The Express request object containing the user signup details.
+ * @param res - The Express response object to send the response.
+ *
+ * @returns - An Express response object with appropriate status code and JSON payload.
+ *
+ * @throws - Throws an error if any unexpected error occurs during the signup process.
+ */
 export async function handleUserSignup(req: Request, res: Response) {
     await connectToDB();
     const body: SignupDetails = req.body;
@@ -41,21 +56,23 @@ export async function handleUserSignup(req: Request, res: Response) {
     }
 
     try {
-        const userWithSameEmail = await USER.findOne({ email: body.email });
-        const userWithSameUsername = await USER.findOne({ username: body.username });
-        const userWithSameEnrollment = await USER.findOne({ enrollmentNumber: body.enrollmentNumber });
+        // TODO uncomment this after a while
 
-        const duplication = {
-            email: userWithSameEmail ? true : false,
-            username: userWithSameUsername ? true : false,
-            enrollmentNumber: userWithSameEnrollment ? true : false,
-        };
+        // const userWithSameEmail = await USER.findOne({ email: body.email });
+        // const userWithSameUsername = await USER.findOne({ username: body.username });
+        // const userWithSameEnrollment = await USER.findOne({ enrollmentNumber: body.enrollmentNumber });
 
-        if (Object.values(duplication).some(Boolean)) {
-            return res.status(400).json({ duplication: duplication });
-        }
+        // const duplication = {
+        //     email: userWithSameEmail ? true : false,
+        //     username: userWithSameUsername ? true : false,
+        //     enrollmentNumber: userWithSameEnrollment ? true : false,
+        // };
 
-        const verificationString = await bcrypt.hash(nanoid(40), 10);
+        // if (Object.values(duplication).some(Boolean)) {
+        //     return res.status(400).json({ duplication: duplication });
+        // }
+
+        const verificationString = nanoid(40);
 
         const newUser = await USER.create({
             enrollmentNumber: body.enrollmentNumber,
@@ -89,11 +106,20 @@ export async function handleUserSignup(req: Request, res: Response) {
 
         const token = signToken(tokenObject);
         sendMail(newUser);
-        return res.cookie("jwt_token", token).status(201).json({ user: newUser, message: "Please check your mail inbox to verofy your mail!" });
+        return res.cookie("jwt_token", token).status(201).json({ user: newUser, message: "Please check your mail inbox to verify your mail!" });
 
-    } catch (error) {
-        console.log(`Unexpected error occured during user signup: ${error}`);
-        return res.status(500).json({ error: "Internal Server Error" });
+    } catch (error: unknown) {
+        console.log(`Unexpected error occured during user signup: ${error}\n\n`);
+        const err = handleErrors(error, "student");
+
+        console.log(`hello world   ${JSON.stringify(err)}\n\n`);
+        
+        if(err.general.includes("An internal server error occurred.") || err.general.includes("An unexpected error occurred.")) {
+            return res.status(500).json({ serverError: err });
+        
+        } else {
+            return res.status(400).json({ signupErrors: err });
+        }
 
     } finally {
         await disConnectfromDB();

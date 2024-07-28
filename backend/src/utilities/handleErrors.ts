@@ -37,7 +37,7 @@ interface CustomError extends Error {
  * }
  * ```
  */
-export function handleErrors(err: unknown) {
+export function handleErrors(err: unknown, role: "organizer" | "student") {
     let errors = { enrollmentNumber: '', username: '', email: '', password: '', general: '' };
 
     // Log the error message if it is an instance of Error
@@ -47,10 +47,10 @@ export function handleErrors(err: unknown) {
 
     // Handle unique constraint errors for enrollmentNumber, email, and username fields.
     if (isMongoError(err) && err.code === 11000) {
-        if (err.keyPattern?.enrollmentNumber) {
-            errors.enrollmentNumber = 'Enrollment number has been already registered';
-        } else if (err.keyPattern?.email) {
+        if (err.keyPattern?.email) {
             errors.email = 'Email has been already registered';
+        } else if (role === "student" && err.keyPattern?.enrollmentNumber) {
+            errors.enrollmentNumber = 'Enrollment number has been already registered';
         } else if (err.keyPattern?.username) {
             errors.username = 'This username has been already registered';
         }
@@ -63,6 +63,10 @@ export function handleErrors(err: unknown) {
             errors[path] = properties.message;
         });
     }
+
+    // if(isDBConnectionError(err)) {
+    //     errors.general = 'Database connection error.';
+    // }
 
     // Handle authentication errors
     if (isAuthenticationError(err)) {
@@ -96,6 +100,8 @@ export function handleErrors(err: unknown) {
 
     return errors;
 }
+
+// function isDBConnectionError
 
 // Type guard for MongoError
 function isMongoError(err: any): err is MongoError {
