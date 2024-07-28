@@ -530,4 +530,3 @@ export async function handleListMyProjects(req: Request, res: Response) {
         disConnectfromDB();
     }
 }
-

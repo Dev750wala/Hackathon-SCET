@@ -19,6 +19,6 @@ userRoute
     // to see the other users' as well as their self profile
     .get("/:username", handleUserProfile)
 
-    .get("/verify-email/:verificationId", handleVerifyUserEmail)
+    .get("/verifyEmail/:username/:verificationCode", handleVerifyUserEmail)
 
 export default userRoute;

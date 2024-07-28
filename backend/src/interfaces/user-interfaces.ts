@@ -37,7 +37,6 @@ export interface IUser extends mongoose.Document {
 }
 
 export interface TokenUser {
-    _id: mongoose.Schema.Types.ObjectId;
     name: string;
     role: string;
     username: string;

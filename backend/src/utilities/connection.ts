@@ -10,7 +10,7 @@ export async function connectToDB() {
                 await USER.init();
                 console.log("index created");
                 const indexes = await mongoose.connection.db.collection('users').indexes();
-                console.log(indexes);
+                // console.log(indexes);
                 // const indexes = await mongoose.connection.db.collection('users').dropIndex('enrollmentNumber_1');
                 // console.log(`droppped index: ${indexes}`);
             })

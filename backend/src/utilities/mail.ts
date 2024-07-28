@@ -9,7 +9,7 @@ export function sendMail(user: IUser) {
 
     let emailBody;
     try {
-        const data = fs.readFileSync(path.join(__dirname, "emailVerificationMailFormat.txt"), "utf8").replace("[User]", `${user.fullName}`).replace("[VERIFICATION_LINK]", `${process.env.BASE_URL}/users/verifyEmail/${user.username}/${user.verificationCode.code}`);
+        const data = fs.readFileSync(path.join(__dirname, "emailVerificationMailFormat.txt"), "utf8").replace("[User]", `${user.fullName}`).replace("[VERIFICATION_LINK]", `${process.env.BASE_URL}/user/verifyEmail/${user.username}/${user.verificationCode.code}`);
 
         emailBody = data;
     } catch (error) {

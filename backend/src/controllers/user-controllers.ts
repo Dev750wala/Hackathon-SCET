@@ -11,6 +11,19 @@ import { sendMail } from "../utilities/mail";
 import { TokenUser, LoginRequestBody, SignupDetails, IUser, SocialLinks } from "../interfaces/user-interfaces";
 import { handleErrors } from "../utilities/handleErrors";
 
+
+/**
+ * Generates a JWT token for the provided user.
+ *
+ * This function takes a user object as input, signs it using the JWT secret, and sets the token expiration time.
+ * The token is then returned.
+ *
+ * @param user - The user object for whom the JWT token needs to be generated.
+ *
+ * @returns - The generated JWT token.
+ *
+ * @throws - Throws an error if the JWT secret is not provided.
+ */
 function signToken(user: TokenUser) {
     const token = jwt.sign(user, process.env.JWT_STRING as string, {
         expiresIn: process.env.SESSION_MAX_AGE,
@@ -19,6 +32,20 @@ function signToken(user: TokenUser) {
     return token;
 }
 
+
+/**
+ * Verifies and decodes a JWT token.
+ *
+ * This function takes a JWT token as input, verifies its authenticity using the provided JWT secret,
+ * and decodes the token to extract the user information. If the token is invalid or expired, it logs
+ * an error message and returns `false`.
+ *
+ * @param token - The JWT token to be verified and decoded.
+ *
+ * @returns - The decoded user information if the token is valid and not expired. Otherwise, it returns `false`.
+ *
+ * @throws - Throws an error if the JWT secret is not provided.
+ */
 function tokenCheckUp(token: string) {
 
     try {
@@ -95,7 +122,6 @@ export async function handleUserSignup(req: Request, res: Response) {
         }) as IUser;
 
         const tokenObject: TokenUser = {
-            _id: newUser._id as mongoose.Schema.Types.ObjectId,
             name: newUser.fullName,
             role: newUser.role,
             username: newUser.username,
@@ -113,10 +139,10 @@ export async function handleUserSignup(req: Request, res: Response) {
         const err = handleErrors(error, "student");
 
         console.log(`hello world   ${JSON.stringify(err)}\n\n`);
-        
-        if(err.general.includes("An internal server error occurred.") || err.general.includes("An unexpected error occurred.")) {
+
+        if (err.general.includes("An internal server error occurred.") || err.general.includes("An unexpected error occurred.")) {
             return res.status(500).json({ serverError: err });
-        
+
         } else {
             return res.status(400).json({ signupErrors: err });
         }
@@ -126,6 +152,20 @@ export async function handleUserSignup(req: Request, res: Response) {
     }
 }
 
+
+/**
+ * Handles user login requests.
+ *
+ * This function processes user login requests by validating the provided credentials,
+ * checking the database for a matching user, and generating a JWT token for successful login.
+ *
+ * @param req - The Express request object containing the user login details.
+ * @param res - The Express response object to send the response.
+ *
+ * @returns - An Express response object with appropriate status code and JSON payload.
+ *
+ * @throws - Throws an error if any unexpected error occurs during the login process.
+ */
 export async function handleUserLogin(req: Request<{}, {}, LoginRequestBody>, res: Response) {
     await connectToDB();
     const body: LoginRequestBody = req.body;
@@ -145,7 +185,6 @@ export async function handleUserLogin(req: Request<{}, {}, LoginRequestBody>, re
 
             if (password === user.password) {
                 const tokenObject: TokenUser = {
-                    _id: user._id as mongoose.Schema.Types.ObjectId,
                     name: user.fullName,
                     role: user.role,
                     username: user.username,
@@ -174,7 +213,6 @@ export async function handleUserLogin(req: Request<{}, {}, LoginRequestBody>, re
 
             if (password === user.password) {
                 const tokenObject: TokenUser = {
-                    _id: user._id as mongoose.Schema.Types.ObjectId,
                     name: user.fullName,
                     role: user.role,
                     username: user.username,
@@ -196,6 +234,19 @@ export async function handleUserLogin(req: Request<{}, {}, LoginRequestBody>, re
     }
 }
 
+
+
+/**
+ * Handles user logout requests.
+ *
+ * This function clears the JWT token cookie from the client's browser, effectively logging out the user.
+ * It sends a response with a success message and a status code of 200.
+ *
+ * @param req - The Express request object containing the user's request.
+ * @param res - The Express response object to send the response.
+ *
+ * @returns - An Express response object with a status code of 200 and a JSON payload containing a success message.
+ */
 export function handleUserLogout(req: Request, res: Response) {
     res.clearCookie("jwt_token", {
         httpOnly: true, // if it was set with httpOnly
@@ -207,6 +258,25 @@ export function handleUserLogout(req: Request, res: Response) {
     return res.status(200).json({ message: "Logged out successfully" });
 }
 
+
+
+/**
+ * Handles user profile retrieval requests.
+ *
+ * This function retrieves the user profile based on the provided username and JWT token.
+ * It checks if the user exists in the database, verifies the JWT token, and returns the user profile
+ * with an additional `selfProfile` flag indicating whether the user is viewing their own profile.
+ *
+ * @param req - The Express request object containing the user's request.
+ * @param res - The Express response object to send the response.
+ *
+ * @returns - An Express response object with appropriate status code and JSON payload.
+ *  - If the user is found and the JWT token is valid, it returns a 200 status code with the user profile.
+ *  - If the user is not found, it returns a 404 status code with a "User not found" message.
+ *  - If an unexpected error occurs, it returns a 500 status code with an "Internal Server Error" message.
+ *
+ * @throws - Throws an error if any unexpected error occurs during the profile retrieval process.
+ */
 export async function handleUserProfile(req: Request, res: Response) {
     await connectToDB();
 
@@ -235,27 +305,50 @@ export async function handleUserProfile(req: Request, res: Response) {
     }
 }
 
+
+
+
+/**
+ * Handles the verification of user emails.
+ *
+ * This function is responsible for verifying user emails by checking the provided verification code
+ * against the user's record in the database. If the verification code matches, it updates the user's
+ * verification status and returns a success response. If the verification code does not match or
+ * the user does not exist, it returns an appropriate error response.
+ *
+ * @param req - The Express request object containing the user's request.
+ * @param res - The Express response object to send the response.
+ *
+ * @returns - An Express response object with appropriate status code and JSON payload.
+ *  - If the verification is successful, it returns a 200 status code with a success message.
+ *  - If the verification code is invalid or the user does not exist, it returns a 400 status code with an error message.
+ *  - If an unexpected error occurs, it returns a 500 status code with an "Internal Server Error" message.
+ *
+ * @throws - Throws an error if any unexpected error occurs during the verification process.
+ *
+ * @note - the feature is still to be implemented a time limit of 15 minutes for email verification.
+ *         After 15 minutes of sending the verification email, the user will not be able to verify their email with that link.
+ */
 export async function handleVerifyUserEmail(req: Request, res: Response) {
     const currentTime: number = Date.now();
-    const verificationString: string = req.params.verificationId;
+    const verificationString: string = req.params.verificationCode;
+    const usernameInParam: string = req.params.username;
 
     await connectToDB();
 
     try {
         const user: IUser | null = await USER.findOne(
-            { 'verificationCode.code': verificationString },
+            { username: usernameInParam },
         );
 
         if (!user) {
             return res.status(404).json({ error: "Invalid verification URL" });
         }
 
-        const differenceInMilliseconds = currentTime - user.verificationCode?.createdAt;
-        const differenceInMinutes: number = Math.floor((differenceInMilliseconds) / (1000 * 60));
-
-        if (differenceInMinutes > 20) {
-            return res.status(400).json({ error: "Verification link expired" });
+        if (user.verificationCode?.code !== verificationString) {
+            return res.status(400).json({ error: "Invalid verification code" });
         }
+        // return res.status(200).json({ message: "Email verified successfully" });
 
         const updatedUser = await USER.findByIdAndUpdate(user._id,
             { $set: { verified: true } },
@@ -267,7 +360,7 @@ export async function handleVerifyUserEmail(req: Request, res: Response) {
         }
 
         /*
-            replacing the old cookie (which contained the verified field false) with the new cookie with the same name "jwt_token"(contains the same cookie, but with verified field true).
+        replacing the old cookie (which contained the verified field false) with the new cookie with the same name "jwt_token"(contains the same cookie, but with verified field true).
         */
         res.clearCookie("jwt_token", {
             httpOnly: true, // if it was set with httpOnly
@@ -277,7 +370,6 @@ export async function handleVerifyUserEmail(req: Request, res: Response) {
         });
 
         const tokenObject: TokenUser = {
-            _id: updatedUser._id as mongoose.Schema.Types.ObjectId,
             name: updatedUser.fullName,
             role: updatedUser.role,
             username: updatedUser.username,
@@ -290,9 +382,17 @@ export async function handleVerifyUserEmail(req: Request, res: Response) {
 
         return res.cookie("jwt_token", token).status(200).json({ message: "Email verified successfully!" });
 
+        // const differenceInMilliseconds = currentTime - user.verificationCode?.createdAt;
+        // const differenceInMinutes: number = Math.floor((differenceInMilliseconds) / (1000 * 60));
+
+        // if (differenceInMinutes > 20) {
+        //     return res.status(400).json({ error: "Verification link expired" });
+        // }
+
     } catch (error) {
         console.log(`Unexpected error occured: ${error}`);
         return res.status(500).json({ error: "Internal Server Error" });
+
     } finally {
         disConnectfromDB();
     }

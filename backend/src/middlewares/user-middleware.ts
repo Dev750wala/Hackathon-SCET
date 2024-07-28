@@ -61,7 +61,7 @@ export async function onlyLoggedInUsers(req: Request, res: Response, next: NextF
     await connectToDB();
 
     try {
-        const user = await USER.findById(userFromToken._id);
+        const user = await USER.findOne({ email: userFromToken.email });
         if (!user) {
             disConnectfromDB();
             // redirect user back to the login page.

@@ -42,6 +42,7 @@
         .button-container {
             text-align: center;
             margin: 20px 0;
+            color: #ffffff;
         }
         .button {
             background-color: #007BFF;
@@ -53,6 +54,7 @@
         }
         .button:hover {
             background-color: #0056b3;
+            color: #ffffff;
         }
         .footer {
             background-color: #f1f1f1;
@@ -79,10 +81,10 @@
                 <a href="[VERIFICATION_LINK]" class="button" target="_blank">Verify Email</a>
             </div>
             <p>If you did not sign up for an account, please ignore this email.</p>
-            <p>Thank you,<br>Your Company Team</p>
+            <p>Thank you,<br>Dev Sadisatsowala</p>
         </div>
         <div class="footer">
-            <p>If you have any questions, feel free to <a href="mailto:support@example.com">contact us</a>.</p>
+            <p>If you have any questions, feel free to <a href="mailto:sadisatsowaladev1@gmail.com">contact me</a>.</p>
             <p>&copy; 2024 Your Company. All rights reserved.</p>
         </div>
     </div>
