@@ -133,6 +133,7 @@ export async function handleAdminSignup(req: Request, res: Response) {
         console.log(`hello world   ${JSON.stringify(err)}\n\n`);
         
     
+        
         return res.status(500).json({ signupErrors: err });
 
     } finally {
