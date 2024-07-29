@@ -44,7 +44,7 @@ export async function onlyLoggedInUsers(req: Request, res: Response, next: NextF
     let userFromToken: TokenUser;
 
     try {
-        const decodedToken: string | jwt.JwtPayload = jwt.verify(cookie, process.env.JWT_STRING as Secret );
+        const decodedToken: string | jwt.JwtPayload = jwt.verify(cookie, process.env.JWT_STRING as Secret);
 
         if (typeof decodedToken === 'object') {
             userFromToken = decodedToken as TokenUser;
@@ -87,16 +87,16 @@ export async function onlyLoggedInUsers(req: Request, res: Response, next: NextF
  * @returns If user is found then request is extended with the user object else req.user will be null
  */
 // export async function checkUser(req: Request, res: Response, next: NextFunction) {
-    
+
 //     const cookie = req.cookies?.jwt_token;
 //     await connectToDB();
-    
+
 //     if (!cookie) {
 //         req.user = null;
 //     } else {
 //         try {
 //             const userFromToken: string | jwt.JwtPayload = jwt.verify(cookie, process.env.JWT_STRING as Secret);
-            
+
 //             if (typeof userFromToken === 'object') {
 //                 // ERROR might to be occur.
 //                 const user = await USER.findOne({ email: userFromToken.email });
@@ -150,4 +150,38 @@ export async function checkFieldsEmptyOrNot(req: Request, res: Response, next: N
         return res.status(400).json({ emptyFields: emptyFields });
     }
     next();
+}
+
+
+/**
+ * Middleware function to check if a user is already logged in.
+ * If a user is already logged in (i.e., a JWT token is present in the request cookies),
+ * this function will return a 403 status code with a message indicating that the user is already logged in.
+ * If no JWT token is found in the request cookies, the function will call the next middleware function.
+ *
+ * @param {Request} req - Express request object containing the request cookies.
+ * @param {Response} res - Express response object to send a response back to the client.
+ * @param {NextFunction} next - Express next middleware function to be called if the user is not already logged in.
+ * @returns {void}
+ */
+export function checkIfUserAlreadyLoggedinOrNot(req: Request, res: Response, next: NextFunction) {
+    const token = req.cookies?.jwt_token;
+    console.log("Hello World 1");
+    
+    if (!token) {
+        console.log("no token");
+        return next();
+    }
+
+    try {
+        const userFromToken: jwt.JwtPayload | string = jwt.verify(token, process.env.JWT_SECRET as Secret);
+        
+        if (typeof userFromToken === 'object') {
+            console.log("User is already logged in");
+            return res.status(403).json({ message: "User already logged in" });
+        }
+        next();
+    } catch (error) {
+        return next();
+    }
 }

@@ -5,14 +5,14 @@
 
 import express from 'express';
 import { handleUserLogin, handleUserLogout, handleUserProfile, handleUserSignup, handleVerifyUserEmail } from '../controllers/user-controllers';
-import { onlyLoggedInUsers, checkFieldsEmptyOrNot } from '../middlewares/user-middleware';
+import { onlyLoggedInUsers, checkIfUserAlreadyLoggedinOrNot, checkFieldsEmptyOrNot } from '../middlewares/user-middleware';
 
 const userRoute: express.Router = express.Router();
 
 userRoute
     .post("/signup", checkFieldsEmptyOrNot, handleUserSignup)
 
-    .post("/login", handleUserLogin)
+    .post("/login", checkIfUserAlreadyLoggedinOrNot, handleUserLogin)
 
     .post("/logout", handleUserLogout)
 
