@@ -131,7 +131,7 @@ export async function handleAdminSignup(req: Request, res: Response) {
         console.log(`Unexpected error occured during user signup: ${error}\n\n`);
         const err = handleErrors(error, "organizer");
 
-        console.log(`hello world   ${JSON.stringify(err)}\n\n`);
+        // console.log(`hello world   ${JSON.stringify(err)}\n\n`);
         
         if(err.general.includes("An internal server error occurred.") || err.general.includes("An unexpected error occurred.")) {
             return res.status(500).json({ serverError: err });
@@ -148,59 +148,37 @@ export async function handleAdminSignup(req: Request, res: Response) {
 
 
 /**
- * at the path /admin/login
- * @param req 
- * @param res 
- * @returns Codes: { 
- *                  200: "good to go",
- *                  404: "user not found"
- *                  401: "Admin cookie not found", 
- *                  403: "Not a admin", 
- *                  500: "Internal server error" 
- *                  }
+ * Handles the admin login process.
+ *
+ * @param req - The Express request object.
+ * @param res - The Express response object.
+ *
+ * @returns {Promise<Response>} - Returns a Promise that resolves to an Express response object.
+ * The response object will contain a status code of 200 if the login is successful,
+ * and a JSON object containing the user's information. If the login fails,
+ * the response object will contain a status code of 500 and an error message.
  */
-export async function handleAdminLogin(req: Request, res: Response) {
-    await connectToDB();
+export async function handleAdminLogin(req: Request, res: Response): Promise<Response> {
     const body: AdminLoginRequestBody = req.body;
 
-    const emailOrUsername = body.emailOrUsername;
-    const password = body.password;
-
-    const email = validator.matches(emailOrUsername, "@scet.ac.in");
-
+    
     try {
-        const user = await USER.findOne(
-            {
-                $or: [
-                    { email: emailOrUsername },
-                    { username: emailOrUsername },
-                ]
-            },
-        );
+        const user: IUser = await USER.adminLogin(body);
 
-        if (!user) {
-            return res.status(404).json(
-                { message: `${email ? "Email" : "Username"} not found` }
-            );
+        const tokenObject: AdminTokenUser = {
+            name: user.fullName,
+            role: user.role,
+            username: user.username,
+            email: user.email,
         }
+        const token = signToken(tokenObject);
 
-        if (password === user.password) {
-            const tokenObject: AdminTokenUser = {
-                name: user.fullName,
-                role: user.role,
-                username: user.username,
-                email: user.email,
-            }
-            const token = signToken(tokenObject);
-
-            return res.cookie("jwt_token", token).status(200).json({ user: user });
-        }
-
+        return res.cookie("jwt_token", token).status(200).json({ user: user });
+        
     } catch (error) {
         console.log(`Unexpected error occured during user signup: ${error}`);
-        return res.status(500).json({ error: "Internal Server Error" });
-    } finally {
-        await disConnectfromDB();
+        const errors = handleErrors(error, "organizer");
+        return res.status(500).json({ error: errors });
     }
 
 }

@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
-import { IUser } from "../interfaces/user-interfaces";
+import { IUser, LoginRequestBody, UserModel } from "../interfaces/user-interfaces";
+import { AdminLoginRequestBody } from "../interfaces/admin-interafaces";
+import { connectToDB, disConnectfromDB } from "../utilities/connection";
 
 
 const userSchema = new mongoose.Schema<IUser>({
@@ -103,7 +105,14 @@ userSchema.index(
     }
 );
 
-
+/**
+ * This function is a Mongoose pre-save hook that validates the enrollment number for student users.
+ * If the user's role is 'student' and the enrollment number is not provided, it throws an error.
+ *
+ * @param next - The next middleware function in the request-response cycle.
+ * @throws Will throw an error if the user's role is 'student' and the enrollment number is not provided.
+ * @returns Returns nothing, but calls the next middleware function if the validation passes.
+ */
 userSchema.pre('save', function(next) {
     if (this.role === 'student' && !this.enrollmentNumber) {
         return next(new Error('enrollmentNumber is required for students'));
@@ -112,6 +121,78 @@ userSchema.pre('save', function(next) {
 });
 
 
-const USER = mongoose.model<IUser>('user', userSchema);
 
-export default USER;
+/**
+ * This function is used to authenticate an admin user.
+ * It connects to the MongoDB database, searches for a user with the provided email or username,
+ * and verifies the password. If successful, it returns the user document.
+ *
+ * @param body - The request body containing the email or username and password.
+ * @throws Will throw an error if the user is not found, the password is incorrect, or an internal error occurs.
+ * @returns Returns the user document if the authentication is successful.
+ */
+userSchema.statics.adminLogin = async function(body: AdminLoginRequestBody) {
+    await connectToDB();
+
+    try {
+        const user = await this.findOne(
+            {
+                $or: [{ email: body.emailOrUsername }, { username: body.emailOrUsername }],
+            }
+        )
+        if (!user) {
+            throw Error ("user not found");
+        }
+        if (user.password === body.password) {
+            return user;
+        } else {
+            throw Error ("password is incorrect");
+        }
+    } catch (error) {
+        throw Error("internal error")
+    
+    } finally {
+        disConnectfromDB();
+    }
+}
+
+
+
+/**
+ * This function is used to authenticate a user.
+ * It connects to the MongoDB database, searches for a user with the provided enrollment number or email,
+ * and verifies the password. If successful, it returns the user document.
+ *
+ * @param body - The request body containing the enrollment number or email and password.
+ * @throws Will throw an error if the user is not found, the password is incorrect, or an internal error occurs.
+ * @returns Returns the user document if the authentication is successful.
+ */
+userSchema.statics.userLogin = async function(body: LoginRequestBody) {
+    await connectToDB();
+
+    try {
+        const user = await this.findOne(
+            {
+                $or: [{ enrollmentNumber: body.enrollmentNumberOrEmail }, { email: body.enrollmentNumberOrEmail }],
+            }
+        )
+        if (!user) {
+            throw Error ("user not found");
+        }
+        if (user.password === body.password) {
+            return user;
+        } else {
+            throw Error ("password is incorrect");
+        }
+    } catch (error) {
+        throw Error("internal error")
+    
+    } finally {
+        disConnectfromDB();
+    }
+}
+
+const USER: UserModel = mongoose.model<IUser, UserModel>('user', userSchema);
+
+// export default USER;
+export default USER

@@ -131,7 +131,7 @@ export async function handleUserSignup(req: Request, res: Response) {
         }
 
         const token = signToken(tokenObject);
-        sendMail(newUser);
+        sendMail(newUser, "verify");
         return res.cookie("jwt_token", token).status(201).json({ user: newUser, message: "Please check your mail inbox to verify your mail!" });
 
     } catch (error: unknown) {
@@ -170,67 +170,27 @@ export async function handleUserLogin(req: Request<{}, {}, LoginRequestBody>, re
     await connectToDB();
     const body: LoginRequestBody = req.body;
 
-    const enrollmentNumberOrEmail = body.enrollmentNumberOrEmail;
-    const password = body.password;
+    try {
+        const user: IUser = await USER.userLogin(body);
 
-    const email = validator.matches(enrollmentNumberOrEmail, "@scet.ac.in");
-
-    if (email) {
-        try {
-            const user = await USER.findOne({ email: enrollmentNumberOrEmail });
-
-            if (!user) {
-                return res.status(404).json({ message: "User Not Found" });
-            }
-
-            if (password === user.password) {
-                const tokenObject: TokenUser = {
-                    name: user.fullName,
-                    role: user.role,
-                    username: user.username,
-                    email: user.email,
-                    enrollmentNumber: user.enrollmentNumber,
-                    verified: user.verified
-                }
-                const token = signToken(tokenObject);
-
-                return res.cookie("jwt_token", token).status(200).json({ user: user });
-            }
-
-        } catch (error) {
-            console.log(`Unexpected error occured during user signup: ${error}`);
-            return res.status(500).json({ error: "Internal Server Error" });
-        } finally {
-            await disConnectfromDB();
+        const tokenObject: TokenUser = {
+            name: user.fullName,
+            role: user.role,
+            username: user.username,
+            email: user.email,
+            enrollmentNumber: user.enrollmentNumber,
+            verified: user.verified
         }
-    } else {
-        try {
-            const user = await USER.findOne({ enrollmentNumber: enrollmentNumberOrEmail });
+        const token = signToken(tokenObject);
+        // TODO login kare to eno mail aave evu continue karje aiya thi
+        return res.cookie("jwt_token", token).status(200).json({ user: user });
+    }
 
-            if (!user) {
-                return res.status(404).json({ message: "User Not Found" });
-            }
-
-            if (password === user.password) {
-                const tokenObject: TokenUser = {
-                    name: user.fullName,
-                    role: user.role,
-                    username: user.username,
-                    email: user.email,
-                    enrollmentNumber: user.enrollmentNumber,
-                    verified: user.verified,
-                }
-                const token = signToken(tokenObject);
-
-                return res.cookie("jwt_token", token).status(200).json({ user: user });
-            }
-
-        } catch (error) {
-            console.log(`Unexpected error occured during user signup: ${error}`);
-            return res.status(500).json({ error: "Internal Server Error" });
-        } finally {
-            await disConnectfromDB();
-        }
+    catch (error) {
+        console.log(`Unexpected error occured during user signup: ${error}`);
+        return res.status(500).json({ error: "Internal Server Error" });
+    } finally {
+        await disConnectfromDB();
     }
 }
 

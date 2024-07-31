@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import USER from "../models/user-model";
 import { connectToDB, disConnectfromDB } from "../utilities/connection";
-import jwt, { Jwt, Secret } from "jsonwebtoken"
+import jwt, { Secret } from "jsonwebtoken"
 import { SignupDetails, TokenUser, IUser } from "../interfaces/user-interfaces";
 
 
@@ -166,22 +166,28 @@ export async function checkFieldsEmptyOrNot(req: Request, res: Response, next: N
  */
 export function checkIfUserAlreadyLoggedinOrNot(req: Request, res: Response, next: NextFunction) {
     const token = req.cookies?.jwt_token;
-    console.log("Hello World 1");
-    
+    // console.log("Hello World 1");
+
     if (!token) {
-        console.log("no token");
+        console.log("No token found");
         return next();
     }
 
     try {
-        const userFromToken: jwt.JwtPayload | string = jwt.verify(token, process.env.JWT_SECRET as Secret);
-        
+        const userFromToken: jwt.JwtPayload | string = jwt.verify(token, process.env.JWT_STRING as Secret);
+
+        console.log("Token verified:", userFromToken);
+
         if (typeof userFromToken === 'object') {
             console.log("User is already logged in");
             return res.status(403).json({ message: "User already logged in" });
         }
+
+        console.log("Token is not an object");
         next();
     } catch (error) {
+        console.log("Token verification failed", error);
         return next();
     }
 }
+

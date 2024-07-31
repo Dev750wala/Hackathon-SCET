@@ -43,10 +43,20 @@ export function handleErrors(err: unknown, role: "organizer" | "student") {
     // Log the error message if it is an instance of Error
     if (err instanceof Error) {
         console.log(err.message);
+    
+        if(err.message === "user not found") {
+            errors.general = 'User not found';
+        
+        } else if (err.message === "password is incorrect") {
+            errors.password = "Password is incorrect";
+        
+        } else if (err.message === "internal error") {
+            errors.general = "Sorry, can't reach out to the server, please try again";
+        }
     }
 
     // Handle unique constraint errors for enrollmentNumber, email, and username fields.
-    if (isMongoError(err) && err.code === 11000) {
+    else if (isMongoError(err) && err.code === 11000) {
         if (err.keyPattern?.email) {
             errors.email = 'Email has been already registered';
         } else if (role === "student" && err.keyPattern?.enrollmentNumber) {
@@ -57,7 +67,7 @@ export function handleErrors(err: unknown, role: "organizer" | "student") {
     }
 
     // Handle mongoose validation errors
-    if (isValidationError(err)) {
+    else if (isValidationError(err)) {
         Object.values(err.errors).forEach(({ properties }: any) => {
             const path = properties.path as keyof typeof errors;
             errors[path] = properties.message;
@@ -69,22 +79,22 @@ export function handleErrors(err: unknown, role: "organizer" | "student") {
     // }
 
     // Handle authentication errors
-    if (isAuthenticationError(err)) {
+    else if (isAuthenticationError(err)) {
         errors.general = 'Authentication failed. Please check your credentials.';
     }
 
     // Handle authorization errors
-    if (isAuthorizationError(err)) {
+    else if (isAuthorizationError(err)) {
         errors.general = 'You do not have permission to perform this action.';
     }
 
     // Handle network errors
-    if (isNetworkError(err)) {
+    else if (isNetworkError(err)) {
         errors.general = 'A network error occurred. Please try again later.';
     }
 
     // Handle custom application errors
-    if (isCustomError(err)) {
+    else if (isCustomError(err)) {
         if (err.statusCode === 500) {
             errors.general = 'An internal server error occurred. Please try again later.';
         } else {
@@ -93,7 +103,7 @@ export function handleErrors(err: unknown, role: "organizer" | "student") {
     }
 
     // Generic error handling for unexpected internal server errors
-    if (!isMongoError(err) && !isValidationError(err) && !isAuthenticationError(err) && !isAuthorizationError(err) && !isNetworkError(err) && !isCustomError(err)) {
+    else if (!isMongoError(err) && !isValidationError(err) && !isAuthenticationError(err) && !isAuthorizationError(err) && !isNetworkError(err) && !isCustomError(err)) {
         console.log("An unexpected internal server error occurred.\n\n");
         errors.general = 'An unexpected error occurred. Please try again later.';
     }

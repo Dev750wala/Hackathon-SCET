@@ -1,4 +1,5 @@
-import mongoose from "mongoose";
+import mongoose, { Model } from "mongoose";
+import { AdminLoginRequestBody } from "./admin-interafaces";
 
 export interface ParticipationHistory {
     eventName: string;
@@ -63,4 +64,7 @@ export interface SignupDetails {
     socialLinks?: SocialLinks;
 }
 
-
+export interface UserModel extends Model<IUser> {
+    adminLogin(body: AdminLoginRequestBody): Promise<IUser>;
+    userLogin(body: LoginRequestBody): Promise<IUser>;
+}
