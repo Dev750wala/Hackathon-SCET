@@ -14,6 +14,8 @@ const transporter = nodemailer.createTransport({
     }
 });
 
+
+
 export function sendMail(user: IUser, subject: "verify" | "proposalForCollab") {
 
     let emailBody;
@@ -25,6 +27,12 @@ export function sendMail(user: IUser, subject: "verify" | "proposalForCollab") {
         console.error("Error reading email template file", error);
         return;
     }
+    let subject_;
+    if (subject === "verify") {
+        subject_ = "Email Verification"
+    } else if (subject === "proposalForCollab") {
+        subject_ = "Proposal For Contribution"
+    }
     
 
     const mailOptions: nodemailer.SendMailOptions = {
@@ -33,14 +41,14 @@ export function sendMail(user: IUser, subject: "verify" | "proposalForCollab") {
             address: process.env.NODEMAILER_EMAIL as string
         },
         to: user.email,
-        subject: 'Email verification',
+        subject: subject_,
         html: emailBody,
     };
 
     try {
         transporter.sendMail(mailOptions);
     } catch (error) {
-        console.log("There was an error sending email");
+        console.log("There was an error sending an email");
         return;
     }
 }

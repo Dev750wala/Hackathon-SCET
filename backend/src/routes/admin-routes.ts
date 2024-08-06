@@ -9,7 +9,7 @@
 // list my created projects	    GET	    /admin/my-projects
 
 import express from 'express';
-import { handleAdminLogin, handleAdminLogout, handleAdminSignup, handleCreateProject, handleDeleteProject, handleListMyProjects, handleUpdateAdminProfile, handleAdminAuth } from '../controllers/admin-controller';
+import { handleAdminLogin, handleAdminLogout, handleAdminSignup, handleCreateProject, handleDeleteProject, handleListMyProjects, handleUpdateAdminProfile, handleAdminAuth, handleUpdateProject } from '../controllers/admin-controller';
 import { adminAuth, checkAdminSignupFieldsEmptyOrNot, checkProjectCreationFieldsEmptyOrNot } from "../middlewares/admin-middleware"
 import { onlyLoggedInUsers } from '../middlewares/user-middleware';
 
@@ -25,6 +25,8 @@ adminRoute
     .post("/logout", handleAdminLogout)
 
     .post("/projects/create-project", adminAuth, onlyLoggedInUsers, checkProjectCreationFieldsEmptyOrNot, handleCreateProject)
+
+    .put("/projects/:projectId", adminAuth, onlyLoggedInUsers, handleUpdateProject)
 
     .put("/update-profile", adminAuth, onlyLoggedInUsers, checkAdminSignupFieldsEmptyOrNot, handleUpdateAdminProfile)
 

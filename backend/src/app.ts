@@ -1,10 +1,10 @@
 import express, { Request, Response } from 'express';
 import dotenv from 'dotenv';
 import path from 'path';
-import { connectToDB, disConnectfromDB } from './utilities/connection';
 import cookieParser from "cookie-parser"
 import userRoute from './routes/user-routes';
 import adminRoute from './routes/admin-routes';
+// import 
 
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 

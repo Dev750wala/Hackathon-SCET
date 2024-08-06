@@ -201,20 +201,17 @@ export function handleAdminLogout(req: Request, res: Response) {
 
 
 /**
- * 
- * @param req 
- * @param res
- * @returns Codes : {
- *      201 - project created
- *      302 - jwt_token cookie not found/ cookie not verified
- *      400 - empty fields in the form / dateError("startDate > endDate"error)
- *      401 - prohibited / Unauthorized access, invalid token
- *      403 - forbidden
- *      404 - user not found
- *      500 - server error
- * } 
+ * Handles the creation of a new project.
+ *
+ * @param req - The Express request object.
+ * @param res - The Express response object.
+ *
+ * @returns {Promise<Response>} - Returns a Promise that resolves to an Express response object.
+ * The response object will contain a status code of 201 if the project is created successfully,
+ * and a JSON object containing the project's information. If the project creation fails,
+ * the response object will contain a status code of 400 or 500 and an error message.
  */
-export async function handleCreateProject(req: Request, res: Response) {
+export async function handleCreateProject(req: Request, res: Response): Promise<Response> {
     const body: ProjectCreationDetails = req.body;
 
     await connectToDB();
@@ -406,49 +403,56 @@ export async function handleDeleteProject(req: Request, res: Response) {
 // Now PUT request is all about changing the whole document with another one. so, when the user/faculty want to change something, rest of the fields will remain unchanged. so the request from the frontend should contain all the fields, even if user/faculty want to change something.
 
 // TODO fix this later.
-// export async function handleUpdateProject(req: Request, res: Response) {
+export async function handleUpdateProject(req: Request, res: Response) {
 
-//     // TODO
-//     const body: ProjectCreationDetails = req.body;
-//     await connectToDB();
+    const body: ProjectCreationDetails = req.body;
+    await connectToDB();
 
-//     try {
+    try {
+        const cookie = req.cookies?.jwt_token;
+        const userFromToken: jwt.JwtPayload | string = jwt.verify(cookie, process.env.JWT_STRING as Secret);
 
-//         const startDate = new Date(body.start);
-//         const endDate = new Date(body.end);
+        // condition never gonna be true, because of middleaware.
+        if (typeof userFromToken !== "object" || !userFromToken.id) {
+            return res.status(401).json({ message: "Unauthorized access" });
+        }
 
-//         if (startDate.getTime() <= endDate.getTime()) {
-//             return res.status(400).json({ dateError: "Start date must be before end date" });
-//         }
+        const user: IUser | null | undefined = await USER.findOne({ email: userFromToken.email });
 
+        const startDate = new Date(body.start);
+        const endDate = new Date(body.end);
+
+        if (startDate.getTime() <= endDate.getTime()) {
+            return res.status(400).json({ dateError: "Start date must be before end date" });
+        }
         
+       
+        const newProject = await PROJECT.create({
+            name: body.name,
+            description: body.description,
+            start: body.start,
+            end: body.end,
+            organizer: user?.id,
+            maxParticipants: body.maxParticipants,
+            judges: body.judges,
+            prizes: body.prizes,
+            rulesAndRegulations: body.rulesAndRegulations,
+            theme: body.theme,
+            techTags: body.techTags,
+            status: Date.now() < startDate.getTime() ? 'planned' : 'ongoing',
+        });
 
-//         const newProject = await PROJECT.create({
-//             name: body.name,
-//             description: body.description,
-//             start: body.start,
-//             end: body.end,
-//             organizer: req.user?.id,
-//             maxParticipants: body.maxParticipants,
-//             judges: body.judges,
-//             prizes: body.prizes,
-//             rulesAndRegulations: body.rulesAndRegulations,
-//             theme: body.theme,
-//             techTags: body.techTags,
-//             status: Date.now() < startDate.getTime() ? 'planned' : 'ongoing',
-//         });
-
-//         return res.status(201).json({ message: "Project created!", project: newProject });
+        return res.status(201).json({ message: "Project created!", project: newProject });
 
 
-//     } catch (error) {
-//         console.log(`Error creating project: ${error}`);
-//         return res.status(500).json({ error: "Internal server error" });
-//     } finally {
-//         disConnectfromDB();
-//     }
+    } catch (error) {
+        console.log(`Error creating project: ${error}`);
+        return res.status(500).json({ error: "Internal server error" });
+    } finally {
+        disConnectfromDB();
+    }
 
-// }
+}
 
 
 /**
