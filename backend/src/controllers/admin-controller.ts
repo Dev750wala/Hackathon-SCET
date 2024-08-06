@@ -405,6 +405,7 @@ export async function handleDeleteProject(req: Request, res: Response) {
 // TODO fix this later.
 export async function handleUpdateProject(req: Request, res: Response) {
 
+    // TODO continue from here update the project details and admin profile controller
     const body: ProjectCreationDetails = req.body;
     await connectToDB();
 
