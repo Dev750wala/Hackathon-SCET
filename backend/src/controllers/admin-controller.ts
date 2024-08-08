@@ -35,7 +35,7 @@ export async function handleAdminAuth(req: Request, res: Response) {
     const { password } = req.body;
     // console.log("hello world1");
     // console.log(req);
-    
+
 
     if (!password) return res.status(400).json({ message: "Password is required" });
 
@@ -53,7 +53,7 @@ export async function handleAdminAuth(req: Request, res: Response) {
     );
 
     // admin_token
-    res.cookie("admin", token, { httpOnly: true, maxAge: 1000*60*60 });
+    res.cookie("admin", token, { httpOnly: true, maxAge: 1000 * 60 * 60 });
     return res.status(200).json({ message: "Authenticated successfully" });
 }
 
@@ -74,7 +74,7 @@ export async function handleAdminSignup(req: Request, res: Response) {
     await connectToDB();
 
     // console.log(req.body);
-    
+
 
     const { username, email, password, fullName, contact_no, skills, biography, socialLinks } = req.body;
 
@@ -132,10 +132,10 @@ export async function handleAdminSignup(req: Request, res: Response) {
         const err = handleErrors(error, "organizer");
 
         // console.log(`hello world   ${JSON.stringify(err)}\n\n`);
-        
-        if(err.general.includes("An internal server error occurred.") || err.general.includes("An unexpected error occurred.")) {
+
+        if (err.general.includes("An internal server error occurred.") || err.general.includes("An unexpected error occurred.")) {
             return res.status(500).json({ serverError: err });
-        
+
         } else {
             return res.status(400).json({ signupErrors: err });
         }
@@ -161,7 +161,7 @@ export async function handleAdminSignup(req: Request, res: Response) {
 export async function handleAdminLogin(req: Request, res: Response): Promise<Response> {
     const body: AdminLoginRequestBody = req.body;
 
-    
+
     try {
         const user: IUser = await USER.adminLogin(body);
 
@@ -174,7 +174,7 @@ export async function handleAdminLogin(req: Request, res: Response): Promise<Res
         const token = signToken(tokenObject);
 
         return res.cookie("jwt_token", token).status(200).json({ user: user });
-        
+
     } catch (error) {
         console.log(`Unexpected error occured during user signup: ${error}`);
         const errors = handleErrors(error, "organizer");
@@ -219,8 +219,8 @@ export async function handleCreateProject(req: Request, res: Response): Promise<
     const cookie = req.cookies.jwt_token;
 
     const userFromToken = jwt.verify(cookie, process.env.JWT_STRING as Secret) as AdminTokenUser;
-    
-    if(!userFromToken) {
+
+    if (!userFromToken) {
         return res.status(302).json({ error: "jwt_token cookie not found or cookie not verified" });
     }
 
@@ -230,19 +230,27 @@ export async function handleCreateProject(req: Request, res: Response): Promise<
 
         const id = nanoid(15);
 
+        const registrationStartDate = new Date(body.registrationStart);
+        const registrationEndDate = new Date(body.registrationEnd);
         const startDate = new Date(body.start);
-        const endDate = new Date(body.end);
+        // const endDate = new Date(body.end);
 
-        if (startDate.getTime() <= endDate.getTime()) {
-            return res.status(400).json({ dateError: "Start date must be before end date" });
+        const currentDate = new Date();
+        if (currentDate.getTime() <= registrationStartDate.getTime() &&
+            registrationStartDate.getTime() <= registrationEndDate.getTime() &&
+            registrationEndDate.getTime() <= startDate.getTime()) {
+            return res.status(400).json({ dateError: "Please select valid dates" });
         }
 
         const newProject = await PROJECT.create({
+            // TODO continue from here...
             id: id,
             name: body.name,
             description: body.description,
+            registrationStart: body.registrationStart,
+            registrationEnd:body.registrationEnd,
             start: body.start,
-            end: body.end,
+            // end: body.end,
             organizer: projectCreator?._id,
             maxParticipants: body.maxParticipants,
             judges: body.judges,
@@ -250,7 +258,7 @@ export async function handleCreateProject(req: Request, res: Response): Promise<
             rulesAndRegulations: body.rulesAndRegulations,
             theme: body.theme,
             techTags: body.techTags,
-            status: Date.now() < startDate.getTime() ? 'planned' : 'ongoing',
+            status: currentDate.getTime() < startDate.getTime() ? 'planned' : 'ongoing',
         });
 
         return res.status(201).json({ message: "Project created!", project: newProject });
@@ -421,18 +429,18 @@ export async function handleUpdateProject(req: Request, res: Response) {
         const user: IUser | null | undefined = await USER.findOne({ email: userFromToken.email });
 
         const startDate = new Date(body.start);
-        const endDate = new Date(body.end);
+        // const endDate = new Date(body.end);
 
-        if (startDate.getTime() <= endDate.getTime()) {
-            return res.status(400).json({ dateError: "Start date must be before end date" });
-        }
-        
-       
+        // if (startDate.getTime() <= endDate.getTime()) {
+        //     return res.status(400).json({ dateError: "Start date must be before end date" });
+        // }
+
+
         const newProject = await PROJECT.create({
             name: body.name,
             description: body.description,
             start: body.start,
-            end: body.end,
+            // end: body.end,
             organizer: user?.id,
             maxParticipants: body.maxParticipants,
             judges: body.judges,
@@ -486,7 +494,7 @@ export async function handleListMyProjects(req: Request, res: Response) {
         const user = await USER.findOne({ email: userFromToken.email });
 
         const projects: IProject[] | null | undefined = await PROJECT.find({ organizer: user?._id });
-        
+
         const resultArray = projects.map(project => {
             return {
                 id: project.id,
@@ -503,7 +511,7 @@ export async function handleListMyProjects(req: Request, res: Response) {
                 participantCount: project.participantTeam?.teamMembers.length || 0,
             };
         });
-        
+
         return res.status(200).json({ allProjects: resultArray });
 
     } catch (error) {

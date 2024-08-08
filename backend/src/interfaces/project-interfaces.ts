@@ -22,6 +22,8 @@ export interface IProject extends mongoose.Document {
     id: string;
     name: string;
     description: string;
+    registrationStart: Date;
+    registrationEnd: Date;
     start: Date;
     end: Date;
     organizer: mongoose.Types.ObjectId;
@@ -42,8 +44,10 @@ export interface IProject extends mongoose.Document {
 export interface ProjectCreationDetails {
     name: string;
     description: string;
+    registrationStart: Date;
+    registrationEnd: Date;
     start: Date;
-    end: Date;
+    // end: Date;
     organizer: mongoose.Types.ObjectId;
     maxParticipants: number;
     judges: { name: string; userId?: mongoose.Types.ObjectId }[];
