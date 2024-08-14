@@ -85,19 +85,19 @@ export async function handleUserSignup(req: Request, res: Response) {
     try {
         // TODO uncomment this after a while
 
-        // const userWithSameEmail = await USER.findOne({ email: body.email });
-        // const userWithSameUsername = await USER.findOne({ username: body.username });
-        // const userWithSameEnrollment = await USER.findOne({ enrollmentNumber: body.enrollmentNumber });
+        const userWithSameEmail = await USER.findOne({ email: body.email });
+        const userWithSameUsername = await USER.findOne({ username: body.username });
+        const userWithSameEnrollment = await USER.findOne({ enrollmentNumber: body.enrollmentNumber });
 
-        // const duplication = {
-        //     email: userWithSameEmail ? true : false,
-        //     username: userWithSameUsername ? true : false,
-        //     enrollmentNumber: userWithSameEnrollment ? true : false,
-        // };
+        const duplication = {
+            email: userWithSameEmail ? true : false,
+            username: userWithSameUsername ? true : false,
+            enrollmentNumber: userWithSameEnrollment ? true : false,
+        };
 
-        // if (Object.values(duplication).some(Boolean)) {
-        //     return res.status(400).json({ duplication: duplication });
-        // }
+        if (Object.values(duplication).some(Boolean)) {
+            return res.status(400).json({ duplication: duplication });
+        }
 
         const verificationString = nanoid(40);
 
@@ -187,8 +187,9 @@ export async function handleUserLogin(req: Request<{}, {}, LoginRequestBody>, re
     }
 
     catch (error) {
-        console.log(`Unexpected error occured during user signup: ${error}`);
-        return res.status(500).json({ error: "Internal Server Error" });
+        // console.log(`Unexpected error occured during user signup: ${error}`);
+        const errors = handleErrors(error, "student");
+        return res.status(errors.statusCode).json({ error: errors });
     } finally {
         await disConnectfromDB();
     }

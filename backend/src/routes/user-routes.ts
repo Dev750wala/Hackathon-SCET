@@ -10,7 +10,7 @@ import { onlyLoggedInUsers, checkIfUserAlreadyLoggedinOrNot, checkFieldsEmptyOrN
 const userRoute: express.Router = express.Router();
 
 userRoute
-    .post("/signup", checkFieldsEmptyOrNot, handleUserSignup)
+    .post("/signup", checkIfUserAlreadyLoggedinOrNot, checkFieldsEmptyOrNot, handleUserSignup)
 
     .post("/login", checkIfUserAlreadyLoggedinOrNot, handleUserLogin)
 

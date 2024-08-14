@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import jwt, { Secret } from "jsonwebtoken";
-import { AdminPayload, AdminSignupDetails } from "../interfaces/admin-interafaces";
+import { AdminPayload, AdminSignupDetails } from "../interfaces/admin-interfaces";
 import { ProjectCreationDetails } from "../interfaces/project-interfaces";
 
 /**

@@ -32,7 +32,7 @@ export interface IProject extends mongoose.Document {
     prizes?: string;
     rulesAndRegulations: string;
     theme?: string;
-    techTags: { name: string }[];
+    techTags: string[];
     participantTeam: {
         name: string;
         description: string;
@@ -48,12 +48,12 @@ export interface ProjectCreationDetails {
     registrationEnd: Date;
     start: Date;
     // end: Date;
-    organizer: mongoose.Types.ObjectId;
+    // organizer: mongoose.Types.ObjectId;
     maxParticipants: number;
     judges: { name: string; userId?: mongoose.Types.ObjectId }[];
     prizes?: string;
     rulesAndRegulations: string;
     theme?: string;
-    techTags: { name: string }[];
+    techTags: string[];
     // status: 'planned' | 'ongoing' | 'completed';
 }

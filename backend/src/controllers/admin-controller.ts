@@ -7,7 +7,7 @@ import bcrypt from "bcrypt"
 import { nanoid } from "../utilities/nanoid";
 import PROJECT from "../models/project-model";
 // Admin interfaces
-import { AdminTokenUser, AdminLoginRequestBody, AdminPayload, AdminUpdateProfileRequest } from "../interfaces/admin-interafaces";
+import { AdminTokenUser, AdminLoginRequestBody, AdminPayload, AdminUpdateProfileRequest } from "../interfaces/admin-interfaces";
 import { ProjectCreationDetails, IProject } from "../interfaces/project-interfaces";
 import { IUser, TokenUser } from "../interfaces/user-interfaces";
 import { handleErrors } from "../utilities/handleErrors";
@@ -161,7 +161,6 @@ export async function handleAdminSignup(req: Request, res: Response) {
 export async function handleAdminLogin(req: Request, res: Response): Promise<Response> {
     const body: AdminLoginRequestBody = req.body;
 
-
     try {
         const user: IUser = await USER.adminLogin(body);
 
@@ -215,9 +214,7 @@ export async function handleCreateProject(req: Request, res: Response): Promise<
     const body: ProjectCreationDetails = req.body;
 
     await connectToDB();
-
     const cookie = req.cookies.jwt_token;
-
     const userFromToken = jwt.verify(cookie, process.env.JWT_STRING as Secret) as AdminTokenUser;
 
     if (!userFromToken) {
@@ -262,7 +259,6 @@ export async function handleCreateProject(req: Request, res: Response): Promise<
         });
 
         return res.status(201).json({ message: "Project created!", project: newProject });
-
 
     } catch (error) {
         console.log(`Error creating project: ${error}`);

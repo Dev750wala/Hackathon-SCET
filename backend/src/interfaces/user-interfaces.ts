@@ -1,5 +1,5 @@
 import mongoose, { Model } from "mongoose";
-import { AdminLoginRequestBody } from "./admin-interafaces";
+import { AdminLoginRequestBody } from "./admin-interfaces";
 
 export interface ParticipationHistory {
     eventName: string;
@@ -48,6 +48,13 @@ export interface TokenUser {
 
 export interface LoginRequestBody {
     enrollmentNumberOrEmail: string;
+    password: string;
+}
+
+export interface LoginRequestBody2 {
+    email: string;
+    enrollmentNumber: string;
+    username: string;
     password: string;
 }
 

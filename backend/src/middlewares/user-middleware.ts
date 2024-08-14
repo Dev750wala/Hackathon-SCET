@@ -39,7 +39,7 @@ export async function onlyLoggedInUsers(req: Request, res: Response, next: NextF
         /*
             if no cookie found named "jwt_token", redirect user to login page
         */
-        return res.status(302).json({ message: "No cookie found" });
+        return res.status(302).json({ message: "No cookie found, Authentication required" });
     }
     let userFromToken: TokenUser;
 
@@ -187,7 +187,11 @@ export function checkIfUserAlreadyLoggedinOrNot(req: Request, res: Response, nex
         next();
     } catch (error) {
         console.log("Token verification failed", error);
-        return next();
+        res.cookie("jwt_token", "", {
+            path: "/",
+            maxAge: 1,
+        });
+        return next()
     }
 }
 

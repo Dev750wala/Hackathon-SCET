@@ -1,100 +1,100 @@
 import mongoose from "mongoose";
 import { IUser, LoginRequestBody, UserModel } from "../interfaces/user-interfaces";
-import { AdminLoginRequestBody } from "../interfaces/admin-interafaces";
+import { AdminLoginRequestBody } from "../interfaces/admin-interfaces";
 import { connectToDB, disConnectfromDB } from "../utilities/connection";
 
 
 const userSchema = new mongoose.Schema<IUser>({
-        enrollmentNumber: {
-            type: String,
-            minlength: [11, "enrollment must be of 11 characters"]
+    enrollmentNumber: {
+        type: String,
+        minlength: [11, "enrollment must be of 11 characters"]
+    },
+    username: {
+        type: String,
+        unique: true,
+        required: true,
+        minlength: [7, "username must be atleast of 7 characters"],
+        maxlength: [20, "username must be maximum of 20 characters"],
+    },
+    email: {
+        type: String,
+        unique: true,
+        required: true,
+    },
+    password: {
+        type: String,
+        minlength: [10, "minimum password length is 10"],
+        maxlength: [30, "maximum password length is 30"],
+        required: true,
+    },
+    role: {
+        type: String,
+        required: true,
+        enum: ['student', 'organizer',],
+    },
+    fullName: {
+        type: String,
+        required: true,
+    },
+    profile_pic: {
+        type: String,
+    },
+    contact_no: {
+        type: String,
+    },
+    skills: {
+        type: [String],
+    },
+    biography: {
+        type: String
+    },
+    portfolio: {
+        type: String
+    },
+    socialLinks: {
+        linkedin: {
+            type: String
         },
-        username: {
-            type: String,
-            unique: true,
-            required: true,
-            minlength: [7, "username must be atleast of 7 characters"],
-            maxlength: [20, "username must be maximum of 20 characters"],
-        },
-        email: {
-            type: String,
-            unique: true,
-            required: true,
-        },
-        password: {
-            type: String,
-            minlength: [10, "minimum password length is 10"],
-            maxlength: [30, "maximum password length is 30"],
-            required: true,
-        },
-        role: {
-            type: String,
-            required: true,
-            enum: ['student', 'organizer',],
-        },
-        fullName: {
-            type: String,
-            required: true,
-        },
-        profile_pic: {
+        github: {
             type: String,
         },
-        contact_no: {
+    },
+    participationHistory: [{
+        eventName: {
             type: String,
         },
-        skills: {
+        date: {
+            type: String
+        },
+        awards: {
             type: [String],
+        }
+    }],
+    availability: {
+        type: Boolean,
+        default: false,
+    },
+    registrationDate: {
+        type: Date,
+        default: Date.now(),
+    },
+    verified: {
+        type: Boolean,
+        default: false,
+    },
+    // string will be here to store the verification string temporarily till the new user clickks in on the verification mail.
+    verificationCode: {
+        code: {
+            required: true,
+            type: String,
         },
-        biography: {
-            type: String
-        },
-        portfolio: {
-            type: String
-        },
-        socialLinks: {
-            linkedin: {
-                type: String
-            },
-            github: {
-                type: String,
-            },
-        },
-        participationHistory: [{
-            eventName: {
-                type: String,
-            },
-            date: {
-                type: String
-            },
-            awards: {
-                type: [String],
-            }
-        }],
-        availability: {
-            type: Boolean,
-            default: false,
-        },
-        registrationDate: {
-            type: Date,
+        createdAt: {
+            type: Number,
+            required: true,
             default: Date.now(),
         },
-        verified: {
-            type: Boolean,
-            default: false,
-        },
-        // string will be here to store the verification string temporarily till the new user clickks in on the verification mail.
-        verificationCode: {
-            code: {
-                required: true,
-                type: String,
-            },
-            createdAt: {
-                type: Number,
-                required: true,
-                default: Date.now(),
-            },
-        }
-    }, { timestamps: true },
+    }
+}, { timestamps: true },
 );
 
 userSchema.index(
@@ -113,7 +113,7 @@ userSchema.index(
  * @throws Will throw an error if the user's role is 'student' and the enrollment number is not provided.
  * @returns Returns nothing, but calls the next middleware function if the validation passes.
  */
-userSchema.pre('save', function(next) {
+userSchema.pre('save', function (next) {
     if (this.role === 'student' && !this.enrollmentNumber) {
         return next(new Error('enrollmentNumber is required for students'));
     }
@@ -131,7 +131,7 @@ userSchema.pre('save', function(next) {
  * @throws Will throw an error if the user is not found, the password is incorrect, or an internal error occurs.
  * @returns Returns the user document if the authentication is successful.
  */
-userSchema.statics.adminLogin = async function(body: AdminLoginRequestBody) {
+userSchema.statics.adminLogin = async function (body: AdminLoginRequestBody) {
     await connectToDB();
 
     try {
@@ -141,16 +141,24 @@ userSchema.statics.adminLogin = async function(body: AdminLoginRequestBody) {
             }
         )
         if (!user) {
-            throw Error ("user not found");
+            console.log(user);
+            throw Error("user not found");
         }
-        if (user.password === body.password) {
-            return user;
-        } else {
-            throw Error ("password is incorrect");
+        if (user.password !== body.password) {
+            console.log("Hello World 2");
+            throw Error("password is incorrect");
         }
+        console.log("Hello World 3");
+        return user;
+
     } catch (error) {
-        throw Error("internal error")
-    
+        if (error instanceof Error) {
+            console.error(`This is the error in if: ${error}`);
+            throw error;
+        } else {
+            console.error(`This is the error in else: ${error}`);
+            throw new Error("internal error");
+        }
     } finally {
         disConnectfromDB();
     }
@@ -167,26 +175,40 @@ userSchema.statics.adminLogin = async function(body: AdminLoginRequestBody) {
  * @throws Will throw an error if the user is not found, the password is incorrect, or an internal error occurs.
  * @returns Returns the user document if the authentication is successful.
  */
-userSchema.statics.userLogin = async function(body: LoginRequestBody) {
+userSchema.statics.userLogin = async function (body: LoginRequestBody) {
     await connectToDB();
-
+    // console.log("Hello World 1");
+    
+    
     try {
+        // console.log("Hello World 2");
         const user = await this.findOne(
             {
                 $or: [{ enrollmentNumber: body.enrollmentNumberOrEmail }, { email: body.enrollmentNumberOrEmail }],
             }
         )
+        // console.log("Hello World 3");
         if (!user) {
-            throw Error ("user not found");
+            // console.log("Hello World 4");
+            throw Error("user not found");
         }
-        if (user.password === body.password) {
-            return user;
-        } else {
-            throw Error ("password is incorrect");
+        // console.log("Hello World 5");
+        if (user.password !== body.password) {
+            // console.log("Hello World 6");
+            throw Error("password is incorrect");
         }
+        // console.log("Hello World 7");
+        return user;
     } catch (error) {
-        throw Error("internal error")
-    
+        if (error instanceof Error) {
+            // console.log("Hello World 8");
+            console.error(`This is the error in if: ${error}`);
+            throw error;
+        } else {
+            // console.log("Hello World 9");
+            console.error(`This is the error in else: ${error}`);
+            throw new Error("internal error");
+        }
     } finally {
         disConnectfromDB();
     }
