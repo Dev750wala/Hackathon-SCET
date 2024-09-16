@@ -14,8 +14,6 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-
-
 export function sendMail(user: IUser, subject: "verify" | "proposalForCollab") {
 
     let emailBody;

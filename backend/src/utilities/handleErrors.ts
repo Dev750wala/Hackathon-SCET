@@ -52,24 +52,7 @@ export function handleErrors(err: unknown, role: "organizer" | "student") {
 
         errors.statusCode = 409; // Conflict status code for duplicate entries
     }
-
-    else if (err instanceof Error) {
-        console.log("Error 2!!----------------------------------------------------------------");
-        if (err.message === "user not found") {
-            errors.general = 'User not found';
-            errors.statusCode = 404;
-        } else if (err.message === "password is incorrect") {
-            errors.password = "Password is incorrect";
-            errors.statusCode = 401;
-        } else if (err.message === "internal error") {
-            errors.general = "Sorry, can't reach out to the server, please try again";
-            errors.statusCode = 500;
-        } else {
-            
-            errors.general = err.message;
-        }
-    }
-
+    
     else if (isValidationError(err)) {
         console.log("Error validation error!!----------------------------------------------------------------");
         Object.values(err.errors).forEach(({ properties }: any) => {
@@ -102,6 +85,22 @@ export function handleErrors(err: unknown, role: "organizer" | "student") {
         console.log("Error customError!!----------------------------------------------------------------");
         errors.general = err.message || 'An error occurred';
         errors.statusCode = err.statusCode || 500; // Use the custom status code or default to 500
+    }
+
+    else if (err instanceof Error) {
+        console.log("Error 2!!----------------------------------------------------------------");
+        if (err.message === "user not found") {
+            errors.general = 'User not found';
+            errors.statusCode = 404;
+        } else if (err.message === "password is incorrect") {
+            errors.password = "Password is incorrect";
+            errors.statusCode = 401;
+        } else if (err.message === "internal error") {
+            errors.general = "Sorry, can't reach out to the server, please try again";
+            errors.statusCode = 500;
+        } else {
+            errors.general = err.message;
+        }
     }
 
     else {
@@ -141,4 +140,39 @@ function isNetworkError(err: any): err is CustomError {
 // Type guard for custom application errors
 function isCustomError(err: any): err is CustomError {
     return err instanceof Error && 'statusCode' in err;
+}
+
+export function handleProjectErrors(err: unknown) {
+    let errors = { name: '', description: '',  start: '',  maxParticipants: '', judges: '', prizes: '', rulesAndRegulations: '', theme: '', techTags: '', statusCode: 1, general: '' };
+
+    if (isValidationError(err)) {
+        Object.values(err.errors).forEach(({ properties }: any) => {
+            const path = properties.path as keyof typeof errors;
+            if (path in errors) {
+                errors[path] = properties.message as never;
+            }
+        });
+        errors.statusCode = 400; // Bad Request for validation errors
+    }
+
+    else if (isCustomError(err)) {
+        errors.general = err.message || 'An error occurred';
+        errors.statusCode = err.statusCode || 500; // Use the custom status code or default to 500
+    }
+
+    else if (err instanceof Error) {
+        if (err.message === "internal error") {
+            errors.general = "Sorry, can't reach out to the server, please try again";
+            errors.statusCode = 500;
+        } else {
+            errors.general = err.message;
+        }
+    }
+
+    else {
+        errors.general = 'An unexpected error occurred. Please try again later.';
+        errors.statusCode = 500; // Internal Server Error status code
+    }
+
+    return errors;
 }

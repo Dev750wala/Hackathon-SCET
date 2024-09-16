@@ -4,6 +4,7 @@ import path from 'path';
 import cookieParser from "cookie-parser"
 import userRoute from './routes/user-routes';
 import adminRoute from './routes/admin-routes';
+import { checkUser } from './middlewares/user-middleware';
 // import 
 
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
@@ -23,7 +24,10 @@ const port = process.env.BACKEND_PORT || 3000;
 // app.get("/", async (req: Request, res: Response) => {
 // });
 
+
+app.use("*", checkUser);
 app.get("/", (req: Request, res: Response) => {
+    console.log(req.user);
     return res.send("Hello World!");
 })
 

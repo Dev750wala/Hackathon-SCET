@@ -10,7 +10,8 @@ import PROJECT from "../models/project-model";
 import { AdminTokenUser, AdminLoginRequestBody, AdminPayload, AdminUpdateProfileRequest } from "../interfaces/admin-interfaces";
 import { ProjectCreationDetails, IProject } from "../interfaces/project-interfaces";
 import { IUser, TokenUser } from "../interfaces/user-interfaces";
-import { handleErrors } from "../utilities/handleErrors";
+import { handleErrors, handleProjectErrors } from "../utilities/handleErrors";
+import { Types } from "mongoose";
 
 function signToken(user: AdminTokenUser) {
     const token = jwt.sign(user, process.env.JWT_STRING as string, {
@@ -172,7 +173,7 @@ export async function handleAdminLogin(req: Request, res: Response): Promise<Res
         }
         const token = signToken(tokenObject);
 
-        return res.cookie("jwt_token", token).status(200).json({ user: user });
+        return res.cookie("jwt_token", token, { maxAge: 60 * 60 * 60 * 100 }).status(200).json({ user: user });
 
     } catch (error) {
         console.log(`Unexpected error occured during user signup: ${error}`);
@@ -214,16 +215,8 @@ export async function handleCreateProject(req: Request, res: Response): Promise<
     const body: ProjectCreationDetails = req.body;
 
     await connectToDB();
-    const cookie = req.cookies.jwt_token;
-    const userFromToken = jwt.verify(cookie, process.env.JWT_STRING as Secret) as AdminTokenUser;
-
-    if (!userFromToken) {
-        return res.status(302).json({ error: "jwt_token cookie not found or cookie not verified" });
-    }
 
     try {
-
-        const projectCreator = await USER.findOne({ email: userFromToken.email });
 
         const id = nanoid(15);
 
@@ -233,22 +226,22 @@ export async function handleCreateProject(req: Request, res: Response): Promise<
         // const endDate = new Date(body.end);
 
         const currentDate = new Date();
-        if (currentDate.getTime() <= registrationStartDate.getTime() &&
-            registrationStartDate.getTime() <= registrationEndDate.getTime() &&
-            registrationEndDate.getTime() <= startDate.getTime()) {
+        if (!(currentDate.getTime() < registrationStartDate.getTime() &&
+            registrationStartDate.getTime() < registrationEndDate.getTime() &&
+            registrationEndDate.getTime() < startDate.getTime())) {
             return res.status(400).json({ dateError: "Please select valid dates" });
         }
 
         const newProject = await PROJECT.create({
-            // TODO continue from here...
             id: id,
             name: body.name,
             description: body.description,
             registrationStart: body.registrationStart,
-            registrationEnd:body.registrationEnd,
+            registrationEnd: body.registrationEnd,
             start: body.start,
-            // end: body.end,
-            organizer: projectCreator?._id,
+            // end: body.end,   
+            // organizer: projectCreator?._id,
+            organizer: req.user?._id,
             maxParticipants: body.maxParticipants,
             judges: body.judges,
             prizes: body.prizes,
@@ -287,177 +280,174 @@ export async function handleCreateProject(req: Request, res: Response): Promise<
  * }
  */
 export async function handleUpdateAdminProfile(req: Request, res: Response) {
+    
+    const allowedUpdates = [
+        'password',
+        'fullName',
+        'username',
+        'contact_no',
+        'skills',
+        'biography',
+        'portfolio',
+        'linkedin',
+        'github',
+    ];
+
     await connectToDB();
 
-    const body: AdminUpdateProfileRequest = req.body;
-
     try {
-        const cookie = req.cookies?.jwt_token;
-        const userFromToken: jwt.JwtPayload | string = jwt.verify(cookie, process.env.JWT_STRING as Secret);
+        const updates: Partial<IUser> = req.body;
 
-        // condition never gonna be true, because of middleaware.
-        if (typeof userFromToken !== "object" || !userFromToken.id) {
-            return res.status(401).json({ message: "Unauthorized access" });
-        }
-
-        const user: IUser | null | undefined = await USER.findOne({ email: userFromToken.email });
-
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
-
-        // create badalje
-        const updatedUser = await USER.findOneAndUpdate({
-            email: user.email,
-        }, {
-            username: body.username,
-            fullName: body.fullName,
-            contact_no: body.contact_no,
-            skills: body.skills,
-            biography: body.biography,
-            socialLinks: body.socialLinks,
-        }, {
-            new: true,
+        // Filter out unwanted fields from updates
+        const filteredUpdates: Partial<IUser> = {};
+        Object.keys(updates).forEach((key) => {
+            if (allowedUpdates.includes(key)) {
+                filteredUpdates[key as keyof IUser] = updates[key as keyof IUser];
+            }
         });
 
+        // If user is trying to update password, hash it before saving
+        // if (filteredUpdates.password) {
+        //     const salt = await bcrypt.genSalt(10);
+        //     filteredUpdates.password = await bcrypt.hash(filteredUpdates.password, salt);
+        // }
+
+        const updatedUser = await USER.findByIdAndUpdate(
+            req.user?._id as Types.ObjectId,
+            { $set: filteredUpdates },
+            { new: true, runValidators: true } // Return the updated user and run validators
+        );
+
         if (!updatedUser) {
-            return res.status(404).json({ message: "User not found" });
+            return res.status(404).json({ error: 'User not found' });
         }
 
-        const tokenObject: AdminTokenUser = {
-            name: updatedUser.fullName,
-            role: updatedUser.role,
-            username: updatedUser.username,
-            email: updatedUser.email,
-        }
-
-        const token = signToken(tokenObject);
-        return res.cookie("jwt_token", token).status(200).json({ updatedUser: updatedUser });
+        return res.status(200).json({ message: 'Profile updated successfully', user: updatedUser });
 
     } catch (error) {
-        console.log(`Unexpected error occured during user update: ${error}`);
-        return res.status(500).json({ error: "Internal Server Error" });
-
+        console.error('Error updating profile:', error);
+        return res.status(500).json({ error: 'Internal server error' });
     } finally {
-        await disConnectfromDB();
+        disConnectfromDB();
     }
 }
 
 
 /**
+ * @param {Request} req - The request object, containing the project ID in the URL parameters and the user information.
+ * @param {Response} res - The response object, used to send back the appropriate HTTP status and message.
  * 
- * @param req : Express request object
- * @param res : Express response object
- * @returns Codes: {
- *      401 - message: "You're prohibited!",
- *      403 - message: "Forbidden",
- *      500 - message: "Internal server error",
- *      302 - message: "No cookie found"
- *      302 - message: "Error in verifying token"
- *      401 - message: "Unauthorized access, invalid token"
- *      404 - message: "User not found"
- *      404 - projectNotFound:  "Project not found"
- *      200 - message: "Project deleted successfully"
- * }
+ * @throws {Error} - If an unexpected error occurs during the process, a 500 Internal Server Error is returned.
  */
 export async function handleDeleteProject(req: Request, res: Response) {
     const projectId = req.params.projectId;
 
+    await connectToDB();
 
-    const cookie = req.cookies?.jwt_token;
-    const userFromToken: jwt.JwtPayload | string = jwt.verify(cookie, process.env.JWT_STRING as Secret);
+    try {
+        // Find the project by its ID
+        const projectToDelete = await PROJECT.findOne({ id: projectId });
 
-    // condition never gonna be true, because of middleaware.
-    if (typeof userFromToken !== "object" || !userFromToken.id) {
-        return res.status(401).json({ message: "Unauthorized access" });
+        // If the project does not exist, return a 404 Not Found response
+        if (!projectToDelete) {
+            return res.status(404).json({ projectNotFound: "Project not found" });
+        }
+
+        // Check if the requesting user is the owner of the project
+        if (!projectToDelete.organizer.equals(req.user?._id as Types.ObjectId)) {
+            return res.status(403).json({ message: "Forbidden! You're not the owner of the project" });
+        }
+
+        // Delete the project
+        const deletedProject = await PROJECT.deleteOne({ id: projectId });
+
+        // If the project could not be deleted, return a 404 Not Found response
+        if (!deletedProject) {
+            return res.status(404).json({ projectNotFound: "Project not found" });
+        }
+
+        // Return a 200 OK response indicating the project was deleted successfully
+        return res.status(200).json({ message: "Project deleted successfully" });
+    } catch (error) {
+        // Log the error and return a 500 Internal Server Error response
+        console.log(`Unexpected error occurred during project deletion: ${error}`);
+        return res.status(500).json({ error: "Internal Server Error" });
+    } finally {
+        // Disconnect from the database
+        disConnectfromDB();
     }
+}
 
+/**
+ * Handles the update of a project and admin profile.
+ * 
+ * @param req - The request object.
+ * @param res - The response object.
+ * @returns A JSON response indicating the success or failure of the project updation.
+ * @throws If there is an error creating the project, an internal server error is returned.
+ */
+export async function handleUpdateProject(req: Request, res: Response) {
+
+    const projectId = req.params.projectId;
+    const updates: Partial<IProject> = req.body;
+
+    const allowedUpdates = [
+        'name',
+        'description',
+        'start',
+        'maxParticipants',
+        'judges',
+        'prizes',
+        'rulesAndRegulations',
+        'theme',
+        'techTags',
+    ];
 
     await connectToDB();
 
     try {
-        const user: IUser | null | undefined = await USER.findOne({ email: userFromToken.email });
-
         const project = await PROJECT.findOne({ id: projectId });
 
         if (!project) {
             return res.status(404).json({ projectNotFound: "Project not found" });
         }
 
-        // only organizer can control the project stuff. (delete, 1111111111111update, modify)
-        if (user?.role !== 'organizer' && user?.id !== project.organizer) {
-            return res.status(403).json({ message: "Forbidden" });
+        if (!project.organizer.equals(req.user?._id as Types.ObjectId)) {
+            // console.log(project.organizer);
+            // console.log(req.user?._id);
+            return res.status(403).json({ message: "Forbidden! you're not a owner of the project" });
         }
 
-        const deleteProject = await PROJECT.deleteOne({ id: projectId });
-
-        // TODO continue..
-        if (deleteProject.acknowledged) {
-            return res.status(200).json({ message: "Project deleted successfully" });
-        }
-
-    } catch (error) {
-        console.log(`Unexpected error occured during deleting the project: ${error}`);
-        return res.status(500).json({ error: "Internal Server Error" });
-    }
-}
-
-
-// all the upgradation or updation of propfile or project will be handled by the PUT request.
-// Now PUT request is all about changing the whole document with another one. so, when the user/faculty want to change something, rest of the fields will remain unchanged. so the request from the frontend should contain all the fields, even if user/faculty want to change something.
-
-// TODO fix this later.
-export async function handleUpdateProject(req: Request, res: Response) {
-
-    // TODO continue from here update the project details and admin profile controller
-    const body: ProjectCreationDetails = req.body;
-    await connectToDB();
-
-    try {
-        const cookie = req.cookies?.jwt_token;
-        const userFromToken: jwt.JwtPayload | string = jwt.verify(cookie, process.env.JWT_STRING as Secret);
-
-        // condition never gonna be true, because of middleaware.
-        if (typeof userFromToken !== "object" || !userFromToken.id) {
-            return res.status(401).json({ message: "Unauthorized access" });
-        }
-
-        const user: IUser | null | undefined = await USER.findOne({ email: userFromToken.email });
-
-        const startDate = new Date(body.start);
-        // const endDate = new Date(body.end);
-
-        // if (startDate.getTime() <= endDate.getTime()) {
-        //     return res.status(400).json({ dateError: "Start date must be before end date" });
+        // aa concept hamna baju ma rakh, k project jo complete thai gayo hoi to ene edit nai kari sakay. that, we'll see later.
+        // const currentDate = new Date();
+        // if (currentDate.getTime() > project.end.getTime()) {
+        //     return res.status(403).json({ message: "You can't update the project after it's ended" });
         // }
 
-
-        const newProject = await PROJECT.create({
-            name: body.name,
-            description: body.description,
-            start: body.start,
-            // end: body.end,
-            organizer: user?.id,
-            maxParticipants: body.maxParticipants,
-            judges: body.judges,
-            prizes: body.prizes,
-            rulesAndRegulations: body.rulesAndRegulations,
-            theme: body.theme,
-            techTags: body.techTags,
-            status: Date.now() < startDate.getTime() ? 'planned' : 'ongoing',
+        const filteredUpdates: Partial<IProject> = {};
+        Object.keys(updates).forEach((key) => {
+            if (allowedUpdates.includes(key)) {
+                filteredUpdates[key as keyof IProject] = updates[key as keyof IProject];
+            }
         });
 
-        return res.status(201).json({ message: "Project created!", project: newProject });
+        const updatedProject = await PROJECT.findOneAndUpdate(
+            { id: projectId },
+            { $set: filteredUpdates },
+            { new: true, runValidators: true }
+        );
 
+        return res.status(200).json(updatedProject);
 
     } catch (error) {
-        console.log(`Error creating project: ${error}`);
-        return res.status(500).json({ error: "Internal server error" });
+        const errorObject = handleProjectErrors(error);
+        console.log(`Error creating project: ${JSON.stringify(errorObject)}`);
+        return res.status(500).json({ error: errorObject });
     } finally {
         disConnectfromDB();
     }
-
 }
+
 
 
 /**

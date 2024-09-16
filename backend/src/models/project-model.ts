@@ -23,7 +23,7 @@ const projectSchema = new mongoose.Schema<IProject>({
         },
         end: {
             type: Date,
-            required: true,
+            // required: true,
         },
         organizer: {
             type: mongoose.Schema.Types.ObjectId,
@@ -58,19 +58,15 @@ const projectSchema = new mongoose.Schema<IProject>({
         },
         techTags: [
             {
-                name: {
-                    type: String,
-                },
+                type: String,
             },
         ],
         participantTeam: {
             name: {
                 type: String,
-                required: true,
             },
             description: {
                 type: String,
-                required: true,
             },
             teamMembers: [
                 {

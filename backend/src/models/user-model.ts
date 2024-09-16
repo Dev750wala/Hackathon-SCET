@@ -178,11 +178,11 @@ userSchema.statics.adminLogin = async function (body: AdminLoginRequestBody) {
 userSchema.statics.userLogin = async function (body: LoginRequestBody) {
     await connectToDB();
     // console.log("Hello World 1");
-    
-    
+
     try {
+        console.log(body);
         // console.log("Hello World 2");
-        const user = await this.findOne(
+        const user: IUser = await this.findOne(
             {
                 $or: [{ enrollmentNumber: body.enrollmentNumberOrEmail }, { email: body.enrollmentNumberOrEmail }],
             }
@@ -190,6 +190,9 @@ userSchema.statics.userLogin = async function (body: LoginRequestBody) {
         // console.log("Hello World 3");
         if (!user) {
             // console.log("Hello World 4");
+            throw Error("user not found");
+        }
+        if (user.role === "organizer") {
             throw Error("user not found");
         }
         // console.log("Hello World 5");

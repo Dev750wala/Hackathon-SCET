@@ -10,7 +10,7 @@
 
 import express from 'express';
 import { handleAdminLogin, handleAdminLogout, handleAdminSignup, handleCreateProject, handleDeleteProject, handleListMyProjects, handleUpdateAdminProfile, handleAdminAuth, handleUpdateProject } from '../controllers/admin-controller';
-import { adminAuth, checkAdminSignupFieldsEmptyOrNot, checkProjectCreationFieldsEmptyOrNot } from "../middlewares/admin-middleware"
+import { adminAuth, checkAdminSignupFieldsEmptyOrNot, checkProjectCreationFieldsEmptyOrNot, checkIfAdminAlreadyLoggedinOrNot } from "../middlewares/admin-middleware"
 import { onlyLoggedInUsers } from '../middlewares/user-middleware';
 
 const adminRoute: express.Router = express.Router();
@@ -18,17 +18,17 @@ const adminRoute: express.Router = express.Router();
 adminRoute
     .post("/auth", handleAdminAuth)
 
-    .post("/signup", adminAuth, checkAdminSignupFieldsEmptyOrNot, handleAdminSignup)
+    .post("/signup", adminAuth, checkIfAdminAlreadyLoggedinOrNot,  checkAdminSignupFieldsEmptyOrNot, handleAdminSignup)
 
-    .post("/login", adminAuth, handleAdminLogin)
+    .post("/login", adminAuth, checkIfAdminAlreadyLoggedinOrNot, handleAdminLogin)
 
     .post("/logout", handleAdminLogout)
 
     .post("/projects/create-project", adminAuth, onlyLoggedInUsers, checkProjectCreationFieldsEmptyOrNot, handleCreateProject)
 
-    .put("/projects/:projectId", adminAuth, onlyLoggedInUsers, handleUpdateProject)
+    .patch("/projects/:projectId", adminAuth, onlyLoggedInUsers, handleUpdateProject)
 
-    .put("/update-profile", adminAuth, onlyLoggedInUsers, checkAdminSignupFieldsEmptyOrNot, handleUpdateAdminProfile)
+    .patch("/update-profile", adminAuth, onlyLoggedInUsers, handleUpdateAdminProfile)
 
     .delete("/projects/:projectId", adminAuth, onlyLoggedInUsers, handleDeleteProject)
     

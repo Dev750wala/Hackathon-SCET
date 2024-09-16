@@ -118,3 +118,46 @@ export function checkProjectCreationFieldsEmptyOrNot(req: Request, res: Response
     }
     next();
 }
+
+
+/**
+ * Middleware function to check if a user is already logged in.
+ * If a user is already logged in (i.e., a JWT token is present in the request cookies),
+ * this function will return a 403 status code with a message indicating that the user is already logged in.
+ * If no JWT token is found in the request cookies, the function will call the next middleware function.
+*
+* @param {Request} req - Express request object containing the request cookies.
+* @param {Response} res - Express response object to send a response back to the client.
+* @param {NextFunction} next - Express next middleware function to be called if the user is not already logged in.
+* @returns {void}
+*/
+export function checkIfAdminAlreadyLoggedinOrNot(req: Request, res: Response, next: NextFunction) {
+    const token = req.cookies?.jwt_token;
+    // console.log("Hello World 1");
+    
+    if (!token) {
+        console.log("No token found");
+        return next();
+    }
+    
+    try {
+        const userFromToken: jwt.JwtPayload | string = jwt.verify(token, process.env.JWT_STRING as Secret);
+        
+        console.log("Token verified:", userFromToken);
+
+        if (typeof userFromToken === 'object') {
+            console.log("User is already logged in");
+            return res.status(302).json({ message: "Admin already logged in" });
+        }
+
+        console.log("Token is not an object");
+        next();
+    } catch (error) {
+        console.log("Token verification failed", error);
+        res.cookie("jwt_token", "", {
+            path: "/",
+            maxAge: 1,
+        });
+        return next();
+    }
+}
