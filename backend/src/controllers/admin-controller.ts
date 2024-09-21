@@ -468,18 +468,9 @@ export async function handleUpdateProject(req: Request, res: Response) {
  */
 export async function handleListMyProjects(req: Request, res: Response) {
     await connectToDB();
-    const cookie = req.cookies?.jwt_token;
-    const userFromToken: jwt.JwtPayload | string = jwt.verify(cookie, process.env.JWT_STRING as Secret);
-
-    // condition never gonna be true, because of middleaware.
-    if (typeof userFromToken !== "object" || !userFromToken.id) {
-        return res.status(401).json({ message: "Unauthorized access" });
-    }
 
     try {
-        const user = await USER.findOne({ email: userFromToken.email });
-
-        const projects: IProject[] | null | undefined = await PROJECT.find({ organizer: user?._id });
+        const projects: IProject[] | null | undefined = await PROJECT.find({ organizer: req.user?._id as Types.ObjectId });
 
         const resultArray = projects.map(project => {
             return {
@@ -494,7 +485,7 @@ export async function handleListMyProjects(req: Request, res: Response) {
                 theme: project.theme,
                 techTags: project.techTags,
                 status: project.status,
-                participantCount: project.participantTeam?.teamMembers.length || 0,
+                participantCount: project.participantTeam.length,
             };
         });
 

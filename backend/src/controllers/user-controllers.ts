@@ -10,6 +10,7 @@ import bcrypt from "bcrypt";
 import { sendMail } from "../utilities/mail";
 import { TokenUser, LoginRequestBody, SignupDetails, IUser, SocialLinks } from "../interfaces/user-interfaces";
 import { handleErrors } from "../utilities/handleErrors";
+import PROJECT from "../models/project-model";
 
 
 /**
@@ -240,11 +241,8 @@ export function handleUserLogout(req: Request, res: Response) {
  */
 export async function handleUserProfile(req: Request, res: Response) {
     await connectToDB();
-
-    const cookie = req.cookies?.jwt_token;
     const username: string = req.params.username;
-    const tokenUser = tokenCheckUp(cookie);
-
+    
     try {
         const user = await USER.findOne({ username: username });
 
@@ -252,7 +250,7 @@ export async function handleUserProfile(req: Request, res: Response) {
             return res.status(404).json({ message: "User not found" });
         }
 
-        if (tokenUser && tokenUser.username === user.username) {
+        if (req.user && req.user?.username === user.username) {
             return res.status(200).json({ ...user, selfProfile: true })
         } else {
             return res.status(200).json({ ...user, selfProfile: false });
@@ -357,4 +355,10 @@ export async function handleVerifyUserEmail(req: Request, res: Response) {
     } finally {
         disConnectfromDB();
     }
+}
+
+
+export async function handleParticipateInProject(req: Request, res: Response) {
+    // TODO continue from here!
+    console.log("hello world");
 }

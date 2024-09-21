@@ -34,10 +34,15 @@ export interface IProject extends mongoose.Document {
     theme?: string;
     techTags: string[];
     participantTeam: {
+        id: mongoose.Types.ObjectId;
         name: string;
         description: string;
-        teamMembers: mongoose.Types.ObjectId[];
-    };
+        teamMembers: {
+            id: mongoose.Types.ObjectId;
+            name: string;
+            participatingStatus: 'accepted' | 'pending';
+        }[];
+    }[];
     status: 'planned' | 'ongoing' | 'completed';
 }
 

@@ -61,20 +61,34 @@ const projectSchema = new mongoose.Schema<IProject>({
                 type: String,
             },
         ],
-        participantTeam: {
-            name: {
-                type: String,
-            },
-            description: {
-                type: String,
-            },
-            teamMembers: [
-                {
-                    type: mongoose.Schema.Types.ObjectId,
-                    ref: 'user',
+        participantTeam: [
+            {
+                teamName: {
+                    type: String,
                 },
-            ],
-        },
+                description: {
+                    type: String,
+                },
+                teamMembers: [
+                    {
+                        id: {
+                            type: mongoose.Schema.Types.ObjectId,
+                            ref: 'user',
+                            required: true,
+                        },
+                        name: {
+                            type: String,
+                            required: true,
+                        },
+                        participatingStatus: {
+                            type: String,
+                            enum: ['pending', 'accepted'],
+                            default: 'pending',
+                        }
+                    },
+                ],
+            }
+        ],
         status: {
             type: String,
             enum: ['planned', 'ongoing', 'completed'],

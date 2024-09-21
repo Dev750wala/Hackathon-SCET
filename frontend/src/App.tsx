@@ -1,20 +1,26 @@
-import { WavyBackground } from "./components/ui/wavy-background";
-import './App.css'
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import './App.css';
+// import { SignupForm } from './components/SignUpForm';
+import Navbar from './components/Navbar';
+import SignUpForm from './components/SignUpForm';
 
 function App() {
+    const router = createBrowserRouter([
+        {
+            path: "/",
+            element: <Navbar />
+        },
+        {
+            path: "/user/login",
+            element: <SignUpForm/>
+        }
+    ])
 
-  return (
-    <>
-      <div className="fixed inset-0 w-full h-full z-[-1]">
-        <WavyBackground className="max-w-4xl mx-auto pb-40 overflow-x-hidden" />
-        <div className="relative z-10">
-          {/* Your page content */}
-        </div>
-      </div>
-      {/* <div className="">
-      </div> */}
-    </>
-  )
+    return (
+        <>
+            <RouterProvider router={router} />
+        </>
+    );
 }
 
-export default App
+export default App;

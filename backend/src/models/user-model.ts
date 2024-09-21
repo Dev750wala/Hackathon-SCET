@@ -20,6 +20,7 @@ const userSchema = new mongoose.Schema<IUser>({
         type: String,
         unique: true,
         required: true,
+        match: [/^[\w-\.]+@scet\.ac\.in$/, 'Email must be a valid scet.ac.in email address'],
     },
     password: {
         type: String,
