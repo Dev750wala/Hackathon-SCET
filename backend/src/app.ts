@@ -5,11 +5,12 @@ import cookieParser from "cookie-parser"
 import userRoute from './routes/user-routes';
 import adminRoute from './routes/admin-routes';
 import { checkUser } from './middlewares/user-middleware';
-// import 
+import cors from "cors"
 
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: false }));

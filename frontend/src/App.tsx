@@ -1,24 +1,24 @@
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import './App.css';
-// import { SignupForm } from './components/SignUpForm';
 import Navbar from './components/Navbar';
 import SignUpForm from './components/SignUpForm';
+import EmailVerificationPage from './components/emailVerificationPage';
+import LoginPage from './components/LoginForm';
+// import Temp from './components/Temp';
 
 function App() {
-    const router = createBrowserRouter([
-        {
-            path: "/",
-            element: <Navbar />
-        },
-        {
-            path: "/user/login",
-            element: <SignUpForm/>
-        }
-    ])
+    const location = useLocation();
 
     return (
         <>
-            <RouterProvider router={router} />
+
+            <Routes location={location} key={location.pathname}>
+                <Route index element={<Navbar />} />
+                <Route path='/user/login' element={<LoginPage />} />
+                <Route path='/user/signup' element={<SignUpForm />} />
+                <Route path='/user/verifyEmail/:username/:verificationCode' element={<EmailVerificationPage />}/>
+            </Routes>
+
         </>
     );
 }

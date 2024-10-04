@@ -72,6 +72,8 @@ export async function checkUser(req: Request, res: Response, next: NextFunction)
     
     const cookie = req.cookies?.jwt_token;
     await connectToDB();
+    console.log("Hello World 2");
+    
 
     if (!cookie) {
             req.user = null;
@@ -97,7 +99,7 @@ export async function checkUser(req: Request, res: Response, next: NextFunction)
             disConnectfromDB();
         }
     }
-    next();
+    return next();
 }
 
 export async function onlyVerifiedEmails(req: Request, res: Response, next: NextFunction) {
@@ -114,6 +116,7 @@ export async function onlyVerifiedEmails(req: Request, res: Response, next: Next
 
 export async function checkFieldsEmptyOrNot(req: Request, res: Response, next: NextFunction) {
     const body: SignupDetails = req.body;
+    console.log("Body:", typeof body);
     
     let emptyFields: string[] = [];
     
@@ -147,7 +150,7 @@ export async function checkFieldsEmptyOrNot(req: Request, res: Response, next: N
 */
 export function checkIfUserAlreadyLoggedinOrNot(req: Request, res: Response, next: NextFunction) {
     const token = req.cookies?.jwt_token;
-    // console.log("Hello World 1");
+    console.log("Hello World 1");
     
     if (!token) {
         console.log("No token found");
@@ -165,7 +168,7 @@ export function checkIfUserAlreadyLoggedinOrNot(req: Request, res: Response, nex
         }
 
         console.log("Token is not an object");
-        next();
+        return next();
     } catch (error) {
         console.log("Token verification failed", error);
         res.cookie("jwt_token", "", {

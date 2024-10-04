@@ -9,12 +9,12 @@ export default function Navbar({ isLoggedIn = false }) {
     const [isSearchOpen, setIsSearchOpen] = useState(false);
 
     return (
-        <nav className="bg-blue-950/85 backdrop-blur-[2px] shadow-md sticky top-0 z-50 py-3">
+        <nav className="bg-[#001F3F] backdrop-blur-[2px] shadow-md sticky top-0 z-50 py-3">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-3">
                 <div className="flex justify-between h-16 ">
                     {/* Left - Logo */}
                     <div className="flex-shrink-0 flex items-center">
-                        <span className="text-2xl font-bold text-zinc-900">Dev750</span>
+                        <span className="text-2xl font-bold text-neutral-200">Dev750</span>
                     </div>
 
                     {/* Center - Search (hidden on mobile) */}
@@ -91,8 +91,10 @@ export default function Navbar({ isLoggedIn = false }) {
                                         </>
                                     ) : (
                                         <>
-                                            <Button variant="ghost" className="justify-start hover:bg-zinc-100 hover:text-blue-600 transition duration-300 ease-in-out">Log in</Button>
-                                            <Button className="justify-start hover:bg-zinc-100 hover:text-blue-600 transition duration-300 ease-in-out">Sign up</Button>
+                                            <Link to="/user/login" className="justify-start hover:bg-zinc-100 hover:text-blue-600 transition duration-300 ease-in-out">
+                                                <Button variant="ghost" className="justify-start hover:bg-zinc-100 hover:text-blue-600 transition duration-300 ease-in-out">Log in</Button></Link>
+                                            <Link to="/user/signup" ><Button className='justify-start hover:bg-zinc-100 hover:text-blue-600 transition duration-300 ease-in-out'>Sign up</Button></Link>
+
                                         </>
                                     )}
                                 </div>

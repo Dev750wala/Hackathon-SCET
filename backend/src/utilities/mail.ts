@@ -2,23 +2,27 @@ import nodemailer from 'nodemailer';
 import { IUser } from '../interfaces/user-interfaces';
 import fs from "fs"
 import path from "path"
+import dotenv from "dotenv"
+
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     host: 'smtp.gmail.com',
-    port: 587,
-    secure: false,
+    port: 465,
+    secure: true,
     auth: {
         user: process.env.NODEMAILER_EMAIL,
         pass: process.env.NODEMAILER_PASSKEY,
-    }
+    },
+    authMethod: 'PLAIN',
 });
 
-export function sendMail(user: IUser, subject: "verify" | "proposalForCollab") {
+export async function sendMail(user: IUser, subject: "verify" | "proposalForCollab") {
 
     let emailBody;
     try {
-        const data = fs.readFileSync(path.join(__dirname, "../mail-formats/email-verification.txt"), "utf8").replace("[User]", `${user.fullName}`).replace("[VERIFICATION_LINK]", `${process.env.BASE_URL}/user/verifyEmail/${user.username}/${user.verificationCode.code}`);
+        const data = fs.readFileSync(path.join(__dirname, "../mail-formats/email-verification.txt"), "utf8").replace("[User]", `${user.fullName}`).replace("[VERIFICATION_LINK]", `${process.env.FRONTEND_URL}/user/verifyEmail/${user.username}/${user.verificationCode.code}`);
 
         emailBody = data;
     } catch (error) {
@@ -31,7 +35,6 @@ export function sendMail(user: IUser, subject: "verify" | "proposalForCollab") {
     } else if (subject === "proposalForCollab") {
         subject_ = "Proposal For Contribution"
     }
-    
 
     const mailOptions: nodemailer.SendMailOptions = {
         from: {
@@ -43,9 +46,13 @@ export function sendMail(user: IUser, subject: "verify" | "proposalForCollab") {
         html: emailBody,
     };
 
+    // console.log("%c mailOptions", "color: red; font-size: 16px; font-weight: bold", mailOptions);
+    
+
     try {
-        transporter.sendMail(mailOptions);
-    } catch (error) {
+        await transporter.sendMail(mailOptions);
+    } catch (error: any) {
+        console.log("There was an error sending an email", error);
         console.log("There was an error sending an email");
         return;
     }

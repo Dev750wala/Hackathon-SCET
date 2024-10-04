@@ -7,8 +7,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { useNavigate, Link } from 'react-router-dom';
+import { SignUpFormData } from '@/interfaces'
+// import axios from "axios"
+// import dotenv from "dotenv"
+// dotenv.config();
 
-export default function SignupForm() {
+function SignupForm() {
     const [skills, setSkills] = useState<string[]>([])
     const [newSkill, setNewSkill] = useState('')
     const [showPassword, setShowPassword] = useState(false);
@@ -19,15 +23,44 @@ export default function SignupForm() {
         register,
         handleSubmit,
         setError,
+        clearErrors,
         formState: { errors, isSubmitting },
-    } = useForm();
+    } = useForm({
+        defaultValues: {
+            enrollmentNumber: '',
+            username: '',
+            password: '',
+            email: '',
+            fullName: '',
+            contact_no: '',
+            biography: '',
+            portfolio: '',
+            linkedin: '',
+            github: '',
+            skills: [],
+            api: '',
+        }
+    });
 
     const addSkill = () => {
         if (newSkill.trim() !== '' && !skills.includes(newSkill.trim())) {
             setSkills([...skills, newSkill.trim()])
-            console.log(skills);
-            
+            clearErrors("skills")
             setNewSkill('')
+        } else if (newSkill.trim() === '') {
+            setError("skills", {
+                type: "manual",
+                message: "Skill cannot be empty",
+            });
+        }
+    }
+
+    const removeSkill = (skillToRemove: string) => {
+        var updatedSkills = skills.filter(skill => skill !== skillToRemove)
+        setSkills(updatedSkills)
+
+        if (updatedSkills.length > 0) {
+            clearErrors("skills");
         }
     }
 
@@ -35,16 +68,31 @@ export default function SignupForm() {
         navigate(-1);
     };
 
-    const removeSkill = (skillToRemove: string) => {
-        setSkills(skills.filter(skill => skill !== skillToRemove))
-    }
+    const transformData = ({ api, ...data }: SignUpFormData) => {
+        return {
+            enrollmentNumber: data.enrollmentNumber,
+            username: data.username,
+            password: data.password,
+            email: data.email,
+            biography: data.biography,
+            fullName: data.fullName,
+            contact_no: data.contact_no,
+            skills: skills,
+            portfolio: data.portfolio,
+            socialLinks: {
+                linkedin: data.linkedin,
+                github: data.github
+            }
+        };
+    };
 
-    const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
     const onSubmit = async function (data: any) {
+        console.log(`isSubmitting is ${isSubmitting}`);
+
         if (skills.length === 0) {
             console.log(`The skills length is ${skills.length}`);
-            
+
             setError("skills", {
                 type: "manual",
                 message: "At least one skill is required",
@@ -52,15 +100,32 @@ export default function SignupForm() {
             return;
         }
         console.log(`The skills length is ${skills.length}`);
-        const formData = {
-            ...data,
-            skills,
-        };
-        console.log(formData);
-        await delay(10000);
-        console.log("Submitted", formData);
-    };
+        const finalFormData = transformData(data);
+        console.log(finalFormData);
 
+        // try {
+        //     let response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/user/signup`, JSON.stringify(formData));
+        //     console.log(response.data);
+        // } catch (error) {
+        //     console.error(error);
+        //     setError("api", {
+        //         type: "manual",
+        //         message: "There was an error during signup. Please try again.",
+        //     });
+        // }
+        let r = await fetch(`${import.meta.env.VITE_BACKEND_URL}/user/signup`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(finalFormData)
+        })
+        let res = await r.text()
+        console.log(res);
+        // console.log("Submitted", typeof finalFormData);
+        // console.log(import.meta.env.VITE_BACKEND_URL);
+
+    };
 
     return (
         <>
@@ -93,7 +158,11 @@ export default function SignupForm() {
                                         })}
                                 />
                                 {errors.enrollmentNumber?.message && (
-                                    <span className="text-red-500 text-sm">
+                                    <span className="text-red-500 text-sm flex flex-row gap-1 items-center">
+                                        {/* <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" className="bi bi-exclamation-circle" viewBox="0 0 16 16">
+                                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
+                                            <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0M7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0z" />
+                                        </svg> */}
                                         {String(errors.enrollmentNumber.message)}
                                     </span>
                                 )}
@@ -103,14 +172,13 @@ export default function SignupForm() {
                             <div className="space-y-2">
                                 <Label htmlFor="username">Username</Label>
                                 <Input id="username" placeholder="Choose a username" required
-                                    {...register("username",
-                                        {
-                                            required: { value: true, message: "Enrollment is required" },
-                                            pattern: {
-                                                value: /^(?=.{7,20}$)[a-z0-9._]+(?:[a-zA-Z0-9._]+)*$/,
-                                                message: 'Username must be 7-20 characters long and can only contain letters, numbers, periods, and underscores',
-                                            },
-                                        })}
+                                    {...register("username", {
+                                        required: { value: true, message: "Username is required" },
+                                        pattern: {
+                                            value: /^(?=.{7,20}$)[a-z0-9._]+$/,
+                                            message: 'Username must be 7-20 characters long and can only contain lowercase letters, numbers, periods, and underscores',
+                                        },
+                                    })}
                                 />
                                 {errors.username?.message && (
                                     <span className="text-red-500 text-sm">
@@ -305,8 +373,13 @@ export default function SignupForm() {
 
                         {/* Submit Button */}
                         <Button type="submit" disabled={isSubmitting} className="w-full">
-                            Sign Up
+                            {isSubmitting ? "Signing Up" : "Sign Up"}
                         </Button>
+                        {errors.api?.message && (
+                            <span className="text-red-500 text-sm">
+                                {String(errors.api.message)}
+                            </span>
+                        )}
                     </form>
                     <div className='flex justify-center items-center my-5'>
                         <p>Already have an account? <Link to="/user/login" className='font-semibold'>Log in</Link></p>
@@ -316,3 +389,5 @@ export default function SignupForm() {
         </>
     )
 }
+
+export default SignupForm

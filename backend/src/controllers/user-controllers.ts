@@ -77,7 +77,8 @@ function tokenCheckUp(token: string) {
 export async function handleUserSignup(req: Request, res: Response) {
     await connectToDB();
     const body: SignupDetails = req.body;
-    // console.log(body);
+    console.log(body);
+
 
     if (!validator.matches(body.email, "scet.ac.in")) {
         return res.status(400).json({ invalidMail: "Please enter only SCET Email address" });
