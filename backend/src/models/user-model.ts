@@ -198,6 +198,8 @@ userSchema.statics.userLogin = async function (body: LoginRequestBody) {
         }
         // console.log("Hello World 5");
         if (user.password !== body.password) {
+            console.log("Don't match the password!!");
+            
             // console.log("Hello World 6");
             throw Error("password is incorrect");
         }

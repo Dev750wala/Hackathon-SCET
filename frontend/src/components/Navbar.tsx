@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Search, User, Calendar, Menu } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -7,9 +7,35 @@ import { Link } from "react-router-dom"
 
 export default function Navbar({ isLoggedIn = false }) {
     const [isSearchOpen, setIsSearchOpen] = useState(false);
+    // const [scrollPosition, setScrollPosition] = useState(0);
+    const [isNavbarVisible, setIsNavbarVisible] = useState(true);
+
+    // Effect to handle scroll behavior
+    useEffect(() => {
+        let lastScrollY = window.pageYOffset;
+
+        const handleScroll = () => {
+            const currentScrollY = window.pageYOffset;
+
+            if (currentScrollY > lastScrollY && currentScrollY > 100) {
+                // Scrolling down and passed 100px threshold
+                setIsNavbarVisible(false);
+            } else if (currentScrollY < lastScrollY) {
+                // Scrolling up
+                setIsNavbarVisible(true);
+            }
+            lastScrollY = currentScrollY;
+        };
+
+        window.addEventListener('scroll', handleScroll);
+
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+        };
+    }, []);
 
     return (
-        <nav className="bg-[#001F3F] backdrop-blur-[2px] shadow-md sticky top-0 z-50 py-3">
+        <nav className={`bg-[#001F3F] backdrop-blur-[2px] shadow-md sticky top-0 z-50 py-3 transition-transform duration-300 ${isNavbarVisible ? 'transform translate-y-0' : 'transform -translate-y-full'}`}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-3">
                 <div className="flex justify-between h-16 ">
                     {/* Left - Logo */}
@@ -64,7 +90,6 @@ export default function Navbar({ isLoggedIn = false }) {
                                         Sign up
                                     </Link>
                                 </div>
-
                             </>
                         )}
 
@@ -111,5 +136,5 @@ export default function Navbar({ isLoggedIn = false }) {
                 </div>
             )}
         </nav>
-    )
+    );
 }

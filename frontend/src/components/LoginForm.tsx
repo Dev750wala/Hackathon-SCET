@@ -8,13 +8,64 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 
 type FormData = {
-    enrollmentOrEmail: string
+    enrollmentNumberOrEmail: string
     password: string
 }
 
+// interface SocialLinks {
+//     linkedin?: string;
+//     github?: string;
+// }
+
+// interface ParticipationHistory {
+//     eventName: string;
+//     date: string;
+//     awards: string[];
+// }
+
+// interface VerificationCode {
+//     code: string;
+//     createdAt: number;
+// }
+
+// interface okReponseData {
+//     enrollmentNumber?: string;
+//     username: string;
+//     password: string;
+//     email: string;
+//     role: 'student' | 'organizer';
+//     fullName: string;
+//     profile_pic?: string;
+//     contact_no?: string;
+//     skills?: string[];
+//     biography?: string;
+//     portfolio?: string;
+//     socialLinks?: SocialLinks;
+//     participationHistory?: ParticipationHistory[];
+//     availability?: boolean;
+//     registrationDate?: Date;
+//     verified: boolean;
+//     verificationCode: VerificationCode;
+// }
+
+interface errorResponseData {
+    error: {
+        enrollmentNumber: string;
+        username: string;
+        email: string;
+        password: string;
+        general: string;
+        statusCode: number;
+    }
+}
+
+// cosnt analyseResponse = (resJson: okReponseData | errorResponseData) => {
+
+// }
+
 export default function LoginPage() {
     const navigate = useNavigate()
-
+    
     const handleGoBack = () => {
         navigate(-1)
     }
@@ -24,7 +75,8 @@ export default function LoginPage() {
         formState: {
             errors,
             isSubmitting
-        }
+        },
+        setError
     } = useForm<FormData>()
     const [showPassword, setShowPassword] = useState(false)
 
@@ -36,10 +88,39 @@ export default function LoginPage() {
             },
             body: JSON.stringify(data)
         })
+        const resJson = await r.json();
 
-        const res = await r.text();
-        console.log(res);
-        
+
+        if (resJson.error === undefined) {
+            console.log("logged in successfully");
+            navigate("/");
+        } 
+        else {
+            const errorResponse = resJson as errorResponseData;
+
+            if (errorResponse.error.email !== "") {
+                setError("enrollmentNumberOrEmail", {
+                    type: "manual",
+                    message: errorResponse.error.email
+                })
+            } else if (errorResponse.error.enrollmentNumber !== "") {
+                setError("enrollmentNumberOrEmail", {
+                    type: "manual",
+                    message: errorResponse.error.enrollmentNumber
+                })
+            } else if (errorResponse.error.password !== "") {
+                setError("password", {
+                    type: "manual",
+                    message: errorResponse.error.password
+                })
+            } else if (errorResponse.error.general !== "") {
+                setError('root', {
+                    type: "manual",
+                    message: errorResponse.error.general
+                })
+            }
+            console.log(errorResponse.error);
+        }
     }
 
     return (
@@ -61,14 +142,14 @@ export default function LoginPage() {
                 <CardContent>
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="enrollmentOrEmail">Enrollment Number / Email</Label>
+                            <Label htmlFor="enrollmentNumberOrEmail">Enrollment Number / Email</Label>
                             <Input
-                                id="enrollmentOrEmail"
+                                id="enrollmentNumberOrEmail"
                                 type="text"
                                 placeholder="Enter enrollment number or email"
-                                {...register("enrollmentOrEmail", { required: "Please enter your enrollment number / email" })}
+                                {...register("enrollmentNumberOrEmail", { required: "Please enter your enrollment number / email" })}
                             />
-                            {errors.enrollmentOrEmail && <p className="text-sm text-red-500">{errors.enrollmentOrEmail.message}</p>}
+                            {errors.enrollmentNumberOrEmail && <p className="text-sm text-red-500">{errors.enrollmentNumberOrEmail.message}</p>}
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="password">Password</Label>
@@ -92,6 +173,9 @@ export default function LoginPage() {
                         <Button type="submit" className="w-full" disabled={isSubmitting}>
                             {isSubmitting ? "Logging in..." : "Login"}
                         </Button>
+                        {
+                            errors.root && <div className="text-red-500 text-sm text-center">{errors.root.message}</div>
+                        }
                     </form>
                 </CardContent>
                 <CardFooter className="justify-center">
