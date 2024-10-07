@@ -134,7 +134,15 @@ export async function handleUserSignup(req: Request, res: Response) {
 
         const token = signToken(tokenObject);
         sendMail(newUser, "verify");
-        return res.cookie("jwt_token", token).status(201).json({ user: newUser, message: "Please check your mail inbox to verify your mail!" });
+        res.cookie("jwt_token", token, {
+            httpOnly: true,
+            secure: false,
+            sameSite: 'lax', 
+            path: '/', 
+        });
+        console.log("\n\nCookie sent: ", token, "\n\n");
+        
+        return res.status(201).json({ user: newUser, message: "Please check your mail inbox to verify your mail!" });
 
     } catch (error: unknown) {
         console.log(`Unexpected error occured during user signup: ${error}\n\n`);
@@ -335,7 +343,7 @@ export async function handleVerifyUserEmail(req: Request, res: Response) {
             username: updatedUser.username,
             email: updatedUser.email,
             enrollmentNumber: updatedUser.enrollmentNumber,
-            verified: updatedUser.verified,
+            verified: true,
         }
 
         const token = signToken(tokenObject);

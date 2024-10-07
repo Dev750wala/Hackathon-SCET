@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { useNavigate, Link } from 'react-router-dom';
 import { SignUpFormData } from '@/interfaces'
+// import Cookies from "js-cookie"
 // import axios from "axios"
 // import dotenv from "dotenv"
 // dotenv.config();
@@ -118,10 +119,17 @@ function SignupForm() {
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify(finalFormData)
+            body: JSON.stringify(finalFormData),
+            credentials: "include",
         })
-        let res = await r.text()
-        console.log(res);
+        console.log(await r.json());
+        // console.log("All Cookies:", document.cookie);
+        console.log("Signed up successfully");
+        navigate("/");
+        // const jwtToken = Cookies.get('jwt_token');
+        // console.log("JWT Token:", jwtToken);
+        // console.log("All Cookies:", document.cookie);
+
         // console.log("Submitted", typeof finalFormData);
         // console.log(import.meta.env.VITE_BACKEND_URL);
 
