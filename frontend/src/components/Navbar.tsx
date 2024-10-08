@@ -35,12 +35,12 @@ export default function Navbar({ isLoggedIn = false }) {
     }, []);
 
     return (
-        <nav className={`bg-[#001F3F] backdrop-blur-[2px] shadow-md sticky top-0 z-50 py-3 transition-transform duration-300 ${isNavbarVisible ? 'transform translate-y-0' : 'transform -translate-y-full'}`}>
+        <nav className={`bg-[#d0e9ff5d] backdrop-blur-[10px] shadow-sm border-b-[#b3dffc8e] border sticky top-0 z-50 py-3 transition-transform duration-300 ${isNavbarVisible ? 'transform translate-y-0' : 'transform -translate-y-full'}`}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-3">
                 <div className="flex justify-between h-16 ">
                     {/* Left - Logo */}
                     <div className="flex-shrink-0 flex items-center">
-                        <span className="text-2xl font-bold text-neutral-200">Dev750</span>
+                        <span className="text-2xl font-bold text-neutral-900">Dev750</span>
                     </div>
 
                     {/* Center - Search (hidden on mobile) */}
@@ -79,13 +79,13 @@ export default function Navbar({ isLoggedIn = false }) {
                                 <div className='flex flex-row gap-3 mx-2'>
                                     <Link
                                         to="/user/login"
-                                        className="hidden sm:inline-flex items-center justify-center px-4 py-2 text-white text-base border border-white hover:bg-white hover:text-blue-950 transition duration-300 ease-in-out rounded-full"
+                                        className="hidden sm:inline-flex items-center justify-center px-4 py-2 text-zinc-900 text-base border border-black hover:bg-white hover:text-blue-950 transition duration-300 ease-in-out rounded-full"
                                     >
                                         Log in
                                     </Link>
                                     <Link
                                         to="/user/signup"
-                                        className="hidden sm:inline-flex items-center justify-center ml-2 px-4 py-2 bg-white text-black text-base hover:bg-zinc-100 hover:border-blue-950 hover:text-blue-950 transition duration-300 ease-in-out border border-transparent rounded-full"
+                                        className="hidden sm:inline-flex items-center justify-center ml-2 px-4 py-2 bg-zinc-900 text-white text-base hover:border-blue-950 transition duration-300 ease-in-out border border-transparent rounded-full"
                                     >
                                         Sign up
                                     </Link>

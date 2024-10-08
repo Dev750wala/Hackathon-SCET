@@ -86,7 +86,8 @@ export default function LoginPage() {
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify(data)
+            body: JSON.stringify(data),
+            credentials: "include"
         })
         const resJson = await r.json();
 
@@ -124,7 +125,7 @@ export default function LoginPage() {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+        <div className="min-h-screen flex items-center justify-center  p-4">
             <Card className="w-full max-w-md">
                 <CardHeader>
                     <div className="flex flex-col items-start">

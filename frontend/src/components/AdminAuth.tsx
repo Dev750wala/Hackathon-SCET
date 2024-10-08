@@ -43,8 +43,8 @@ const AdminAuth = () => {
     }
 
     return (
-        <div className='w-full h-full flex flex-row justify-center items-center p-4 mt-20'>
-            <div className='p-10 rounded-xl border-2'>
+        <div className='w-[100vw] h-[100vh] flex flex-row justify-center items-center p-4 '>
+            <div className='p-10 rounded-xl border border-gray-950/45 bg-gray-50'>
                 <form onSubmit={handleSubmit(onsubmit)} >
                     <div className='flex flex-col justify-center gap-3'>
 

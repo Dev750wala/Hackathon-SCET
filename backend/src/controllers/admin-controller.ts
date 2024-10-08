@@ -37,6 +37,11 @@ export async function handleAdminAuth(req: Request, res: Response) {
     // console.log("hello world1");
     // console.log(req);
 
+    if (req.user?.role === "student") {
+        return res.status(401).json({ message: "You're prohibited!" });
+    }
+    
+
 
     if (!password) return res.status(400).json({ message: "Password is required" });
 
