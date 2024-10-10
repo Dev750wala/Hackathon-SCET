@@ -35,7 +35,7 @@ export default function Navbar({ isLoggedIn = false }) {
     }, []);
 
     return (
-        <nav className={`bg-[#d0e9ff5d] backdrop-blur-[10px] shadow-sm border-b-[#b3dffc8e] border sticky top-0 z-50 py-3 transition-transform duration-300 ${isNavbarVisible ? 'transform translate-y-0' : 'transform -translate-y-full'}`}>
+        <nav className={`bg-[#eef7ff5d] backdrop-blur-[10px] shadow-sm border-b-[#b3dffc8e] border sticky top-0 z-50 py-3 transition-transform duration-300 ${isNavbarVisible ? 'transform translate-y-0' : 'transform -translate-y-full'}`}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-3">
                 <div className="flex justify-between h-16 ">
                     {/* Left - Logo */}

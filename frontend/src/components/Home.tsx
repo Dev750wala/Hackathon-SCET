@@ -98,7 +98,7 @@ const Home = () => {
         <>
             <Navbar />
             <div className="flex flex-row justify-center w-full h-[85vh] items-center">
-                <h1 className='text-8xl text-amber-500 font-bold'>Welcome Back!</h1>
+                <h1 className='text-8xl text-black font-bold'>Welcome Back!</h1>
             </div>
 
             {/* div that contains all the upcoming or ongoing events/projects. */}
