@@ -9,9 +9,23 @@ import AdminAuth from './components/AdminAuth';
 import Home from './components/Home';
 import AdminSignup from './components/AdminSignup';
 import AdminDashboard from './components/AdminDashboard';
+import { useDispatch } from 'react-redux';
+import { useEffect } from 'react';
 
 function App() {
     const location = useLocation();
+    const dispatch = useDispatch();
+
+    useEffect(() => {
+        const token = document.cookie.split('; ').find(row => row.startsWith('jwt_token='));
+
+        // TODO create a route to verify the user token. the token should be sent to the backend
+        // bacause the token may be tempered with by the user. 
+        console.log(token);
+        
+    }, [dispatch])
+
+
 
     return (
         <>

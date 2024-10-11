@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { useNavigate, Link } from 'react-router-dom';
-import { SignUpFormData } from '@/interfaces'
+import { SignUpFormData, SignupResponse } from '@/interfaces'
+import { useAppDispatch, useAppSelector } from '@/redux-store/hooks'
 // import Cookies from "js-cookie"
 // import axios from "axios"
 // import dotenv from "dotenv"
@@ -18,6 +19,8 @@ function SignupForm() {
     const [newSkill, setNewSkill] = useState('')
     const [showPassword, setShowPassword] = useState(false);
 
+    const dispatch = useAppDispatch();
+    const userInfo = useAppSelector();
     const navigate = useNavigate();
 
     const {
@@ -114,25 +117,34 @@ function SignupForm() {
         //         message: "There was an error during signup. Please try again.",
         //     });
         // }
-        let r = await fetch(`${import.meta.env.VITE_BACKEND_URL}/user/signup`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(finalFormData),
-            credentials: "include",
-        })
-        console.log(await r.json());
+        try {
+            let r = await fetch(`${import.meta.env.VITE_BACKEND_URL}/user/signup`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(finalFormData),
+                credentials: "include",
+            })
+            const response: SignupResponse = await r.json();
+            console.log(response);
+            
+            console.log("Signed up successfully");
+            navigate("/");
+        } catch (error) {
+            console.error(error);
+            setError("api", {
+                type: "manual",
+                message: "There was an error during signup. Please try again.",
+            });
+        }
         // console.log("All Cookies:", document.cookie);
-        console.log("Signed up successfully");
-        navigate("/");
         // const jwtToken = Cookies.get('jwt_token');
         // console.log("JWT Token:", jwtToken);
         // console.log("All Cookies:", document.cookie);
 
         // console.log("Submitted", typeof finalFormData);
         // console.log(import.meta.env.VITE_BACKEND_URL);
-
     };
 
     return (

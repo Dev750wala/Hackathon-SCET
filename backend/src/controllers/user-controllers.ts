@@ -8,7 +8,7 @@ import validator from "validator";
 import { nanoid } from "../utilities/nanoid";
 import bcrypt from "bcrypt";
 import { sendMail } from "../utilities/mail";
-import { TokenUser, LoginRequestBody, SignupDetails, IUser, SocialLinks } from "../interfaces/user-interfaces";
+import { TokenUser, LoginRequestBody, SignupDetails, IUser, SocialLinks, SignupResponse } from "../interfaces/user-interfaces";
 import { handleErrors } from "../utilities/handleErrors";
 import PROJECT from "../models/project-model";
 
@@ -132,6 +132,23 @@ export async function handleUserSignup(req: Request, res: Response) {
             verified: newUser.verified,
         }
 
+        const responseData = {
+            enrollmentNumber:       newUser.enrollmentNumber,
+            username:               newUser.username,
+            email:                  newUser.email,
+            role:                   newUser.role,
+            fullName:               newUser.fullName,
+            contact_no:             newUser.contact_no,
+            skills:                 newUser.skills,
+            biography:              newUser.biography,
+            portfolio:              newUser.portfolio,
+            socialLinks:            newUser.socialLinks,
+            verified:               newUser.verified,
+            registrationDate:       newUser.registrationDate,
+            participationHistory:   newUser.participationHistory,
+            availability:           newUser.availability
+        }
+
         const token = signToken(tokenObject);
         sendMail(newUser, "verify");
         res.cookie("jwt_token", token, {
@@ -142,7 +159,7 @@ export async function handleUserSignup(req: Request, res: Response) {
         });
         console.log("\n\nCookie sent: ", token, "\n\n");
         
-        return res.status(201).json({ user: newUser, message: "Please check your mail inbox to verify your mail!" });
+        return res.status(201).json({ user: responseData, message: "Please check your mail inbox to verify your mail!" });
 
     } catch (error: unknown) {
         console.log(`Unexpected error occured during user signup: ${error}\n\n`);

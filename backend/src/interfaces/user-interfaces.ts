@@ -75,3 +75,20 @@ export interface UserModel extends Model<IUser> {
     adminLogin(body: AdminLoginRequestBody): Promise<IUser>;
     userLogin(body: LoginRequestBody): Promise<IUser>;
 }
+
+export interface SignupResponse {
+    enrollmentNumber:     string;
+    username:             string;
+    email:                string;
+    role:                 string;
+    fullName:             string;
+    contact_no:           string;
+    skills:               string[];
+    biography:            string;
+    portfolio:            string;
+    socialLinks:          SocialLinks;
+    verified:             boolean;
+    availability:         boolean;
+    registrationDate:     Date;
+    participationHistory: any[];
+}
