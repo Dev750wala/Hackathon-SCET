@@ -15,6 +15,7 @@ import { removeUser, setUser } from './redux-store/slices/userInfoSlice';
 // import { User } from './interfaces';
 import { removeAdmin, setAdmin } from './redux-store/slices/adminSlice';
 import { verificationUser } from './interfaces';
+import AdminLogin from './components/AdminLogin';
 
 
 function App() {
@@ -77,6 +78,7 @@ function App() {
                     <Route path='/user/verifyEmail/:username/:verificationCode' element={<EmailVerificationPage />} />
                     <Route path='/admin/auth' element={<AdminAuth />} />
                     <Route path='/admin/signup' element={<AdminSignup />} />
+                    <Route path='/admin/login' element={<AdminLogin />} />
                     <Route path='/admin/dl' element={<AdminDashboard />} />
                 </Routes>
             </div>

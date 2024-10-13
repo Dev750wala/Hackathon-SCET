@@ -121,6 +121,8 @@ export default function AdminSignupForm() {
             });
 
             const response = await r.json();
+            console.log(response);
+            
 
             if ("duplication" in response) {
                 // Handle duplication errors
@@ -128,7 +130,7 @@ export default function AdminSignupForm() {
                     setError("email", { type: "manual", message: "Email already exists" });
                 }
                 if (response.duplication.username) {
-                    setError("username", { type: "manual", message: "Username already exists" });
+                    setError("username", { type: "manual", message: "Username already taken" });
                 }
             } else if ("user" in response) {
                 // Success case
@@ -218,8 +220,8 @@ export default function AdminSignupForm() {
                                     {...register("email", {
                                         required: { value: true, message: "Email is required" },
                                         pattern: {
-                                            value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                                            message: "Invalid email address",
+                                            value: /^[\w-\.]+@scet\.ac\.in$/,
+                                            message: "You must use SCET mail id",
                                         },
                                     })} />
                                 {errors.email?.message && (

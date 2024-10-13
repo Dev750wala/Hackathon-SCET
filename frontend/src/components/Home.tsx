@@ -102,7 +102,7 @@ const Home = () => {
 
     return (
         <>
-            <Navbar />
+            <Navbar userType="student"/>
             <div className="flex flex-col justify-center w-full h-[85vh] items-center">
                 <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl text-black font-bold text-wrap px-4">
                     Welcome Back {user ? `, ${user.fullName.split(" ")[0]}` : ''}!

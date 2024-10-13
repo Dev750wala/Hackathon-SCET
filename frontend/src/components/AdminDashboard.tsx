@@ -5,10 +5,14 @@ import { removeUser } from '../redux-store/slices/userInfoSlice'
 import { useAppDispatch } from '../redux-store/hooks'
 import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
+import { RainbowButton } from "@/components/ui/rainbow-button";
+import { PlusIcon } from 'lucide-react'
+
 
 const AdminDashboard = () => {
 
     const adminAuth = useAppSelector(state => state.admin);
+    const user = useAppSelector(state => state.userInfo);
     console.log(adminAuth);
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
@@ -34,6 +38,10 @@ const AdminDashboard = () => {
         }
     }
 
+    const handleCreateProject = () => {
+        navigate("/admin/create-project");
+    }
+
     if (!adminAuth) {
         return (
             <div className="w-full h-screen">
@@ -53,9 +61,16 @@ const AdminDashboard = () => {
     }
     return (
         <div className="w-full h-screen">
-            <Navbar />
-            <div className="flex justify-center items-center h-3/4">
-                <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+            <Navbar userType='organizer' />
+            <div className="flex flex-col justify-center gap-7 w-full h-3/4 items-center">
+                <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl text-black font-bold text-wrap px-4 my-5">
+                    Welcome Back, {user ? ` ${user.fullName.split(" ")[0]}` : ''}!
+                </h1>
+                <RainbowButton className='gap-1 flex items-center justify-center' onClick={() => handleCreateProject()}>
+                    <PlusIcon className="w-6 h-6" />
+                    Create a new Project
+                </RainbowButton>
+
             </div>
         </div>
     )

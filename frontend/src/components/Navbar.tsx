@@ -7,7 +7,11 @@ import { Link } from "react-router-dom"
 import { useAppSelector, useAppDispatch } from '@/redux-store/hooks'
 import { removeUser } from '@/redux-store/slices/userInfoSlice'
 
-export default function Navbar() {
+interface NavbarProps {
+    userType: "student" | "organizer";
+}
+
+export default function Navbar({ userType } : NavbarProps) {
     var isLoggedIn;
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     // const [scrollPosition, setScrollPosition] = useState(0);
@@ -19,7 +23,7 @@ export default function Navbar() {
 
     const handleLogout = async () => {
         try {
-            const r = await fetch(`${import.meta.env.VITE_BACKEND_URL}/user/logout`, {
+            const r = await fetch(`${import.meta.env.VITE_BACKEND_URL}/${userType === 'student' ? 'user' : 'admin'}/logout`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -123,13 +127,13 @@ export default function Navbar() {
                             <>
                                 <div className='flex flex-row gap-3 mx-2'>
                                     <Link
-                                        to="/user/login"
+                                        to={`/${userType === 'student' ? 'user' : 'admin'}/login`}
                                         className="hidden sm:inline-flex items-center justify-center px-4 py-2 text-zinc-900 text-base border border-black hover:bg-black hover:text-red-50 transition duration-200 ease-in-out rounded-full"
                                     >
                                         Log in
                                     </Link>
                                     <Link
-                                        to="/user/signup"
+                                        to={`/${userType === 'student' ? 'user' : 'admin'}/signup`}
                                         className="hidden sm:inline-flex items-center justify-center ml-2 px-4 py-2 bg-zinc-900 text-white text-base hover:bg-white transition duration-200 ease-in-out border-black border rounded-full hover:text-black"
                                     >
                                         Sign up
@@ -161,9 +165,9 @@ export default function Navbar() {
                                         </>
                                     ) : (
                                         <>
-                                            <Link to="/user/login" className="justify-start hover:bg-zinc-100 hover:text-blue-600 transition duration-300 ease-in-out">
+                                            <Link to={`/${userType === 'student' ? 'user' : 'admin'}/login`} className="justify-start hover:bg-zinc-100 hover:text-blue-600 transition duration-300 ease-in-out">
                                                 <Button variant="ghost" className="justify-start hover:bg-zinc-100 hover:text-blue-600 transition duration-300 ease-in-out">Log in</Button></Link>
-                                            <Link to="/user/signup" ><Button className='justify-start hover:bg-zinc-100 hover:text-blue-600 transition duration-300 ease-in-out'>Sign up</Button></Link>
+                                            <Link to={`/${userType === 'student' ? 'user' : 'admin'}/signup`} ><Button className='justify-start hover:bg-zinc-100 hover:text-blue-600 transition duration-300 ease-in-out'>Sign up</Button></Link>
 
                                         </>
                                     )}

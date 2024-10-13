@@ -72,7 +72,8 @@ export interface SignupErrorResponse {
 }
 
 export interface User {
-    enrollmentNumber: string;
+    // TODO error might occur
+    enrollmentNumber?: string;
     username: string;
     email: string;
     role: "student" | "organizer";

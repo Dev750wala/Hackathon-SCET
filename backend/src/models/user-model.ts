@@ -136,20 +136,22 @@ userSchema.statics.adminLogin = async function (body: AdminLoginRequestBody) {
     await connectToDB();
 
     try {
-        const user = await this.findOne(
+        const user: IUser = await this.findOne(
             {
                 $or: [{ email: body.emailOrUsername }, { username: body.emailOrUsername }],
             }
         )
-        if (!user) {
+        if (!user || user.role === "student") {
             console.log(user);
             throw Error("user not found");
         }
+        // if (user.role === "student") {
+        //     throw Error("user not found");
+        // }
         if (user.password !== body.password) {
             console.log("Hello World 2");
             throw Error("password is incorrect");
         }
-        console.log("Hello World 3");
         return user;
 
     } catch (error) {
@@ -178,19 +180,15 @@ userSchema.statics.adminLogin = async function (body: AdminLoginRequestBody) {
  */
 userSchema.statics.userLogin = async function (body: LoginRequestBody) {
     await connectToDB();
-    // console.log("Hello World 1");
 
     try {
         console.log(body);
-        // console.log("Hello World 2");
         const user: IUser = await this.findOne(
             {
                 $or: [{ enrollmentNumber: body.enrollmentNumberOrEmail }, { email: body.enrollmentNumberOrEmail }],
             }
         )
-        // console.log("Hello World 3");
         if (!user) {
-            // console.log("Hello World 4");
             throw Error("user not found");
         }
         if (user.role === "organizer") {
@@ -198,20 +196,14 @@ userSchema.statics.userLogin = async function (body: LoginRequestBody) {
         }
         // console.log("Hello World 5");
         if (user.password !== body.password) {
-            console.log("Don't match the password!!");
-            
-            // console.log("Hello World 6");
             throw Error("password is incorrect");
         }
-        // console.log("Hello World 7");
         return user;
     } catch (error) {
         if (error instanceof Error) {
-            // console.log("Hello World 8");
             console.error(`This is the error in if: ${error}`);
             throw error;
         } else {
-            // console.log("Hello World 9");
             console.error(`This is the error in else: ${error}`);
             throw new Error("internal error");
         }

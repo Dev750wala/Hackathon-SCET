@@ -256,13 +256,20 @@ export function handleUserLogout(req: Request, res: Response) {
     if (!cookies) {
         return res.status(401).json({ message: "No token found" });
     }
-    // console.log(`\n\n\n\nThe cookies are ${req.cookies}\n\n\n\n`);
+    if (req.cookies.admin) {
+        res.clearCookie("admin", {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'strict',
+            path: '/',
+        });
+    }
 
     res.clearCookie("jwt_token", {
-        httpOnly: true, // if it was set with httpOnly
-        secure: true, // if it was set with secure flag
-        sameSite: 'strict', // if it was set with sameSite
-        path: '/', // should match the path the cookie was set with
+        httpOnly: true,
+        secure: true,
+        sameSite: 'strict',
+        path: '/',
     });
 
     return res.status(200).json({ message: "Logged out successfully" });

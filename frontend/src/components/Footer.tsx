@@ -35,7 +35,7 @@ export default function Footer() {
                         </p>
                         <p className="text-sm text-gray-600 mb-2">Phone: (0261) 224 0146</p>
                         <p className="text-sm text-gray-600 mb-2">Email: info@scet.ac.in</p>
-                        <Link to="https://www.techuniversity.edu" className="text-blue-600 hover:text-blue-800 text-sm">
+                        <Link to="https://scet.ac.in/" className="text-blue-600 hover:text-blue-800 text-sm">
                             https://scet.ac.in/
                         </Link>
                     </div>

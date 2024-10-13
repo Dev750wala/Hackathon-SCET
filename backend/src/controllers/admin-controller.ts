@@ -179,7 +179,23 @@ export async function handleAdminLogin(req: Request, res: Response): Promise<Res
         }
         const token = signToken(tokenObject);
 
-        return res.cookie("jwt_token", token, { maxAge: 60 * 60 * 60 * 100 }).status(200).json({ user: user });
+        const responseData = {
+            username: user.username,
+            email: user.email,
+            role: user.role,
+            fullName: user.fullName,
+            contact_no: user.contact_no,
+            skills: user.skills,
+            biography: user.biography,
+            portfolio: user.portfolio,
+            socialLinks: user.socialLinks,
+            verified: user.verified,
+            registrationDate: user.registrationDate,
+            participationHistory: user.participationHistory,
+            availability: user.availability
+        }
+
+        return res.cookie("jwt_token", token, { maxAge: 60 * 60 * 60 * 100 }).status(200).json({ user: responseData });
 
     } catch (error) {
         console.log(`Unexpected error occured during user signup: ${error}`);
