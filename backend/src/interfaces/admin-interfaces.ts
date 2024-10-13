@@ -12,6 +12,7 @@ export interface AdminSignupDetails {
     contact_no: string;
     skills: string[];
     biography: string;
+    portfolio?: string;
     socialLinks?: SocialLinks;
 }
 

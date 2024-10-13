@@ -7,12 +7,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { useNavigate, Link } from 'react-router-dom';
-import { SignUpFormData, SignupResponse } from '@/interfaces'
-import { useAppDispatch, useAppSelector } from '@/redux-store/hooks'
-// import Cookies from "js-cookie"
-// import axios from "axios"
-// import dotenv from "dotenv"
-// dotenv.config();
+import { SignUpFormData, SignUpSuccessResponse, SignupDuplication, SignupErrorResponse } from '@/interfaces'
+import { useAppDispatch } from '@/redux-store/hooks'
+import { setUser } from '@/redux-store/slices/userInfoSlice'
 
 function SignupForm() {
     const [skills, setSkills] = useState<string[]>([])
@@ -20,7 +17,7 @@ function SignupForm() {
     const [showPassword, setShowPassword] = useState(false);
 
     const dispatch = useAppDispatch();
-    const userInfo = useAppSelector();
+    // const userInfo = useAppSelector((state) => state.userInfo); 
     const navigate = useNavigate();
 
     const {
@@ -92,45 +89,54 @@ function SignupForm() {
 
 
     const onSubmit = async function (data: any) {
-        console.log(`isSubmitting is ${isSubmitting}`);
-
         if (skills.length === 0) {
-            console.log(`The skills length is ${skills.length}`);
-
             setError("skills", {
                 type: "manual",
                 message: "At least one skill is required",
             });
             return;
         }
-        console.log(`The skills length is ${skills.length}`);
-        const finalFormData = transformData(data);
-        console.log(finalFormData);
 
-        // try {
-        //     let response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/user/signup`, JSON.stringify(formData));
-        //     console.log(response.data);
-        // } catch (error) {
-        //     console.error(error);
-        //     setError("api", {
-        //         type: "manual",
-        //         message: "There was an error during signup. Please try again.",
-        //     });
-        // }
+        const finalFormData = transformData(data);
+
         try {
-            let r = await fetch(`${import.meta.env.VITE_BACKEND_URL}/user/signup`, {
+            const r = await fetch(`${import.meta.env.VITE_BACKEND_URL}/user/signup`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify(finalFormData),
                 credentials: "include",
-            })
-            const response: SignupResponse = await r.json();
-            console.log(response);
+            });
+
+            const response: SignUpSuccessResponse | SignupDuplication | SignupErrorResponse = await r.json();
+            // console.log("Response: ", await r.json());
             
-            console.log("Signed up successfully");
-            navigate("/");
+
+            if ("duplication" in response) {
+                // Handle duplication errors
+                if (response.duplication.email) {
+                    setError("email", { type: "manual", message: "Email already exists" });
+                }
+                if (response.duplication.enrollmentNumber) {
+                    setError("enrollmentNumber", { type: "manual", message: "Enrollment Number already exists" });
+                }
+                if (response.duplication.username) {
+                    setError("username", { type: "manual", message: "Username already exists" });
+                }
+            } else if ("user" in response) {
+                // Success case
+                console.log(response.message);
+                dispatch(setUser(response.user));
+                navigate("/");
+            } else if ("statusCode" in response) {
+                // Handle other validation errors
+                if (response.email) setError("email", { type: "manual", message: response.email });
+                if (response.enrollmentNumber) setError("enrollmentNumber", { type: "manual", message: response.enrollmentNumber });
+                if (response.username) setError("username", { type: "manual", message: response.username });
+                if (response.password) setError("password", { type: "manual", message: response.password });
+                if (response.general) setError("api", { type: "manual", message: response.general });
+            }
         } catch (error) {
             console.error(error);
             setError("api", {
@@ -138,14 +144,8 @@ function SignupForm() {
                 message: "There was an error during signup. Please try again.",
             });
         }
-        // console.log("All Cookies:", document.cookie);
-        // const jwtToken = Cookies.get('jwt_token');
-        // console.log("JWT Token:", jwtToken);
-        // console.log("All Cookies:", document.cookie);
-
-        // console.log("Submitted", typeof finalFormData);
-        // console.log(import.meta.env.VITE_BACKEND_URL);
     };
+
 
     return (
         <>

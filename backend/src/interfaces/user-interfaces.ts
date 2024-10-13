@@ -39,7 +39,7 @@ export interface IUser extends mongoose.Document {
 
 export interface TokenUser {
     name: string;
-    role: string;
+    role: "student" | "organizer";
     username: string;
     email: string;
     enrollmentNumber: string | undefined;
@@ -77,18 +77,18 @@ export interface UserModel extends Model<IUser> {
 }
 
 export interface SignupResponse {
-    enrollmentNumber:     string;
-    username:             string;
-    email:                string;
-    role:                 string;
-    fullName:             string;
-    contact_no:           string;
-    skills:               string[];
-    biography:            string;
-    portfolio:            string;
-    socialLinks:          SocialLinks;
-    verified:             boolean;
-    availability:         boolean;
-    registrationDate:     Date;
+    enrollmentNumber: string;
+    username: string;
+    email: string;
+    role: 'student' | 'organizer';
+    fullName: string;
+    contact_no: string;
+    skills: string[];
+    biography: string;
+    portfolio: string;
+    socialLinks: SocialLinks;
+    verified: boolean;
+    availability: boolean;
+    registrationDate: Date;
     participationHistory: any[];
 }

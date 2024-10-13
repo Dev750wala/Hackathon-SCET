@@ -7,7 +7,7 @@ import bcrypt from "bcrypt"
 import { nanoid } from "../utilities/nanoid";
 import PROJECT from "../models/project-model";
 // Admin interfaces
-import { AdminTokenUser, AdminLoginRequestBody, AdminPayload, AdminUpdateProfileRequest } from "../interfaces/admin-interfaces";
+import { AdminTokenUser, AdminLoginRequestBody, AdminPayload, AdminUpdateProfileRequest, AdminSignupDetails } from "../interfaces/admin-interfaces";
 import { ProjectCreationDetails, IProject } from "../interfaces/project-interfaces";
 import { IUser, TokenUser } from "../interfaces/user-interfaces";
 import { handleErrors, handleProjectErrors } from "../utilities/handleErrors";
@@ -82,7 +82,7 @@ export async function handleAdminSignup(req: Request, res: Response) {
     // console.log(req.body);
 
 
-    const { username, email, password, fullName, contact_no, skills, biography, socialLinks } = req.body;
+    const { username, email, password, fullName, contact_no, skills, biography, portfolio, socialLinks }: AdminSignupDetails = req.body;
 
     if (!validator.matches(email, "scet.ac.in")) {
         return res.status(400).json({ invalidMail: "Please enter only SCET Email address" });
@@ -114,6 +114,7 @@ export async function handleAdminSignup(req: Request, res: Response) {
             contact_no: contact_no,
             role: "organizer",
             skills: skills,
+            portfolio: portfolio,
             socialLinks: {
                 linkedin: socialLinks?.linkedin,
                 github: socialLinks?.github,

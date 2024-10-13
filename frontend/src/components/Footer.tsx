@@ -3,7 +3,7 @@ import { Link } from "react-router-dom"
 
 export default function Footer() {
     return (
-        <footer className="bg-gray-100 border-t">
+        <footer className="bg-transparent border-t">
             <div className="container mx-auto px-20 py-8">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                     <div className="space-y-4">
@@ -14,7 +14,7 @@ export default function Footer() {
                     <div>
                         <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
                         <ul className="space-y-2">
-                            <li><Link to="/" className="text-gray-600 hover:text-gray-800">Home</Link></li>
+                            <li><Link to="/admin/auth" className="text-gray-600 hover:text-gray-800">Admin</Link></li>
                             <li><Link to="/projects" className="text-gray-600 hover:text-gray-800">Projects</Link></li>
                             <li><Link to="/events" className="text-gray-600 hover:text-gray-800">Events</Link></li>
                             <li><Link to="/about" className="text-gray-600 hover:text-gray-800">About Us</Link></li>
@@ -40,7 +40,7 @@ export default function Footer() {
                         </Link>
                     </div>
                 </div>
-                <div className="mt-8 pt-8 border-t border-gray-200">
+                <div className="mt-8 pt-8  border-gray-200">
                     <p className="text-center text-sm text-gray-600">
                         © {new Date().getFullYear()} SCET Hacks. All rights reserved.
                         <Link to="/privacy" className="text-blue-600 hover:text-blue-800 ml-2">Privacy Policy</Link> |

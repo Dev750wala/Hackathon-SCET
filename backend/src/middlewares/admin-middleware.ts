@@ -65,7 +65,7 @@ export async function checkAdminSignupFieldsEmptyOrNot(req: Request, res: Respon
     let emptyFields: string[] = [];
 
     // This field is not necessary to insert in the form..
-    const optionalFields: (keyof AdminSignupDetails)[] = ['socialLinks'];
+    const optionalFields: (keyof AdminSignupDetails)[] = ['portfolio', 'socialLinks'];
 
     const requiredFields: (keyof AdminSignupDetails)[] = [
         'username',
@@ -86,9 +86,7 @@ export async function checkAdminSignupFieldsEmptyOrNot(req: Request, res: Respon
     if (emptyFields.length > 0) {
         return res.status(400).json({ message: "Please fill in the required fields", emptyFields });
     }
-
     next();
-
 }
 
 /**

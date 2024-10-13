@@ -31,11 +31,11 @@ export function handleErrors(err: unknown, role: "organizer" | "student") {
         }
         if (JSON.stringify(err).includes("enrollmentNumber_1 dup key")) {
             // console.log("Error in duplication!!----------------------------------------------------------------");
-            errors.email = 'Enrollment number has already been registered';
+            errors.enrollmentNumber = 'Enrollment number has already been registered';
         }
         if (JSON.stringify(err).includes("username_1 dup key")) {
             // console.log("Error in duplication!!----------------------------------------------------------------");
-            errors.email = 'Username has already been registered';
+            errors.username = 'Username has already been registered';
         }
         // if (err.keyPattern?.email || err.keyValue?.email) {
         //     console.log("HEllo WORLdd1")

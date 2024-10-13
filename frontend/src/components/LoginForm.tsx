@@ -6,6 +6,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { useAppDispatch, useAppSelector } from '@/redux-store/hooks'
+import { setUser } from '@/redux-store/slices/userInfoSlice'
+import { User } from '@/interfaces'
 
 type FormData = {
     enrollmentNumberOrEmail: string
@@ -65,7 +68,16 @@ interface errorResponseData {
 
 export default function LoginPage() {
     const navigate = useNavigate()
-    
+
+    const dispatch = useAppDispatch();
+    const userInfo = useAppSelector(state => state.userInfo);
+
+    // if (userInfo !== null) {
+    //     return (
+
+    //     )
+    // }
+
     const handleGoBack = () => {
         navigate(-1)
     }
@@ -90,13 +102,13 @@ export default function LoginPage() {
             credentials: "include"
         })
         const resJson = await r.json();
-
-
-        if (resJson.error === undefined) {
-            console.log("logged in successfully");
+        if (r.status === 403) {
+            console.log("user already logged in");
+        } else if (resJson.error === undefined) {
+            // console.log("logged in successfully");
+            dispatch(setUser(resJson as User));
             navigate("/");
-        } 
-        else {
+        } else {
             const errorResponse = resJson as errorResponseData;
 
             if (errorResponse.error.email !== "") {
@@ -123,71 +135,78 @@ export default function LoginPage() {
             console.log(errorResponse.error);
         }
     }
-
-    return (
-        <div className="min-h-screen flex items-center justify-center  p-4">
-            <Card className="w-full max-w-md">
-                <CardHeader>
-                    <div className="flex flex-col items-start">
-                        <Button
-                            variant="ghost"
-                            onClick={handleGoBack}
-                            className="flex items-center text-primary hover:text-primary-dark"
-                        >
-                            <ArrowLeftIcon size={20} className="mr-2" />
-                            Go Back
-                        </Button>
-                        <CardTitle className="text-3xl font-bold mx-auto my-4">Login to your account</CardTitle>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="enrollmentNumberOrEmail">Enrollment Number / Email</Label>
-                            <Input
-                                id="enrollmentNumberOrEmail"
-                                type="text"
-                                placeholder="Enter enrollment number or email"
-                                {...register("enrollmentNumberOrEmail", { required: "Please enter your enrollment number / email" })}
-                            />
-                            {errors.enrollmentNumberOrEmail && <p className="text-sm text-red-500">{errors.enrollmentNumberOrEmail.message}</p>}
+    if (userInfo !== null) {
+        return (
+            <div className='w-full h-screen flex justify-center py-[30vh]'>
+                <h1 className='text-3xl text-black font-semibold underline underline-offset-3'>You are already logged in</h1>
+            </div>
+        )
+    } else {
+        return (
+            <div className="min-h-screen flex items-center justify-center  p-4">
+                <Card className="w-full max-w-md">
+                    <CardHeader>
+                        <div className="flex flex-col items-start">
+                            <Button
+                                variant="ghost"
+                                onClick={handleGoBack}
+                                className="flex items-center text-primary hover:text-primary-dark"
+                            >
+                                <ArrowLeftIcon size={20} className="mr-2" />
+                                Go Back
+                            </Button>
+                            <CardTitle className="text-3xl font-bold mx-auto my-4">Login to your account</CardTitle>
                         </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="password">Password</Label>
-                            <div className="relative">
+                    </CardHeader>
+                    <CardContent>
+                        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="enrollmentNumberOrEmail">Enrollment Number / Email</Label>
                                 <Input
-                                    id="password"
-                                    type={showPassword ? "text" : "password"}
-                                    placeholder="Enter password"
-                                    {...register("password", { required: "Password is required" })}
+                                    id="enrollmentNumberOrEmail"
+                                    type="text"
+                                    placeholder="Enter enrollment number or email"
+                                    {...register("enrollmentNumberOrEmail", { required: "Please enter your enrollment number / email" })}
                                 />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
-                                >
-                                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                                </button>
+                                {errors.enrollmentNumberOrEmail && <p className="text-sm text-red-500">{errors.enrollmentNumberOrEmail.message}</p>}
                             </div>
-                            {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
-                        </div>
-                        <Button type="submit" className="w-full" disabled={isSubmitting}>
-                            {isSubmitting ? "Logging in..." : "Login"}
-                        </Button>
-                        {
-                            errors.root && <div className="text-red-500 text-sm text-center">{errors.root.message}</div>
-                        }
-                    </form>
-                </CardContent>
-                <CardFooter className="justify-center">
-                    <p className="text-sm text-gray-600">
-                        Don't have an account?{" "}
-                        <Link to="/user/signup" className="text-gray-900 hover:underline font-semibold">
-                            Sign up
-                        </Link>
-                    </p>
-                </CardFooter>
-            </Card>
-        </div >
-    )
+                            <div className="space-y-2">
+                                <Label htmlFor="password">Password</Label>
+                                <div className="relative">
+                                    <Input
+                                        id="password"
+                                        type={showPassword ? "text" : "password"}
+                                        placeholder="Enter password"
+                                        {...register("password", { required: "Password is required" })}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                                    >
+                                        {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                    </button>
+                                </div>
+                                {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
+                            </div>
+                            <Button type="submit" className="w-full" disabled={isSubmitting}>
+                                {isSubmitting ? "Logging in..." : "Login"}
+                            </Button>
+                            {
+                                errors.root && <div className="text-red-500 text-sm text-center">{errors.root.message}</div>
+                            }
+                        </form>
+                    </CardContent>
+                    <CardFooter className="justify-center">
+                        <p className="text-sm text-gray-600">
+                            Don't have an account?{" "}
+                            <Link to="/user/signup" className="text-gray-900 hover:underline font-semibold">
+                                Sign up
+                            </Link>
+                        </p>
+                    </CardFooter>
+                </Card>
+            </div >
+        )
+    }
 }

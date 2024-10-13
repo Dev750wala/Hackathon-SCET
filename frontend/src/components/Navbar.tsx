@@ -1,14 +1,38 @@
 import { useState, useEffect } from 'react'
-import { Search, User, Calendar, Menu } from 'lucide-react'
+import { Search, User, Calendar, Menu, LogOut } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Link } from "react-router-dom"
+import { useAppSelector, useAppDispatch } from '@/redux-store/hooks'
+import { removeUser } from '@/redux-store/slices/userInfoSlice'
 
-export default function Navbar({ isLoggedIn = false }) {
+export default function Navbar() {
+    var isLoggedIn;
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     // const [scrollPosition, setScrollPosition] = useState(0);
     const [isNavbarVisible, setIsNavbarVisible] = useState(true);
+
+    const dispatch = useAppDispatch();
+    const user = useAppSelector(state => state.userInfo);
+    user ? isLoggedIn = true : isLoggedIn = false;
+
+    const handleLogout = async () => {
+        try {
+            const r = await fetch(`${import.meta.env.VITE_BACKEND_URL}/user/logout`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include"
+            })
+            if (r.ok) {
+                dispatch(removeUser());
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
 
     // Effect to handle scroll behavior
     useEffect(() => {
@@ -18,10 +42,9 @@ export default function Navbar({ isLoggedIn = false }) {
             const currentScrollY = window.pageYOffset;
 
             if (currentScrollY > lastScrollY && currentScrollY > 100) {
-                // Scrolling down and passed 100px threshold
                 setIsNavbarVisible(false);
             } else if (currentScrollY < lastScrollY) {
-                // Scrolling up
+
                 setIsNavbarVisible(true);
             }
             lastScrollY = currentScrollY;
@@ -46,7 +69,7 @@ export default function Navbar({ isLoggedIn = false }) {
                     {/* Center - Search (hidden on mobile) */}
                     <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-center">
                         <div className="max-w-lg w-full">
-                            <Input type="search" placeholder="Search for the project" className="max-w-full rounded-full bg-white " />
+                            <Input type="search" placeholder="Search for the project" className="max-w-full rounded-full bg-white mx-2" />
                         </div>
                     </div>
 
@@ -65,27 +88,49 @@ export default function Navbar({ isLoggedIn = false }) {
 
                         {isLoggedIn ? (
                             <>
-                                <Button variant="ghost" size="sm" className="hidden sm:flex items-center hover:bg-zinc-100 hover:text-blue-600 transition duration-300 ease-in-out">
-                                    <User className="h-5 w-5 mr-2" />
-                                    Profile
-                                </Button>
-                                <Button variant="ghost" size="sm" className="hidden sm:flex items-center ml-2 hover:bg-zinc-100 hover:text-blue-600 transition duration-300 ease-in-out">
+                                <Link
+                                    to="/events"
+                                    className="hidden sm:flex items-center ml-2 hover:bg-cyan-100 hover:text-sky-950 rounded-full transition duration-200 ease-in-out px-5 py-2 mx-1"
+                                >
                                     <Calendar className="h-5 w-5 mr-2" />
                                     My Events
+                                </Link>
+                                <Link
+                                    to="/profile"
+                                    className="hidden sm:flex items-center hover:bg-sky-950 hover:text-cyan-100 rounded-full transition duration-200 ease-in-out px-5 py-2 mx-1"
+                                >
+                                    <User className="h-5 w-5 mr-2" />
+                                    Profile
+                                </Link>
+                                <Button
+                                    onClick={() => handleLogout()}
+                                    variant="ghost"
+                                    size="lg"
+                                    className="hidden sm:flex items-center hover:bg-cyan-100 hover:text-sky-950 font-normal text-base rounded-full transition duration-200 ease-in-out">
+                                    <LogOut className="h-5 w-5 mr-2" />
+                                    Logout
                                 </Button>
+                                {/* <Button variant="ghost" size="lg" className="hidden sm:flex items-center ml-2 hover:bg-cyan-100 hover:text-sky-950 rounded-full transition duration-200 ease-in-out">
+                                    <Calendar className="h-5 w-5 mr-2" />
+                                    My Events
+                                </Button> */}
+                                {/* <Button variant="ghost" size="lg" className="hidden sm:flex items-center hover:bg-sky-950 hover:text-cyan-100 rounded-full transition duration-200 ease-in-out">
+                                    <User className="h-5 w-5 mr-2" />
+                                    Profile
+                                </Button> */}
                             </>
                         ) : (
                             <>
                                 <div className='flex flex-row gap-3 mx-2'>
                                     <Link
                                         to="/user/login"
-                                        className="hidden sm:inline-flex items-center justify-center px-4 py-2 text-zinc-900 text-base border border-black hover:bg-white hover:text-blue-950 transition duration-300 ease-in-out rounded-full"
+                                        className="hidden sm:inline-flex items-center justify-center px-4 py-2 text-zinc-900 text-base border border-black hover:bg-black hover:text-red-50 transition duration-200 ease-in-out rounded-full"
                                     >
                                         Log in
                                     </Link>
                                     <Link
                                         to="/user/signup"
-                                        className="hidden sm:inline-flex items-center justify-center ml-2 px-4 py-2 bg-zinc-900 text-white text-base hover:border-blue-950 transition duration-300 ease-in-out border border-transparent rounded-full"
+                                        className="hidden sm:inline-flex items-center justify-center ml-2 px-4 py-2 bg-zinc-900 text-white text-base hover:bg-white transition duration-200 ease-in-out border-black border rounded-full hover:text-black"
                                     >
                                         Sign up
                                     </Link>

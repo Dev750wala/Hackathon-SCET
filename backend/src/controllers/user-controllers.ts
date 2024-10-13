@@ -10,8 +10,8 @@ import bcrypt from "bcrypt";
 import { sendMail } from "../utilities/mail";
 import { TokenUser, LoginRequestBody, SignupDetails, IUser, SocialLinks, SignupResponse } from "../interfaces/user-interfaces";
 import { handleErrors } from "../utilities/handleErrors";
-import PROJECT from "../models/project-model";
-
+// import PROJECT from "../models/project-model";
+import { AdminPayload } from "../interfaces/admin-interfaces";
 
 /**
  * Generates a JWT token for the provided user.
@@ -48,7 +48,6 @@ function signToken(user: TokenUser) {
  * @throws - Throws an error if the JWT secret is not provided.
  */
 function tokenCheckUp(token: string) {
-
     try {
         const decoded = jwt.verify(token, process.env.JWT_STRING as string) as TokenUser;
         return decoded;
@@ -133,20 +132,20 @@ export async function handleUserSignup(req: Request, res: Response) {
         }
 
         const responseData = {
-            enrollmentNumber:       newUser.enrollmentNumber,
-            username:               newUser.username,
-            email:                  newUser.email,
-            role:                   newUser.role,
-            fullName:               newUser.fullName,
-            contact_no:             newUser.contact_no,
-            skills:                 newUser.skills,
-            biography:              newUser.biography,
-            portfolio:              newUser.portfolio,
-            socialLinks:            newUser.socialLinks,
-            verified:               newUser.verified,
-            registrationDate:       newUser.registrationDate,
-            participationHistory:   newUser.participationHistory,
-            availability:           newUser.availability
+            enrollmentNumber: newUser.enrollmentNumber,
+            username: newUser.username,
+            email: newUser.email,
+            role: newUser.role,
+            fullName: newUser.fullName,
+            contact_no: newUser.contact_no,
+            skills: newUser.skills,
+            biography: newUser.biography,
+            portfolio: newUser.portfolio,
+            socialLinks: newUser.socialLinks,
+            verified: newUser.verified,
+            registrationDate: newUser.registrationDate,
+            participationHistory: newUser.participationHistory,
+            availability: newUser.availability
         }
 
         const token = signToken(tokenObject);
@@ -154,11 +153,11 @@ export async function handleUserSignup(req: Request, res: Response) {
         res.cookie("jwt_token", token, {
             httpOnly: true,
             secure: false,
-            sameSite: 'lax', 
-            path: '/', 
+            sameSite: 'lax',
+            path: '/',
         });
         console.log("\n\nCookie sent: ", token, "\n\n");
-        
+
         return res.status(201).json({ user: responseData, message: "Please check your mail inbox to verify your mail!" });
 
     } catch (error: unknown) {
@@ -169,7 +168,6 @@ export async function handleUserSignup(req: Request, res: Response) {
 
         if (err.general.includes("An internal server error occurred.") || err.general.includes("An unexpected error occurred.")) {
             return res.status(500).json({ serverError: err });
-
         } else {
             return res.status(400).json({ signupErrors: err });
         }
@@ -200,6 +198,23 @@ export async function handleUserLogin(req: Request<{}, {}, LoginRequestBody>, re
     try {
         const user: IUser = await USER.userLogin(body);
 
+        const responseData = {
+            enrollmentNumber: user.enrollmentNumber,
+            username: user.username,
+            email: user.email,
+            role: user.role,
+            fullName: user.fullName,
+            contact_no: user.contact_no,
+            skills: user.skills,
+            biography: user.biography,
+            portfolio: user.portfolio,
+            socialLinks: user.socialLinks,
+            verified: user.verified,
+            registrationDate: user.registrationDate,
+            participationHistory: user.participationHistory,
+            availability: user.availability
+        }
+
         const tokenObject: TokenUser = {
             name: user.fullName,
             role: user.role,
@@ -210,7 +225,7 @@ export async function handleUserLogin(req: Request<{}, {}, LoginRequestBody>, re
         }
         const token = signToken(tokenObject);
         // TODO login kare to eno mail aave evu continue karje aiya thi
-        return res.cookie("jwt_token", token).status(200).json({ user: user });
+        return res.cookie("jwt_token", token).status(200).json({ user: responseData });
     }
 
     catch (error) {
@@ -236,6 +251,13 @@ export async function handleUserLogin(req: Request<{}, {}, LoginRequestBody>, re
  * @returns - An Express response object with a status code of 200 and a JSON payload containing a success message.
  */
 export function handleUserLogout(req: Request, res: Response) {
+
+    const cookies = req.cookies;
+    if (!cookies) {
+        return res.status(401).json({ message: "No token found" });
+    }
+    // console.log(`\n\n\n\nThe cookies are ${req.cookies}\n\n\n\n`);
+
     res.clearCookie("jwt_token", {
         httpOnly: true, // if it was set with httpOnly
         secure: true, // if it was set with secure flag
@@ -268,7 +290,7 @@ export function handleUserLogout(req: Request, res: Response) {
 export async function handleUserProfile(req: Request, res: Response) {
     await connectToDB();
     const username: string = req.params.username;
-    
+
     try {
         const user = await USER.findOne({ username: username });
 
@@ -388,3 +410,95 @@ export async function handleParticipateInProject(req: Request, res: Response) {
     // TODO continue from here!
     console.log("hello world");
 }
+
+
+export async function verifyUserFromToken(req: Request, res: Response) {
+    const jwt_token: string | undefined = req.cookies.jwt_token;
+    const adminToken: string | undefined = req.cookies.admin;
+
+    let userResponse: any = null;
+    let isAdmin: boolean | null = null;
+
+    if (!jwt_token && !adminToken) {
+        return res.status(401).json({
+            user: null,
+            isAdmin: false,
+            message: "No tokens provided",
+        });
+    }
+
+    await connectToDB();
+
+    try {
+        if (jwt_token) {
+            const decodedToken: TokenUser | false = tokenCheckUp(jwt_token);
+            if (!decodedToken) {
+                if (adminToken) {
+                    try {
+                        const decodedAdminToken = jwt.verify(adminToken, process.env.JWT_STRING as string) as AdminPayload;
+                        isAdmin = decodedAdminToken.isAdmin;
+                    } catch (error) {
+                        return res.status(403).json({
+                            user: null,
+                            isAdmin: false,
+                            message: "Admin token verification failed",
+                        });
+                    }
+                }
+                return res.status(403).json({
+                    user: null,
+                    isAdmin: false,
+                    message: "Invalid user token",
+                });
+            }
+
+            const user = await USER.findOne({ email: decodedToken.email });
+            if (user) {
+                userResponse = {
+                    enrollmentNumber: user.enrollmentNumber,
+                    username: user.username,
+                    email: user.email,
+                    role: user.role,
+                    fullName: user.fullName,
+                    contact_no: user.contact_no,
+                    skills: user.skills,
+                    biography: user.biography,
+                    portfolio: user.portfolio,
+                    socialLinks: user.socialLinks,
+                    verified: user.verified,
+                    registrationDate: user.registrationDate,
+                    participationHistory: user.participationHistory,
+                    availability: user.availability,
+                };
+            }
+        }
+
+        if (adminToken) {
+            try {
+                const decodedAdminToken = jwt.verify(adminToken, process.env.JWT_STRING as string) as AdminPayload;
+                isAdmin = decodedAdminToken.isAdmin;
+            } catch (error) {
+                return res.status(403).json({
+                    user: userResponse,
+                    isAdmin: false,
+                    message: "Admin token verification failed",
+                });
+            }
+        }
+
+        return res.status(200).json({
+            user: userResponse,
+            isAdmin: isAdmin ?? false,
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            user: null,
+            isAdmin: false,
+            message: "Some error occurred",
+        });
+    } finally {
+        disConnectfromDB();
+    }
+}
+

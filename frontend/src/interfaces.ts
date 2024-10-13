@@ -10,7 +10,7 @@ export interface SignUpFormData {
     linkedin?: string;
     github?: string;
     skills: string[];
-    api?: string; 
+    api?: string;
 }
 
 export interface ParticipationHistory {
@@ -42,30 +42,60 @@ export interface UserDataInStore {
     verified: boolean;
 }
 
-export interface SignupResponse {
-    user:    User;
+// export interface SignupResponse {
+//     user: User;
+//     message: string;
+// }
+
+export interface SignUpSuccessResponse {
+    user: User;
     message: string;
 }
 
+export interface SignupDuplication {
+    duplication: Duplication;
+}
+
+export interface Duplication {
+    email: boolean;
+    username: boolean;
+    enrollmentNumber: boolean;
+}
+
+export interface SignupErrorResponse {
+    email: string;
+    enrollmentNumber: string;
+    username: string;
+    password: string;
+    general: string;
+    statusCode: number;
+}
+
 export interface User {
-    enrollmentNumber:     string;
-    username:             string;
-    email:                string;
-    role:                 string;
-    fullName:             string;
-    contact_no:           string;
-    skills:               string[];
-    biography:            string;
-    portfolio:            string;
-    socialLinks:          SocialLinks;
-    verified:             boolean;
-    availability:         boolean;
-    registrationDate:     Date;
+    enrollmentNumber: string;
+    username: string;
+    email: string;
+    role: "student" | "organizer";
+    fullName: string;
+    contact_no: string;
+    skills: string[];
+    biography: string;
+    portfolio: string;
+    socialLinks: SocialLinks;
+    verified: boolean;
+    availability: boolean;
+    registrationDate: Date;
     participationHistory: any[];
 }
 
 export interface VerificationCode {
     createdAt: number;
-    code:      string;
+    code: string;
+}
+
+export interface verificationUser {
+    user: User;
+    isAdmin: boolean;
+    message?: string;
 }
 

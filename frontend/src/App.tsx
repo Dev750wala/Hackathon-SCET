@@ -11,19 +11,59 @@ import AdminSignup from './components/AdminSignup';
 import AdminDashboard from './components/AdminDashboard';
 import { useDispatch } from 'react-redux';
 import { useEffect } from 'react';
+import { removeUser, setUser } from './redux-store/slices/userInfoSlice';
+// import { User } from './interfaces';
+import { removeAdmin, setAdmin } from './redux-store/slices/adminSlice';
+import { verificationUser } from './interfaces';
+
 
 function App() {
     const location = useLocation();
     const dispatch = useDispatch();
 
     useEffect(() => {
-        const token = document.cookie.split('; ').find(row => row.startsWith('jwt_token='));
+        const verifyToken = async () => {
+            try {
+                const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/user/api/auth/verify`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    credentials: "include"
+                });
 
-        // TODO create a route to verify the user token. the token should be sent to the backend
-        // bacause the token may be tempered with by the user. 
-        console.log(token);
-        
-    }, [dispatch])
+                const resJson: verificationUser = await response.json();
+                console.log(resJson);
+                
+                if (resJson.user || resJson.isAdmin) {
+                    if (resJson.user) {
+                        dispatch(setUser(resJson.user));
+                        console.log("STORE: user set");
+                    } else {
+                        dispatch(removeUser());
+                        console.log("STORE: user removed");
+                    }
+                    if (resJson.isAdmin) {
+                        dispatch(setAdmin());
+                        console.log("STORE: admin set");
+                    } else {
+                        dispatch(removeAdmin());
+                        console.log("STORE: admin removed");
+                    }
+                } else {
+                    dispatch(removeUser());
+                    dispatch(removeAdmin());
+                    console.log("STORE: user and admin removed");
+                }
+            } catch (error) {
+                dispatch(removeUser());
+                dispatch(removeAdmin());
+                console.log("Error occurred. User and admin removed from the store.");
+            }
+        };
+
+        verifyToken();
+    }, [dispatch, location]);
 
 
 

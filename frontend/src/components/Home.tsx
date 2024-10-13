@@ -3,8 +3,14 @@ import Navbar from "./Navbar"
 import { ProjectCards } from "./ProjectCard"
 import { Project } from "./ProjectCard"
 import Footer from "./Footer"
+import { useAppSelector } from "@/redux-store/hooks"
 
 const Home = () => {
+
+    const user = useAppSelector((state) => state.userInfo); 
+    // console.log(user);
+    console.log(`The user in store ${JSON.stringify(user)}`);
+
 
     const sampleProjects: Project[] = [
         {
@@ -97,8 +103,10 @@ const Home = () => {
     return (
         <>
             <Navbar />
-            <div className="flex flex-row justify-center w-full h-[85vh] items-center">
-                <h1 className='text-8xl text-black font-bold'>Welcome Back!</h1>
+            <div className="flex flex-col justify-center w-full h-[85vh] items-center">
+                <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl text-black font-bold text-wrap px-4">
+                    Welcome Back {user ? `, ${user.fullName.split(" ")[0]}` : ''}!
+                </h1>
             </div>
 
             {/* div that contains all the upcoming or ongoing events/projects. */}
