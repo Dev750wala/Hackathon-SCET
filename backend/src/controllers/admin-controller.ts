@@ -239,7 +239,6 @@ export async function handleCreateProject(req: Request, res: Response): Promise<
     await connectToDB();
 
     try {
-
         const id = nanoid(15);
 
         const registrationStartDate = new Date(body.registrationStart);
@@ -253,6 +252,8 @@ export async function handleCreateProject(req: Request, res: Response): Promise<
             registrationEndDate.getTime() < startDate.getTime())) {
             return res.status(400).json({ dateError: "Please select valid dates" });
         }
+
+        console.log("Hello World1 -------------------------------------------------------------");
 
         let newProject: IProject = await PROJECT.create({
             id: id,
@@ -270,6 +271,9 @@ export async function handleCreateProject(req: Request, res: Response): Promise<
             techTags: body.techTags,
             status: currentDate.getTime() < startDate.getTime() ? 'planned' : 'ongoing',
         });
+
+        console.log("Hello World2 -------------------------------------------------------------");
+        
 
         const { _id, __v, ...finalResponse }: IProject = newProject.toObject();
 

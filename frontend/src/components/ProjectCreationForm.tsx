@@ -139,7 +139,7 @@ export default function ProjectCreationForm(): React.ReactElement {
             techTags: techTags,
         };
         console.log(formattedData)
-        // Here you would typically send the data to your backend
+
         const submitProject = async () => {
             try {
                 const r = await fetch(`${import.meta.env.VITE_BACKEND_URL}/admin/projects/create-project`, {
@@ -154,8 +154,9 @@ export default function ProjectCreationForm(): React.ReactElement {
                 console.log(resJson);
                 if (r.ok) {
                     const response = resJson as ProjectCreationSuccessResponse;
-                    alert(response.message);
+                    // alert(response.message);
                     console.log(response);
+                    navigate("/admin/dl");
                 } else if (JSON.stringify(r).includes("error")) {
                     // const response = resJson as ProjectCreationErrorResponse;
                     setError("root", {
@@ -164,7 +165,11 @@ export default function ProjectCreationForm(): React.ReactElement {
                     })
                 }
             } catch (error) {
-
+                console.error(error);
+                setError("root", {
+                    type: "manual",
+                    message: "There was an error creating the project",
+                })
             }
         }
         submitProject();

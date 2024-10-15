@@ -4,11 +4,10 @@ import { IProject } from "../interfaces/project-interfaces";
 const projectSchema = new mongoose.Schema<IProject>({
         id: {
             type: String,
-            required: true,
+            required: true
         },
         name: {
             type: String,
-            unique: true,
             required: true,
         },
         description: {

@@ -4,6 +4,7 @@ import path from 'path';
 import cookieParser from "cookie-parser"
 import userRoute from './routes/user-routes';
 import adminRoute from './routes/admin-routes';
+import projectRoute from './routes/project-routes';
 import { checkUser } from './middlewares/user-middleware';
 import cors from "cors"
 
@@ -37,6 +38,7 @@ app.get("/", (req: Request, res: Response) => {
 
 app.use("/user", userRoute);
 app.use("/admin", adminRoute);
+app.use("/project", projectRoute);
 
 app.listen(port, () => {
     console.log(`Server listening at http://localhost:${port}`);

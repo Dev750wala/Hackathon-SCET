@@ -174,4 +174,3 @@ export function handleProjectErrors(err: unknown) {
 
     return errors;
 }
-
