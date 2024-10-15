@@ -106,8 +106,8 @@ export default function LoginPage() {
             console.log("user already logged in");
         } else if (resJson.error === undefined) {
             // console.log("logged in successfully");
-            dispatch(setUser(resJson as User));
-            navigate("/");
+            dispatch(setUser(resJson.user as User));
+            navigate(-1);
         } else {
             const errorResponse = resJson as errorResponseData;
 

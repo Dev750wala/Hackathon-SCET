@@ -100,3 +100,37 @@ export interface verificationUser {
     message?: string;
 }
 
+
+// ------------------------------------------------------------
+
+export interface ProjectCreationSuccessResponse {
+    message: string;
+    project: Project;
+}
+
+export interface ProjectCreationErrorResponse {
+    error: any;
+}
+
+export interface Project {
+    id: string;
+    name: string;
+    description: string;
+    start: Date;
+    organizer: string;
+    maxParticipants: number;
+    judges: Judge[];
+    prizes: string;
+    rulesAndRegulations: string;
+    theme: string;
+    techTags: string[];
+    status: string;
+    participantTeam: any[];
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+export interface Judge {
+    name: string;
+    _id: string;
+}

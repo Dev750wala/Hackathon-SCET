@@ -16,6 +16,7 @@ import { removeUser, setUser } from './redux-store/slices/userInfoSlice';
 import { removeAdmin, setAdmin } from './redux-store/slices/adminSlice';
 import { verificationUser } from './interfaces';
 import AdminLogin from './components/AdminLogin';
+import ProjectCreationForm from './components/ProjectCreationForm';
 
 
 function App() {
@@ -80,6 +81,7 @@ function App() {
                     <Route path='/admin/signup' element={<AdminSignup />} />
                     <Route path='/admin/login' element={<AdminLogin />} />
                     <Route path='/admin/dl' element={<AdminDashboard />} />
+                    <Route path='/admin/create-project' element={<ProjectCreationForm />} />
                 </Routes>
             </div>
         </>

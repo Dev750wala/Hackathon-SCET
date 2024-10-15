@@ -1,4 +1,4 @@
-import mongoose, { MongooseError } from 'mongoose';
+import mongoose from 'mongoose';
 
 interface MongoError {
     code: number;
@@ -152,12 +152,12 @@ export function handleProjectErrors(err: unknown) {
                 errors[path] = properties.message as never;
             }
         });
-        errors.statusCode = 400; // Bad Request for validation errors
+        errors.statusCode = 400;
     }
 
     else if (isCustomError(err)) {
         errors.general = err.message || 'An error occurred';
-        errors.statusCode = err.statusCode || 500; // Use the custom status code or default to 500
+        errors.statusCode = err.statusCode || 500;
     }
 
     else if (err instanceof Error) {
@@ -167,12 +167,11 @@ export function handleProjectErrors(err: unknown) {
         } else {
             errors.general = err.message;
         }
-    }
-
-    else {
+    } else {
         errors.general = 'An unexpected error occurred. Please try again later.';
-        errors.statusCode = 500; // Internal Server Error status code
+        errors.statusCode = 500; 
     }
 
     return errors;
 }
+

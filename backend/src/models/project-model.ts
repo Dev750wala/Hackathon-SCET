@@ -1,8 +1,6 @@
 import mongoose from "mongoose";
 import { IProject } from "../interfaces/project-interfaces";
 
-
-
 const projectSchema = new mongoose.Schema<IProject>({
         id: {
             type: String,

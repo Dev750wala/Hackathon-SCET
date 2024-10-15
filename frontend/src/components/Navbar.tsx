@@ -6,6 +6,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Link } from "react-router-dom"
 import { useAppSelector, useAppDispatch } from '@/redux-store/hooks'
 import { removeUser } from '@/redux-store/slices/userInfoSlice'
+import { useNavigate } from 'react-router-dom'
 
 interface NavbarProps {
     userType: "student" | "organizer";
@@ -13,6 +14,8 @@ interface NavbarProps {
 
 export default function Navbar({ userType } : NavbarProps) {
     var isLoggedIn;
+
+    const navigate = useNavigate();
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     // const [scrollPosition, setScrollPosition] = useState(0);
     const [isNavbarVisible, setIsNavbarVisible] = useState(true);
@@ -32,6 +35,11 @@ export default function Navbar({ userType } : NavbarProps) {
             })
             if (r.ok) {
                 dispatch(removeUser());
+                if (userType === 'student') {
+                    navigate("/")
+                } else {
+                    navigate("/admin/auth")
+                }
             }
         } catch (error) {
             console.log(error);

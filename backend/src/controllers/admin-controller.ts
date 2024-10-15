@@ -40,7 +40,7 @@ export async function handleAdminAuth(req: Request, res: Response) {
     if (req.user?.role === "student") {
         return res.status(401).json({ message: "You're prohibited!" });
     }
-    
+
 
 
     if (!password) return res.status(400).json({ message: "Password is required" });
@@ -195,7 +195,7 @@ export async function handleAdminLogin(req: Request, res: Response): Promise<Res
             availability: user.availability
         }
 
-        return res.cookie("jwt_token", token, { maxAge: 60 * 60 * 60 * 100 }).status(200).json({ user: responseData });
+        return res.cookie("jwt_token", token, { maxAge: 60 * 60 * 60 * 1000 }).status(200).json({ user: responseData });
 
     } catch (error) {
         console.log(`Unexpected error occured during user signup: ${error}`);
@@ -254,15 +254,13 @@ export async function handleCreateProject(req: Request, res: Response): Promise<
             return res.status(400).json({ dateError: "Please select valid dates" });
         }
 
-        const newProject = await PROJECT.create({
+        let newProject: IProject = await PROJECT.create({
             id: id,
             name: body.name,
             description: body.description,
             registrationStart: body.registrationStart,
             registrationEnd: body.registrationEnd,
             start: body.start,
-            // end: body.end,   
-            // organizer: projectCreator?._id,
             organizer: req.user?._id,
             maxParticipants: body.maxParticipants,
             judges: body.judges,
@@ -273,11 +271,14 @@ export async function handleCreateProject(req: Request, res: Response): Promise<
             status: currentDate.getTime() < startDate.getTime() ? 'planned' : 'ongoing',
         });
 
-        return res.status(201).json({ message: "Project created!", project: newProject });
+        const { _id, __v, ...finalResponse }: IProject = newProject.toObject();
+
+        return res.status(201).json({ message: "Project created!", project: finalResponse });
 
     } catch (error) {
         console.log(`Error creating project: ${error}`);
-        return res.status(500).json({ error: "Internal server error" });
+        const errors = handleProjectErrors(error);
+        return res.status(errors.statusCode).json({ error: errors });
     } finally {
         disConnectfromDB();
     }
@@ -302,7 +303,7 @@ export async function handleCreateProject(req: Request, res: Response): Promise<
  * }
  */
 export async function handleUpdateAdminProfile(req: Request, res: Response) {
-    
+
     const allowedUpdates = [
         'password',
         'fullName',

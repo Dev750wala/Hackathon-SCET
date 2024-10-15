@@ -59,11 +59,13 @@ export default function AdminLogin() {
             credentials: "include"
         })
         const resJson = await r.json();
+        console.log(resJson);
+        
         if (r.status === 403) {
             console.log("user already logged in");
         } else if (resJson.error === undefined) {
             // console.log("logged in successfully");
-            dispatch(setUser(resJson as User));
+            dispatch(setUser(resJson.user as User));
             navigate("/admin/dl");
         } else {
             const errorResponse = resJson as errorResponseData;

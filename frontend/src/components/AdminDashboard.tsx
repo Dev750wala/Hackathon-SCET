@@ -17,6 +17,7 @@ const AdminDashboard = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const [error1, setError] = useState<string>("");
+    console.log(user);
 
     const handleLogout = async () => {
         console.log("logging out");
@@ -66,11 +67,17 @@ const AdminDashboard = () => {
                 <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl text-black font-bold text-wrap px-4 my-5">
                     Welcome Back, {user ? ` ${user.fullName.split(" ")[0]}` : ''}!
                 </h1>
-                <RainbowButton className='gap-1 flex items-center justify-center' onClick={() => handleCreateProject()}>
-                    <PlusIcon className="w-6 h-6" />
-                    Create a new Project
-                </RainbowButton>
-
+                {
+                    user ?
+                        <RainbowButton className='gap-1 flex items-center justify-center' onClick={() => handleCreateProject()}>
+                            <PlusIcon className="w-6 h-6" />
+                            Create a new Project
+                        </RainbowButton>
+                        :
+                        <>
+                            <h1 className='text-red-800'>You are logged in as previleged user</h1>
+                        </>
+                }
             </div>
         </div>
     )
