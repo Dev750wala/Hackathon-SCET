@@ -17,6 +17,7 @@ import { removeAdmin, setAdmin } from './redux-store/slices/adminSlice';
 import { verificationUser } from './interfaces';
 import AdminLogin from './components/AdminLogin';
 import ProjectCreationForm from './components/ProjectCreationForm';
+import { AlertDestructive } from './components/AlertBox';
 
 
 function App() {
@@ -82,6 +83,7 @@ function App() {
                     <Route path='/admin/login' element={<AdminLogin />} />
                     <Route path='/admin/dl' element={<AdminDashboard />} />
                     <Route path='/admin/create-project' element={<ProjectCreationForm />} />
+                    <Route path='/demo' element={<AlertDestructive />} />
                 </Routes>
             </div>
         </>

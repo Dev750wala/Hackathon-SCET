@@ -10,6 +10,7 @@ import 'react-quill/dist/quill.snow.css';
 import { ProjectCreationSuccessResponse } from '@/interfaces'
 import { useAppSelector } from '@/redux-store/hooks'
 import { useNavigate } from 'react-router-dom'
+import { AlertDestructive } from './AlertBox'
 
 const ReactQuill = dynamic(() => import('react-quill'), {
     ssr: false,
@@ -56,6 +57,7 @@ export default function ProjectCreationForm(): React.ReactElement {
 
     const [techTags, setTechTags] = useState<string[]>([])
     const [newTechTag, setNewTechTag] = useState<string>('')
+    const [showAlert, setShowAlert] = useState<boolean>(false);
 
     const {
         register,
@@ -119,60 +121,89 @@ export default function ProjectCreationForm(): React.ReactElement {
     }
 
     const onSubmit: SubmitHandler<ProjectCreationDetails> = (data) => {
-        if (techTags.length === 0) {
-            alert("At least one skill is required");
 
-            setError("techTags", {
-                type: "manual",
-                message: "At least one skill is required",
-            });
-            return;
-        } else {
-            clearErrors("techTags");
-        }
-
-        const formattedData = {
-            ...data,
-            registrationStart: new Date(data.registrationStart).toISOString(),
-            registrationEnd: new Date(data.registrationEnd).toISOString(),
-            start: new Date(data.start).toISOString(),
-            techTags: techTags,
-        };
-        console.log(formattedData)
-
-        const submitProject = async () => {
+        const verifyToken = async () => {
             try {
-                const r = await fetch(`${import.meta.env.VITE_BACKEND_URL}/admin/projects/create-project`, {
-                    method: "POST",
+                const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/user/api/auth/verify`, {
+                    method: "GET",
                     headers: {
                         "Content-Type": "application/json",
                     },
-                    body: JSON.stringify(formattedData),
                     credentials: "include"
                 });
-                const resJson = await r.json();
-                console.log(resJson);
-                if (r.ok) {
-                    const response = resJson as ProjectCreationSuccessResponse;
-                    // alert(response.message);
-                    console.log(response);
-                    navigate("/admin/dl");
-                } else if (JSON.stringify(r).includes("error")) {
-                    // const response = resJson as ProjectCreationErrorResponse;
-                    setError("root", {
-                        type: "manual",
-                        message: "There was an error creating the project",
-                    })
+
+                const resJson = await response.json();
+                // console.log(resJson);
+
+                if (resJson.user && resJson.isAdmin) {
+                    if (techTags.length === 0) {
+                        alert("At least one skill is required");
+
+                        setError("techTags", {
+                            type: "manual",
+                            message: "At least one skill is required",
+                        });
+                        return;
+                    } else {
+                        clearErrors("techTags");
+                    }
+
+                    const formattedData = {
+                        ...data,
+                        registrationStart: new Date(data.registrationStart).toISOString(),
+                        registrationEnd: new Date(data.registrationEnd).toISOString(),
+                        start: new Date(data.start).toISOString(),
+                        techTags: techTags,
+                    };
+                    console.log(formattedData)
+
+                    const submitProject = async () => {
+                        try {
+                            const r = await fetch(`${import.meta.env.VITE_BACKEND_URL}/admin/projects/create-project`, {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                },
+                                body: JSON.stringify(formattedData),
+                                credentials: "include"
+                            });
+                            const resJson = await r.json();
+                            console.log(resJson);
+                            if (r.ok) {
+                                const response = resJson as ProjectCreationSuccessResponse;
+                                // alert(response.message);
+                                console.log(response);
+                                navigate("/admin/dl");
+                            } else if (JSON.stringify(r).includes("error")) {
+                                // const response = resJson as ProjectCreationErrorResponse;
+                                setError("root", {
+                                    type: "manual",
+                                    message: "There was an error creating the project",
+                                })
+                            }
+                        } catch (error) {
+                            console.error(error);
+                            setError("root", {
+                                type: "manual",
+                                message: "There was an error creating the project",
+                            })
+                        }
+                    }
+                    submitProject();
+                } else {
+                    setShowAlert(true);
+                    // setTimeout(() => {
+                    //     navigate("/admin/auth");
+                    // }, 3000);
                 }
             } catch (error) {
-                console.error(error);
-                setError("root", {
-                    type: "manual",
-                    message: "There was an error creating the project",
-                })
+                setShowAlert(true);
+                // setTimeout(() => {
+                //     navigate("/admin/auth");
+                // }, 3000);
             }
-        }
-        submitProject();
+        };
+        verifyToken();
     }
 
     const watchRegistrationStart = watch("registrationStart");
@@ -196,176 +227,184 @@ export default function ProjectCreationForm(): React.ReactElement {
     }
     // TODO set the both admin cookies and jet_token expireIn 2-3 hours.
     return (
-        <div className="container mx-auto px-4 py-8">
-            <Card className="w-full max-w-2xl mx-auto">
-                <CardHeader>
-                    <CardTitle className="text-2xl md:text-3xl font-bold text-center">Create New Project</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
-                        <div className="space-y-2">
-                            <Label htmlFor="name">Project Name</Label>
-                            <Input id="name" {...register("name", { required: "Project name is required" })} />
-                            {errors.name && <span className="text-red-500 text-sm">{errors.name.message}</span>}
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="description">Description</Label>
-                            <Controller
-                                name="description"
-                                control={control}
-                                rules={{ required: "Description is required" }}
-                                render={({ field }) => (
-                                    <ReactQuill
-                                        theme="snow"
-                                        modules={modules}
-                                        formats={formats}
-                                        {...field}
-                                    />
-                                )}
-                            />
-                            {errors.description && <span className="text-red-500 text-sm">{errors.description.message}</span>}
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <>
+            {showAlert && <AlertDestructive />}
+            <div className="container mx-auto px-4 py-8">
+                <Card className="w-full max-w-2xl mx-auto">
+                    <CardHeader>
+                        <CardTitle className="text-2xl md:text-3xl font-bold text-center">Create New Project</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
                             <div className="space-y-2">
-                                <Label htmlFor="registrationStart">Registration Start</Label>
-                                <Input
-                                    type="date"
-                                    id="registrationStart"
-                                    {...register("registrationStart", {
-                                        required: "Registration start date is required",
-                                        validate: (value) => {
-                                            const currentDate = new Date().toISOString().split('T')[0];
-                                            return value >= currentDate || "Registration start date must be today or later";
-                                        }
-                                    })}
-                                />
-                                {errors.registrationStart && <span className="text-red-500 text-sm">{errors.registrationStart.message}</span>}
+                                <Label htmlFor="name">Project Name</Label>
+                                <Input id="name" {...register("name", { required: "Project name is required" })} />
+                                {errors.name && <span className="text-red-500 text-sm">{errors.name.message}</span>}
                             </div>
+
                             <div className="space-y-2">
-                                <Label htmlFor="registrationEnd">Registration End</Label>
-                                <Input
-                                    type="date"
-                                    id="registrationEnd"
-                                    {...register("registrationEnd", {
-                                        required: "Registration end date is required",
-                                        validate: (value) => {
-                                            return value > watchRegistrationStart || "Registration end date must be after the start date";
-                                        }
-                                    })}
+                                <Label htmlFor="description">Description</Label>
+                                <Controller
+                                    name="description"
+                                    control={control}
+                                    rules={{ required: "Description is required" }}
+                                    render={({ field }) => (
+                                        <ReactQuill
+                                            theme="snow"
+                                            modules={modules}
+                                            formats={formats}
+                                            {...field}
+                                        />
+                                    )}
                                 />
-                                {errors.registrationEnd && <span className="text-red-500 text-sm">{errors.registrationEnd.message}</span>}
+                                {errors.description && <span className="text-red-500 text-sm">{errors.description.message}</span>}
                             </div>
-                        </div>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="start">Project Start Date</Label>
-                            <Input
-                                type="date"
-                                id="start"
-                                {...register("start", {
-                                    required: "Project start date is required",
-                                    validate: (value) => {
-                                        return value > watchRegistrationEnd || "Project start date must be after the registration end date";
-                                    }
-                                })}
-                            />
-                            {errors.start && <span className="text-red-500 text-sm">{errors.start.message}</span>}
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="maxParticipants">Max Participants</Label>
-                            <Input
-                                id="maxParticipants"
-                                type="number"
-                                {...register("maxParticipants", {
-                                    required: "Max participants is required",
-                                    min: { value: 1, message: "Must be at least 1" }
-                                })}
-                            />
-                            {errors.maxParticipants && <span className="text-red-500 text-sm">{errors.maxParticipants.message}</span>}
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label>Judges</Label>
-                            {judgeFields.map((field, index) => (
-                                <div key={field.id} className="flex items-center space-x-2">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="registrationStart">Registration Start</Label>
                                     <Input
-                                        {...register(`judges.${index}.name` as const, { required: "Judge name is required" })}
-                                        placeholder="Judge name"
+                                        type="date"
+                                        id="registrationStart"
+                                        {...register("registrationStart", {
+                                            required: "Registration start date is required",
+                                            validate: (value) => {
+                                                const currentDate = new Date().toISOString().split('T')[0];
+                                                return value >= currentDate || "Registration start date must be today or later";
+                                            }
+                                        })}
                                     />
-                                    <Button type="button" onClick={() => removeJudge(index)} size="icon" variant="outline">
-                                        <XIcon className="h-4 w-4" />
-                                    </Button>
+                                    {errors.registrationStart && <span className="text-red-500 text-sm">{errors.registrationStart.message}</span>}
                                 </div>
-                            ))}
-                            <Button type="button" onClick={() => appendJudge({ name: '' })} variant="outline">
-                                Add Judge
-                            </Button>
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="prizes">Prizes</Label>
-                            <Input id="prizes" {...register("prizes")} placeholder="Enter prize details" />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="rulesAndRegulations">Rules and Regulations</Label>
-                            <Controller
-                                name="rulesAndRegulations"
-                                control={control}
-                                rules={{ required: "Rules and regulations are required" }}
-                                render={({ field }) => (
-                                    <ReactQuill
-                                        theme="snow"
-                                        modules={modules}
-                                        formats={formats}
-                                        {...field}
+                                <div className="space-y-2">
+                                    <Label htmlFor="registrationEnd">Registration End</Label>
+                                    <Input
+                                        type="date"
+                                        id="registrationEnd"
+                                        {...register("registrationEnd", {
+                                            required: "Registration end date is required",
+                                            validate: (value) => {
+                                                return value > watchRegistrationStart || "Registration end date must be after the start date";
+                                            }
+                                        })}
                                     />
-                                )}
-                            />
-                            {errors.rulesAndRegulations && <span className="text-red-500 text-sm">{errors.rulesAndRegulations.message}</span>}
-                        </div>
+                                    {errors.registrationEnd && <span className="text-red-500 text-sm">{errors.registrationEnd.message}</span>}
+                                </div>
+                            </div>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="theme">Theme</Label>
-                            <Input id="theme" {...register("theme")} placeholder="Enter project theme" />
-                        </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="start">Project Start Date</Label>
+                                <Input
+                                    type="date"
+                                    id="start"
+                                    {...register("start", {
+                                        required: "Project start date is required",
+                                        validate: (value) => {
+                                            return value > watchRegistrationEnd || "Project start date must be after the registration end date";
+                                        }
+                                    })}
+                                />
+                                {errors.start && <span className="text-red-500 text-sm">{errors.start.message}</span>}
+                            </div>
 
-                        <div className="space-y-2">
-                            <Label>Tech Tags</Label>
-                            <div className="mt-2 flex space-x-2 flex-wrap justify-start flex-row my-2">
-                                {techTags.map((tag) => (
-                                    <div key={tag} className="flex items-center space-x-1 border-none rounded-full px-3 my-[3px] bg-zinc-950 text-white text-sm">
-                                        <span>{tag}</span>
-                                        <Button type="button" className='text-white bg-black border-none p-0 hover:bg-none' onClick={() => removeTechTag(tag)} size="sm">
-                                            <XIcon className="h-5 w-5 hover:bg-none " />
+                            <div className="space-y-2">
+                                <Label htmlFor="maxParticipants">Max Participants</Label>
+                                <Input
+                                    id="maxParticipants"
+                                    type="number"
+                                    {...register("maxParticipants", {
+                                        required: "Max participants is required",
+                                        min: { value: 1, message: "Must be at least 1" }
+                                    })}
+                                />
+                                {errors.maxParticipants && <span className="text-red-500 text-sm">{errors.maxParticipants.message}</span>}
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label>Judges</Label>
+                                {judgeFields.map((field, index) => (
+                                    <div key={field.id} className="flex items-center space-x-2">
+                                        <Input
+                                            {...register(`judges.${index}.name` as const, { required: "Judge name is required" })}
+                                            placeholder="Judge name"
+                                        />
+                                        <Button type="button" onClick={() => removeJudge(index)} size="icon" variant="outline">
+                                            <XIcon className="h-4 w-4" />
                                         </Button>
                                     </div>
                                 ))}
-                            </div>
-                            <div className="flex  space-x-2">
-                                <Input
-                                    type="text"
-                                    value={newTechTag}
-                                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTechTag())}
-                                    onChange={(e) => setNewTechTag(e.target.value)}
-                                    placeholder="Add a tech tag"
-                                />
-                                <Button type="button" className='text-white bg-black' onClick={addTechTag} size="icon">
-                                    <PlusIcon className="h-4 w-4" />
+                                <Button type="button" onClick={() => appendJudge({ name: '' })} variant="outline">
+                                    Add Judge
                                 </Button>
                             </div>
-                            {errors.techTags && <span className="text-red-500 text-sm">{errors.techTags.message}</span>}
-                        </div>
-                        {errors.root && <span className="text-red-500 text-sm">{errors.root.message}</span>}
-                        <div className='flex flex-row justify-center'>
-                            <Button type="submit" className='w-full' disabled={isSubmitting}>Create Project</Button>
-                        </div>
-                    </form>
-                </CardContent>
-            </Card>
-        </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="prizes">Prizes</Label>
+                                <Input id="prizes" {...register("prizes")} placeholder="Enter prize details" />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="rulesAndRegulations">Rules and Regulations</Label>
+                                <Controller
+                                    name="rulesAndRegulations"
+                                    control={control}
+                                    rules={{ required: "Rules and regulations are required" }}
+                                    render={({ field }) => (
+                                        <ReactQuill
+                                            theme="snow"
+                                            modules={modules}
+                                            formats={formats}
+                                            {...field}
+                                        />
+                                    )}
+                                />
+                                {errors.rulesAndRegulations && <span className="text-red-500 text-sm">{errors.rulesAndRegulations.message}</span>}
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="theme">Theme</Label>
+                                <Input id="theme" {...register("theme")} placeholder="Enter project theme" />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label>Tech Tags</Label>
+                                <div className="mt-2 flex space-x-2 flex-wrap justify-start flex-row my-2">
+                                    {techTags.map((tag) => (
+                                        <div key={tag} className="flex items-center space-x-1 border-none rounded-full px-3 my-[3px] bg-zinc-950 text-white text-sm">
+                                            <span>{tag}</span>
+                                            <Button type="button" className='text-white bg-black border-none p-0 hover:bg-none' onClick={() => removeTechTag(tag)} size="sm">
+                                                <XIcon className="h-5 w-5 hover:bg-none " />
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="flex  space-x-2">
+                                    <Input
+                                        type="text"
+                                        value={newTechTag}
+                                        onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTechTag())}
+                                        onChange={(e) => setNewTechTag(e.target.value)}
+                                        placeholder="Add a tech tag"
+                                    />
+                                    <Button type="button" className='text-white bg-black' onClick={addTechTag} size="icon">
+                                        <PlusIcon className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                                {errors.techTags && <span className="text-red-500 text-sm">{errors.techTags.message}</span>}
+                            </div>
+                            {
+                                errors.root &&
+                                <span className="text-red-500 text-sm">
+                                    {errors.root.message}
+                                </span>
+                            }
+                            <div className='flex flex-row justify-center'>
+                                <Button type="submit" className='w-full' disabled={isSubmitting}>Create Project</Button>
+                            </div>
+                        </form>
+                    </CardContent>
+                </Card>
+            </div>
+        </>
     )
 }
