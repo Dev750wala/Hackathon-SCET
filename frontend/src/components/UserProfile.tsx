@@ -1,32 +1,32 @@
-'use client'
-
-import { useState } from 'react'
-import { useForm, Controller, useFieldArray } from 'react-hook-form'
+import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Switch } from "@/components/ui/switch"
-import { Github, Linkedin, Mail, Phone, MapPin, Calendar, Briefcase, Link as LinkIcon, Eye, EyeOff, X, Plus, CalendarIcon, PlusIcon, XIcon, EyeOffIcon, EyeIcon } from 'lucide-react'
+import { Linkedin, Mail, Calendar, CalendarIcon, PlusIcon, XIcon, EyeOffIcon, EyeIcon } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { GitHubLogoIcon } from '@radix-ui/react-icons'
 import Navbar from './Navbar'
-import { useAppSelector, useAppDispatch } from '@/redux-store/hooks'
+import { useParams } from 'react-router-dom'
+import { User } from '@/interfaces'
+import Loader from './Loader'
+
+
+interface RequestSuccessResponse {
+    user: User;
+    selfProfile: boolean;
+}
 
 interface SocialLinks {
     linkedin?: string;
     github?: string;
 }
 
-interface ParticipationHistory {
-    eventId: string;
-    eventName: string;
-    date: string;
-}
 
 interface IUser {
     enrollmentNumber?: string;
@@ -35,7 +35,7 @@ interface IUser {
     email: string;
     fullName: string;
     profile_pic?: string;
-    // contact_no?: string;
+    contact_no?: string;
     skills?: string[];
     biography?: string;
     portfolio?: string;
@@ -53,7 +53,7 @@ const mockUser: IUser = {
     password: "********",
     email: "john.doe@example.com",
     fullName: "John Doe",
-    profile_pic: "/placeholder.svg?height=200&width=200",
+    profile_pic: "/placeholder.svg?height=340&width=340",
     // contact_no: "+1234567890",
     skills: ["React", "TypeScript", "Node.js", "GraphQL", "MongoDB"],
     biography: "Passionate developer with 5 years of experience in web technologies. I love creating user-friendly applications and solving complex problems.",
@@ -73,28 +73,52 @@ const mockUser: IUser = {
     ]
 }
 
+interface ParticipationHistory {
+    eventId: string;
+    eventName: string;
+    date: string;
+}
+
+interface RequestSuccessResponse {
+    user: User;
+    selfProfile: boolean;
+}
+
 export default function UserProfile({ user = mockUser, isOwnProfile = true }: { user?: IUser, isOwnProfile?: boolean }) {
+
+    const { username } = useParams<{ username: string }>();
+    
+    
+    useEffect(() => {
+        console.log(`Helo Wrergdfdvbibs ;${username}`);
+        setLoading(true);
+        const fetchUser = async () => {
+            try {
+                console.log(username);
+                
+                const r = await fetch(`${import.meta.env.VITE_BACKEND_URL}/user/${username}`, {
+                    method: "GET",
+                    credentials: "include",
+                });
+
+                const result = await r.json();
+                console.log(result);
+
+                if ("user" in result) {
+                    // setUser(result.user);
+                } else {
+                    // Handle validation or other errors
+                }
+            } catch (error) {
+                console.error(error);
+            } 
+            setLoading(false);
+        }
+        fetchUser();
+    }, [])
+
+    const [loading, setLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false)
-    // const [showPassword, setShowPassword] = useState(false)
-    // const { control, handleSubmit, register } = useForm<IUser>({
-    //     defaultValues: {
-    //         ...user,
-    //         socialLinks: {
-    //             linkedin: user.socialLinks?.linkedin || '',
-    //             github: user.socialLinks?.github || '',
-    //         },
-    //         skills: user.skills || [],
-    //     }
-    // })
-    // const { fields, append, remove } = useFieldArray({
-    //     control,
-    //     name: "skills",
-    //     rules: { required: "Please add at least one skill" }
-    // })
-
-    const dispatch = useAppDispatch();
-    // const user = useAppSelector((state) => state.userInfo);
-
     const [skills, setSkills] = useState<string[]>(user.skills || []);
     const [newSkill, setNewSkill] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -112,7 +136,7 @@ export default function UserProfile({ user = mockUser, isOwnProfile = true }: { 
             email: user.email,
             fullName: user.fullName,
             password: user.password,
-            // contact_no: user.contact_no,
+            contact_no: user.contact_no,
             biography: user.biography,
             skills: skills,
             portfolio: user.portfolio,
@@ -188,16 +212,20 @@ export default function UserProfile({ user = mockUser, isOwnProfile = true }: { 
         // }
     };
 
+
+    if (loading) {
+        return <Loader />;
+    }
     return (
         <>
             <Navbar userType='student' />
-            <div className="flex flex-row justify-center items-center min-h-screen bg-white text-gray-900 p-6 m-auto">
+            <div className="flex flex-row justify-center items-center min-h-screen bg-transparent text-gray-900 p-6 m-auto">
                 <div className="max-w-7xl mx-auto">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <Card className="col-span-1 border-none rounded-lg">
+                        <Card className="col-span-1 border rounded-lg bg-white/50">
                             <CardContent className="p-6">
                                 <div className="flex flex-col items-center">
-                                    <Avatar className="w-32 h-32 mb-4 border-4 border-blue-500">
+                                    <Avatar className="w-48 h-48 mb-4 border-4 border-sky-600">
                                         <AvatarImage src={user.profile_pic} alt={user.fullName} />
                                         <AvatarFallback>
                                             {user.fullName.split(' ').map(n => n[0]).join('')}
@@ -245,7 +273,7 @@ export default function UserProfile({ user = mockUser, isOwnProfile = true }: { 
                             </CardContent>
                         </Card>
 
-                        <Card className="col-span-1 md:col-span-2 border-none">
+                        <Card className="col-span-1 md:col-span-2 border rounded-lg bg-white/60">
                             <CardContent className="p-6">
                                 <h2 className="text-2xl font-bold mb-4">General Information</h2>
                                 <div className="space-y-6">
@@ -253,7 +281,7 @@ export default function UserProfile({ user = mockUser, isOwnProfile = true }: { 
                                         <h3 className="text-xl font-semibold mb-2">About me</h3>
                                         <p className="text-gray-600">{user.biography}</p>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-4">
                                         <div>
                                             <h3 className="text-lg font-semibold mb-1">Portfolio</h3>
                                             <a href={user.portfolio} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{user.portfolio}</a>
@@ -386,7 +414,7 @@ export default function UserProfile({ user = mockUser, isOwnProfile = true }: { 
                                                     <span className="text-red-500 text-sm">{errors.fullName.message}</span>
                                                 )}
                                             </div>
-                                            {/* <div className="space-y-2">
+                                            <div className="space-y-2">
                                                 <Label htmlFor="contact_no">Contact Number</Label>
                                                 <Input id="contact_no" placeholder="Enter your contact number" required
                                                     {...register("contact_no", {
@@ -395,7 +423,7 @@ export default function UserProfile({ user = mockUser, isOwnProfile = true }: { 
                                                 {errors.contact_no?.message && (
                                                     <span className="text-red-500 text-sm">{errors.contact_no.message}</span>
                                                 )}
-                                            </div> */}
+                                            </div>
                                         </div>
 
                                         <div className="space-y-2">

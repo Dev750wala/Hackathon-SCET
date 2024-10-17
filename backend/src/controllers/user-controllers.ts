@@ -305,11 +305,23 @@ export async function handleUserProfile(req: Request, res: Response) {
             return res.status(404).json({ message: "User not found" });
         }
 
-        if (req.user && req.user?.username === user.username) {
-            return res.status(200).json({ ...user, selfProfile: true })
-        } else {
-            return res.status(200).json({ ...user, selfProfile: false });
+        const responseData = {
+            enrollmentNumber: user.enrollmentNumber,
+            username: user.username,
+            email: user.email,
+            role: user.role,
+            fullName: user.fullName,
+            contact_no: user.contact_no,
+            skills: user.skills,
+            biography: user.biography,
+            portfolio: user.portfolio,
+            socialLinks: user.socialLinks,
+            verified: user.verified,
+            registrationDate: user.registrationDate,
+            participationHistory: user.participationHistory,
+            availability: user.availability
         }
+        return res.status(200).json({ user: responseData, selfProfile: req.user && req.user?.username === responseData.username ? true : false });
 
     } catch (error) {
         console.log(`Unexpected error occured: ${error}`);
