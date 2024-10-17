@@ -61,14 +61,17 @@ const userSchema = new mongoose.Schema<IUser>({
         },
     },
     participationHistory: [{
-        eventName: {
-            type: String,
-        },
-        date: {
-            type: String
-        },
-        awards: {
-            type: [String],
+        // eventName: {
+        //     type: String,
+        // },
+        // date: {
+        //     type: String
+        // },
+        // awards: {
+        //     type: [String],
+        // }
+        eventId: {
+            type: mongoose.Types.ObjectId,
         }
     }],
     availability: {

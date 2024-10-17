@@ -1,10 +1,12 @@
 import mongoose, { Model } from "mongoose";
 import { AdminLoginRequestBody } from "./admin-interfaces";
 
+
+// eventName: string;
+// date: string;
+// awards?: string[];
 export interface ParticipationHistory {
-    eventName: string;
-    date: string;
-    awards: string[];
+    eventId: mongoose.Types.ObjectId;
 }
 
 export interface SocialLinks {

@@ -24,23 +24,23 @@ export interface SocialLinks {
     github?: string;
 }
 
-export interface UserDataInStore {
-    enrollmentNumber?: string;
-    username: string;
-    email: string;
-    role: 'student' | 'organizer';
-    fullName: string;
-    profile_pic?: string;
-    contact_no?: string;
-    skills?: string[];
-    biography?: string;
-    portfolio?: string;
-    socialLinks?: SocialLinks;
-    participationHistory?: ParticipationHistory[];
-    availability?: boolean;
-    registrationDate?: Date;
-    verified: boolean;
-}
+// export interface UserDataInStore {
+//     enrollmentNumber?: string;
+//     username: string;
+//     email: string;
+//     role: 'student' | 'organizer';
+//     fullName: string;
+//     profile_pic?: string;
+//     contact_no?: string;
+//     skills?: string[];
+//     biography?: string;
+//     portfolio?: string;
+//     socialLinks?: SocialLinks;
+//     participationHistory?: ParticipationHistory[];
+//     availability?: boolean;
+//     registrationDate?: Date;
+//     verified: boolean;
+// }
 
 // export interface SignupResponse {
 //     user: User;
@@ -71,8 +71,8 @@ export interface SignupErrorResponse {
     statusCode: number;
 }
 
+// TODO error might occur
 export interface User {
-    // TODO error might occur
     enrollmentNumber?: string;
     username: string;
     email: string;

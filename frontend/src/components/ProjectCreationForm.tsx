@@ -294,7 +294,7 @@ export default function ProjectCreationForm(): React.ReactElement {
 
                             <div className="space-y-2">
                                 <Label htmlFor="start">Project Start Date</Label>
-                                <Input
+                                <input
                                     type="date"
                                     id="start"
                                     {...register("start", {
