@@ -174,6 +174,8 @@ export default function UserProfile({ user = mockUser, isOwnProfile = true }: { 
                                             <h3 className="text-lg font-semibold mb-1">Portfolio</h3>
                                             <a href={user.portfolio} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{user.portfolio}</a>
                                         </div>
+
+                                        
                                         <div>
                                             <h3 className="text-lg font-semibold mb-1">Availability</h3>
                                             <div className="flex items-center">
