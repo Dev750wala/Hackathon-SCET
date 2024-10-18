@@ -22,6 +22,10 @@ interface RequestSuccessResponse {
     selfProfile: boolean;
 }
 
+interface FormData extends User {
+    password: string;
+}
+
 interface SocialLinks {
     linkedin?: string;
     github?: string;
@@ -31,30 +35,25 @@ interface SocialLinks {
 interface IUser {
     enrollmentNumber?: string;
     username: string;
-    password: string;
     email: string;
     fullName: string;
     profile_pic?: string;
     contact_no?: string;
-    skills?: string[];
+    skills: string[];
     biography?: string;
     portfolio?: string;
     socialLinks?: SocialLinks;
     participationHistory?: ParticipationHistory[];
     availability?: boolean;
     registrationDate?: Date;
-    // location?: string;
-    // jobTitle?: string;
 }
 
 const mockUser: IUser = {
     enrollmentNumber: "EN12345",
     username: "johndoe",
-    password: "********",
     email: "john.doe@example.com",
     fullName: "John Doe",
     profile_pic: "/placeholder.svg?height=340&width=340",
-    // contact_no: "+1234567890",
     skills: ["React", "TypeScript", "Node.js", "GraphQL", "MongoDB"],
     biography: "Passionate developer with 5 years of experience in web technologies. I love creating user-friendly applications and solving complex problems.",
     portfolio: "https://johndoe.dev",
@@ -64,8 +63,6 @@ const mockUser: IUser = {
     },
     availability: true,
     registrationDate: new Date("2021-01-01"),
-    // location: "San Francisco, USA",
-    // jobTitle: "Full Stack Developer",
     participationHistory: [
         { eventId: "1", eventName: "Web Dev Hackathon 2023", date: "2023-05-15" },
         { eventId: "2", eventName: "AI Conference", date: "2023-07-22" },
@@ -84,18 +81,22 @@ interface RequestSuccessResponse {
     selfProfile: boolean;
 }
 
-export default function UserProfile({ user = mockUser, isOwnProfile = true }: { user?: IUser, isOwnProfile?: boolean }) {
+export default function UserProfile({ isOwnProfile = true }: { isOwnProfile?: boolean }) {
 
     const { username } = useParams<{ username: string }>();
-    
-    
+
+
+    const [user, setUser] = useState<User>();
+    const [loading, setLoading] = useState(true);
+    const [isEditing, setIsEditing] = useState(false)
+    const [skills, setSkills] = useState<string[]>(user?.skills || []);
+    const [newSkill, setNewSkill] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+
     useEffect(() => {
-        console.log(`Helo Wrergdfdvbibs ;${username}`);
         setLoading(true);
         const fetchUser = async () => {
             try {
-                console.log(username);
-                
                 const r = await fetch(`${import.meta.env.VITE_BACKEND_URL}/user/${username}`, {
                     method: "GET",
                     credentials: "include",
@@ -104,24 +105,33 @@ export default function UserProfile({ user = mockUser, isOwnProfile = true }: { 
                 const result = await r.json();
                 console.log(result);
 
-                if ("user" in result) {
-                    // setUser(result.user);
-                } else {
-                    // Handle validation or other errors
+                if ((result as RequestSuccessResponse).user) {
+                    console.log("Hello World");
+                    setUser((result as RequestSuccessResponse).user);
+                    reset({
+                        username: user?.username || '',
+                        email: user?.email || '',
+                        fullName: user?.fullName || '',
+                        password: '', 
+                        contact_no: user?.contact_no || '',
+                        biography: user?.biography || '',
+                        skills: user?.skills || [],
+                        portfolio: user?.portfolio || '',
+                        socialLinks: {
+                            linkedin: user?.socialLinks?.linkedin || '',
+                            github: user?.socialLinks?.github || '',
+                        },
+                        availability: user?.availability || false,
+                    });
                 }
             } catch (error) {
                 console.error(error);
-            } 
+                setUser(undefined);
+            }
             setLoading(false);
         }
         fetchUser();
-    }, [])
-
-    const [loading, setLoading] = useState(true);
-    const [isEditing, setIsEditing] = useState(false)
-    const [skills, setSkills] = useState<string[]>(user.skills || []);
-    const [newSkill, setNewSkill] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
+    }, [username])
 
     const {
         register,
@@ -129,22 +139,23 @@ export default function UserProfile({ user = mockUser, isOwnProfile = true }: { 
         setError,
         clearErrors,
         watch,
+        reset,
         formState: { errors, isSubmitting },
-    } = useForm<IUser>({
+    } = useForm<FormData>({
         defaultValues: {
-            username: user.username,
-            email: user.email,
-            fullName: user.fullName,
-            password: user.password,
-            contact_no: user.contact_no,
-            biography: user.biography,
-            skills: skills,
-            portfolio: user.portfolio,
+            username: '',
+            email: '',
+            fullName: '',
+            password: '',
+            contact_no: '',
+            biography: '',
+            skills: [],
+            portfolio: '',
             socialLinks: {
-                linkedin: user.socialLinks?.linkedin || '',
-                github: user.socialLinks?.github || '',
+                linkedin: '',
+                github: '',
             },
-            availability: user.availability,
+            availability: false,
         }
     });
 
@@ -172,7 +183,7 @@ export default function UserProfile({ user = mockUser, isOwnProfile = true }: { 
         }
     };
 
-    const onSubmit = async (data: IUser) => {
+    const onSubmit = async (data: any) => {
         if (skills.length === 0) {
             setError("skills", {
                 type: "manual",
@@ -216,6 +227,18 @@ export default function UserProfile({ user = mockUser, isOwnProfile = true }: { 
     if (loading) {
         return <Loader />;
     }
+
+    if (!user) {
+        return (
+            <>
+                <Navbar userType='student' />
+                <div className="flex flex-col items-center justify-center h-screen">
+                    <h1 className="text-3xl font-bold mb-4">User not found</h1>
+                    <p className="text-gray-600">The user you are looking for does not exist.</p>
+                </div>
+            </>
+        );
+    }
     return (
         <>
             <Navbar userType='student' />
@@ -250,13 +273,15 @@ export default function UserProfile({ user = mockUser, isOwnProfile = true }: { 
                                             <span>{user.email}</span>
                                         </div>
                                         {/* <div className="flex items-center">
-                                                <Phone className="w-4 h-4 mr-2 text-gray-500" />
-                                                <span>{user.contact_no}</span>
-                                            </div> 
-                                        */}
+                                                    <Phone className="w-4 h-4 mr-2 text-gray-500" />
+                                                    <span>{user.contact_no}</span>
+                                                </div> 
+                                            */}
                                         <div className="flex items-center">
                                             <Calendar className="w-4 h-4 mr-2 text-gray-500" />
-                                            <span>Joined {user.registrationDate?.toLocaleDateString()}</span>
+                                            <span>{user.registrationDate
+                                                ? `Joined ${new Date(user.registrationDate).toLocaleDateString('en-CA')}`
+                                                : 'Joining date not available'}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -294,13 +319,18 @@ export default function UserProfile({ user = mockUser, isOwnProfile = true }: { 
                                                 <span className={`w-3 h-3 rounded-full mr-2 ${user.availability ? "bg-green-500" : "bg-red-500"
                                                     }`}></span>
                                                 <span className={user.availability ? "text-green-600" : "text-red-600"}>
-                                                    {user.availability ? "Currently available for projects" : "currently unavailable for projects"}
+                                                    {user.availability ? "Currently available for projects" : "Currently unavailable for projects"}
                                                 </span>
                                             </div>
                                         </div>
                                     </div>
                                     <div className="space-y-4">
                                         <h2 className="text-xl font-semibold mb-4">Participation History</h2>
+                                        {
+                                            user.participationHistory?.length === 0 && (
+                                                <p className="text-gray-600">No participation history available</p>
+                                            )
+                                        }
                                         {user.participationHistory?.map((event) => (
                                             <div
                                                 key={event.eventName}
@@ -316,16 +346,16 @@ export default function UserProfile({ user = mockUser, isOwnProfile = true }: { 
                                     </div>
 
                                     {/* <div>
-                                        <h3 className="text-xl font-semibold mb-2">Participation History</h3>
-                                        <ul className="space-y-2">
-                                            {user.participationHistory?.map((event, index) => (
-                                                <li key={index} className="flex items-center">
-                                                    <Briefcase className="w-4 h-4 mr-2" />
-                                                    <span>{event.eventName} - {event.date}</span>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div> */}
+                                            <h3 className="text-xl font-semibold mb-2">Participation History</h3>
+                                            <ul className="space-y-2">
+                                                {user.participationHistory?.map((event, index) => (
+                                                    <li key={index} className="flex items-center">
+                                                        <Briefcase className="w-4 h-4 mr-2" />
+                                                        <span>{event.eventName} - {event.date}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div> */}
                                 </div>
                             </CardContent>
                         </Card>
@@ -513,178 +543,178 @@ export default function UserProfile({ user = mockUser, isOwnProfile = true }: { 
 
 
                                     {/* <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                            <Controller
-                                                name="username"
-                                                control={control}
-                                                render={({ field }) => (
-                                                    <div className="flex flex-col space-y-1">
-                                                        <Label htmlFor="username">Username</Label>
-                                                        <Input id="username" {...field} />
-                                                    </div>
-                                                )}
-                                            />
-                                            <Controller
-                                                name="password"
-                                                control={control}
-                                                render={({ field }) => (
-                                                    <div className="flex flex-col space-y-1">
-                                                        <Label htmlFor="password">Password</Label>
-                                                        <div className="relative">
-                                                            <Input
-                                                                id="password"
-                                                                type={showPassword ? "text" : "password"}
-                                                                {...field}
-                                                            />
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => setShowPassword(!showPassword)}
-                                                                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
-                                                            >
-                                                                {showPassword ? (
-                                                                    <EyeOff className="h-5 w-5" />
-                                                                ) : (
-                                                                    <Eye className="h-5 w-5" />
-                                                                )}
-                                                            </button>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                <Controller
+                                                    name="username"
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <div className="flex flex-col space-y-1">
+                                                            <Label htmlFor="username">Username</Label>
+                                                            <Input id="username" {...field} />
                                                         </div>
+                                                    )}
+                                                />
+                                                <Controller
+                                                    name="password"
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <div className="flex flex-col space-y-1">
+                                                            <Label htmlFor="password">Password</Label>
+                                                            <div className="relative">
+                                                                <Input
+                                                                    id="password"
+                                                                    type={showPassword ? "text" : "password"}
+                                                                    {...field}
+                                                                />
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setShowPassword(!showPassword)}
+                                                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                                                                >
+                                                                    {showPassword ? (
+                                                                        <EyeOff className="h-5 w-5" />
+                                                                    ) : (
+                                                                        <Eye className="h-5 w-5" />
+                                                                    )}
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                />
+                                                <Controller
+                                                    name="fullName"
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <div className="flex flex-col space-y-1">
+                                                            <Label htmlFor="fullName">Full Name</Label>
+                                                            <Input id="fullName" {...field} />
+                                                        </div>
+                                                    )}
+                                                />
+                                                <Controller
+                                                    name="profile_pic"
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <div className="flex flex-col space-y-1">
+                                                            <Label htmlFor="profile_pic">Profile Picture URL</Label>
+                                                            <Input id="profile_pic" {...field} />
+                                                        </div>
+                                                    )}
+                                                />
+                                                <Controller
+                                                    name="contact_no"
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <div className="flex flex-col space-y-1">
+                                                            <Label htmlFor="contact_no">Contact Number</Label>
+                                                            <Input id="contact_no" {...field} />
+                                                        </div>
+                                                    )}
+                                                />
+                                                <div className="flex flex-col space-y-1">
+                                                    <Label htmlFor="skills">Skills</Label>
+                                                    <div className="flex flex-wrap gap-2 mb-2">
+                                                        {fields.map((field, index) => (
+                                                            <Badge key={field.id} variant="secondary" className="text-sm py-1 px-2">
+                                                                {field.value}
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => remove(index)}
+                                                                    className="ml-2 text-gray-500 hover:text-gray-700"
+                                                                >
+                                                                    <X className="h-3 w-3" />
+                                                                </button>
+                                                            </Badge>
+                                                        ))}
                                                     </div>
-                                                )}
-                                            />
-                                            <Controller
-                                                name="fullName"
-                                                control={control}
-                                                render={({ field }) => (
-                                                    <div className="flex flex-col space-y-1">
-                                                        <Label htmlFor="fullName">Full Name</Label>
-                                                        <Input id="fullName" {...field} />
+                                                    <div className="flex">
+                                                        <Input
+                                                            id="newSkill"
+                                                            placeholder="Add a skill"
+                                                            onKeyDown={(e) => {
+                                                                if (e.key === 'Enter' && e.currentTarget.value) {
+                                                                    e.preventDefault();
+                                                                    append(e.currentTarget.value);
+                                                                    e.currentTarget.value = '';
+                                                                }
+                                                            }}
+                                                        />
+                                                        <Button
+                                                            type="button"
+                                                            variant="outline"
+                                                            size="icon"
+                                                            onClick={() => {
+                                                                const input = document.getElementById('newSkill') as HTMLInputElement;
+                                                                if (input.value) {
+                                                                    append(input.value);
+                                                                    input.value = '';
+                                                                }
+                                                            }}
+                                                            className="ml-2"
+                                                        >
+                                                            <Plus className="h-4 w-4" />
+                                                        </Button>
                                                     </div>
-                                                )}
-                                            />
-                                            <Controller
-                                                name="profile_pic"
-                                                control={control}
-                                                render={({ field }) => (
-                                                    <div className="flex flex-col space-y-1">
-                                                        <Label htmlFor="profile_pic">Profile Picture URL</Label>
-                                                        <Input id="profile_pic" {...field} />
-                                                    </div>
-                                                )}
-                                            />
-                                            <Controller
-                                                name="contact_no"
-                                                control={control}
-                                                render={({ field }) => (
-                                                    <div className="flex flex-col space-y-1">
-                                                        <Label htmlFor="contact_no">Contact Number</Label>
-                                                        <Input id="contact_no" {...field} />
-                                                    </div>
-                                                )}
-                                            />
-                                            <div className="flex flex-col space-y-1">
-                                                <Label htmlFor="skills">Skills</Label>
-                                                <div className="flex flex-wrap gap-2 mb-2">
-                                                    {fields.map((field, index) => (
-                                                        <Badge key={field.id} variant="secondary" className="text-sm py-1 px-2">
-                                                            {field.value}
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => remove(index)}
-                                                                className="ml-2 text-gray-500 hover:text-gray-700"
-                                                            >
-                                                                <X className="h-3 w-3" />
-                                                            </button>
-                                                        </Badge>
-                                                    ))}
                                                 </div>
-                                                <div className="flex">
-                                                    <Input
-                                                        id="newSkill"
-                                                        placeholder="Add a skill"
-                                                        onKeyDown={(e) => {
-                                                            if (e.key === 'Enter' && e.currentTarget.value) {
-                                                                e.preventDefault();
-                                                                append(e.currentTarget.value);
-                                                                e.currentTarget.value = '';
-                                                            }
-                                                        }}
-                                                    />
-                                                    <Button
-                                                        type="button"
-                                                        variant="outline"
-                                                        size="icon"
-                                                        onClick={() => {
-                                                            const input = document.getElementById('newSkill') as HTMLInputElement;
-                                                            if (input.value) {
-                                                                append(input.value);
-                                                                input.value = '';
-                                                            }
-                                                        }}
-                                                        className="ml-2"
-                                                    >
-                                                        <Plus className="h-4 w-4" />
-                                                    </Button>
-                                                </div>
+                                                <Controller
+                                                    name="biography"
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <div className="flex flex-col space-y-1">
+                                                            <Label htmlFor="biography">Biography</Label>
+                                                            <Textarea id="biography" {...field} />
+                                                        </div>
+                                                    )}
+                                                />
+                                                <Controller
+                                                    name="portfolio"
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <div className="flex flex-col space-y-1">
+                                                            <Label htmlFor="portfolio">Portfolio</Label>
+                                                            <Input id="portfolio" {...field} />
+                                                        </div>
+                                                    )}
+                                                />
+                                                <Controller
+                                                    name="socialLinks.linkedin"
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <div className="flex flex-col space-y-1">
+                                                            <Label htmlFor="linkedin">LinkedIn</Label>
+                                                            <Input id="linkedin" {...field} />
+                                                        </div>
+                                                    )}
+                                                />
+                                                <Controller
+                                                    name="socialLinks.github"
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <div className="flex flex-col space-y-1">
+                                                            <Label htmlFor="github">GitHub</Label>
+                                                            <Input id="github" {...field} />
+                                                        </div>
+                                                    )}
+                                                />
                                             </div>
                                             <Controller
-                                                name="biography"
+                                                name="availability"
                                                 control={control}
                                                 render={({ field }) => (
-                                                    <div className="flex flex-col space-y-1">
-                                                        <Label htmlFor="biography">Biography</Label>
-                                                        <Textarea id="biography" {...field} />
+                                                    <div className="flex items-center justify-end space-x-2 mt-4">
+                                                        <Label htmlFor="availability">Available for hire</Label>
+                                                        <Switch
+                                                            id="availability"
+                                                            checked={field.value}
+                                                            onCheckedChange={field.onChange}
+                                                        />
                                                     </div>
                                                 )}
                                             />
-                                            <Controller
-                                                name="portfolio"
-                                                control={control}
-                                                render={({ field }) => (
-                                                    <div className="flex flex-col space-y-1">
-                                                        <Label htmlFor="portfolio">Portfolio</Label>
-                                                        <Input id="portfolio" {...field} />
-                                                    </div>
-                                                )}
-                                            />
-                                            <Controller
-                                                name="socialLinks.linkedin"
-                                                control={control}
-                                                render={({ field }) => (
-                                                    <div className="flex flex-col space-y-1">
-                                                        <Label htmlFor="linkedin">LinkedIn</Label>
-                                                        <Input id="linkedin" {...field} />
-                                                    </div>
-                                                )}
-                                            />
-                                            <Controller
-                                                name="socialLinks.github"
-                                                control={control}
-                                                render={({ field }) => (
-                                                    <div className="flex flex-col space-y-1">
-                                                        <Label htmlFor="github">GitHub</Label>
-                                                        <Input id="github" {...field} />
-                                                    </div>
-                                                )}
-                                            />
-                                        </div>
-                                        <Controller
-                                            name="availability"
-                                            control={control}
-                                            render={({ field }) => (
-                                                <div className="flex items-center justify-end space-x-2 mt-4">
-                                                    <Label htmlFor="availability">Available for hire</Label>
-                                                    <Switch
-                                                        id="availability"
-                                                        checked={field.value}
-                                                        onCheckedChange={field.onChange}
-                                                    />
-                                                </div>
-                                            )}
-                                        />
-                                        <DialogFooter>
-                                            <Button type="submit" size="lg" className="text-lg px-8">Save changes</Button>
-                                        </DialogFooter>
-                                    </form> */}
+                                            <DialogFooter>
+                                                <Button type="submit" size="lg" className="text-lg px-8">Save changes</Button>
+                                            </DialogFooter>
+                                        </form> */}
                                 </DialogContent>
                             </Dialog>
                         </div>
@@ -693,4 +723,5 @@ export default function UserProfile({ user = mockUser, isOwnProfile = true }: { 
             </div>
         </>
     )
+
 }

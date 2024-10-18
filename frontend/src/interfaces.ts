@@ -89,6 +89,7 @@ export interface User {
     participationHistory: any[];
 }
 
+
 export interface VerificationCode {
     createdAt: number;
     code: string;
