@@ -353,7 +353,7 @@ function SignupForm() {
                                 </span>
                             )}
                         </div>
-
+                            
                         {/* Social Links */}
                         <div className="space-y-2">
                             <Label>Social Links (Optional)</Label>

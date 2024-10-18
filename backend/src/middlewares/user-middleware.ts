@@ -18,9 +18,6 @@ export async function onlyLoggedInUsers(req: Request, res: Response, next: NextF
     const cookie = req.cookies?.jwt_token;
 
     if (!cookie) {
-        /*
-            if no cookie found named "jwt_token", redirect user to login page
-        */
         return res.status(302).json({ message: "No cookie found, Authentication required" });
     }
     let userFromToken: TokenUser;

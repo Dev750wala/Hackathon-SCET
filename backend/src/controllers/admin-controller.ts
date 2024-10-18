@@ -306,18 +306,19 @@ export async function handleCreateProject(req: Request, res: Response): Promise<
  *      200 - updatedUser: updatedUser (IUser)
  * }
  */
-export async function handleUpdateAdminProfile(req: Request, res: Response) {
+export async function handleUpdateUserProfile(req: Request, res: Response) {
 
     const allowedUpdates = [
+        'username',
         'password',
         'fullName',
-        'username',
         'contact_no',
         'skills',
         'biography',
         'portfolio',
         'linkedin',
         'github',
+        'availability'
     ];
 
     await connectToDB();
@@ -342,14 +343,14 @@ export async function handleUpdateAdminProfile(req: Request, res: Response) {
         const updatedUser = await USER.findByIdAndUpdate(
             req.user?._id as Types.ObjectId,
             { $set: filteredUpdates },
-            { new: true, runValidators: true } // Return the updated user and run validators
+            { new: true, runValidators: true }
         );
 
         if (!updatedUser) {
             return res.status(404).json({ error: 'User not found' });
         }
 
-        return res.status(200).json({ message: 'Profile updated successfully', user: updatedUser });
+        return res.status(200).json({ user: updatedUser });
 
     } catch (error) {
         console.error('Error updating profile:', error);

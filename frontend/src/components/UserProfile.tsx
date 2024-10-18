@@ -92,6 +92,34 @@ export default function UserProfile({ isOwnProfile = true }: { isOwnProfile?: bo
     const [skills, setSkills] = useState<string[]>(user?.skills || []);
     const [newSkill, setNewSkill] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [initialValues, setInitialValues] = useState<User | null>(null);
+    const [updatingProfile, setUpdatingProfile] = useState<boolean>(false);
+
+
+    const {
+        register,
+        handleSubmit,
+        setError,
+        clearErrors,
+        watch,
+        reset,
+        formState: { errors, isSubmitting },
+    } = useForm<FormData>({
+        defaultValues: {
+            username: '',
+            fullName: '',
+            password: '',
+            contact_no: '',
+            biography: '',
+            skills: [],
+            portfolio: '',
+            socialLinks: {
+                linkedin: '',
+                github: '',
+            },
+            availability: false,
+        }
+    });
 
     useEffect(() => {
         setLoading(true);
@@ -109,10 +137,9 @@ export default function UserProfile({ isOwnProfile = true }: { isOwnProfile?: bo
                     console.log("Hello World");
                     setUser((result as RequestSuccessResponse).user);
                     reset({
-                        username: user?.username || '',
-                        email: user?.email || '',
+                        username: user?.username || "",
                         fullName: user?.fullName || '',
-                        password: '', 
+                        password: '',
                         contact_no: user?.contact_no || '',
                         biography: user?.biography || '',
                         skills: user?.skills || [],
@@ -131,34 +158,29 @@ export default function UserProfile({ isOwnProfile = true }: { isOwnProfile?: bo
             setLoading(false);
         }
         fetchUser();
-    }, [username])
+    }, [username, reset])
 
-    const {
-        register,
-        handleSubmit,
-        setError,
-        clearErrors,
-        watch,
-        reset,
-        formState: { errors, isSubmitting },
-    } = useForm<FormData>({
-        defaultValues: {
-            username: '',
-            email: '',
-            fullName: '',
-            password: '',
-            contact_no: '',
-            biography: '',
-            skills: [],
-            portfolio: '',
-            socialLinks: {
-                linkedin: '',
-                github: '',
-            },
-            availability: false,
+    useEffect(() => {
+        if (user) {
+            reset({
+                username: user.username || '',
+                fullName: user.fullName || '',
+                password: '',
+                contact_no: user.contact_no || '',
+                biography: user.biography || '',
+                skills: user.skills || [],
+                portfolio: user.portfolio || '',
+                socialLinks: {
+                    linkedin: user.socialLinks?.linkedin || '',
+                    github: user.socialLinks?.github || '',
+                },
+                availability: user.availability || false,
+            });
+            setSkills(user.skills || []);
+            setInitialValues(user);
+            console.log(`Initial Values are: ${JSON.stringify(initialValues)}`);
         }
-    });
-
+    }, [user, reset]);
 
 
     const addSkill = () => {
@@ -191,10 +213,31 @@ export default function UserProfile({ isOwnProfile = true }: { isOwnProfile?: bo
             });
             return;
         }
-        const finalData = { ...data, skills: skills };
 
-        console.log(finalData);
-        alert("Profile updated successfully!");
+        let changedFields: Partial<FormData> = {};
+
+        if (data.password && data.password.trim() !== "") {
+            changedFields.password = data.password;
+        }
+
+        if (data.username !== initialValues?.username) changedFields.username = data.username;
+        if (data.fullName !== initialValues?.fullName) changedFields.fullName = data.fullName;
+        if (data.contact_no !== initialValues?.contact_no) changedFields.contact_no = data.contact_no;
+        if (data.biography !== initialValues?.biography) changedFields.biography = data.biography;
+        if (JSON.stringify(data.skills) !== JSON.stringify(skills)) changedFields.skills = skills;
+        if (data.portfolio !== initialValues?.portfolio) changedFields.portfolio = data.portfolio;
+        if (data.socialLinks.linkedin !== initialValues?.socialLinks?.linkedin) changedFields.socialLinks = { ...changedFields.socialLinks, linkedin: data.socialLinks.linkedin };
+        if (data.socialLinks.github !== initialValues?.socialLinks?.github) changedFields.socialLinks = { ...changedFields.socialLinks, github: data.socialLinks.github };
+        if (data.availability !== initialValues?.availability) changedFields.availability = data.availability;
+
+        console.log(changedFields);
+
+
+        // const finalData = { ...data, skills: skills };
+
+        // console.log(finalData);
+        // alert("Profile updated successfully!");
+        // -----------------------------
         // try {
         //     const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/user/profile`, {
         //         method: "PUT",
@@ -401,14 +444,13 @@ export default function UserProfile({ isOwnProfile = true }: { isOwnProfile?: bo
                                                     <Input
                                                         id="password"
                                                         type={showPassword ? "text" : "password"}
-                                                        placeholder="Enter password"
+                                                        placeholder="Leave blank if you don't want to change"
                                                         className="w-full pr-10"
                                                         onPaste={(e) => {
                                                             e.preventDefault();
                                                             alert('Pasting is not allowed in password');
                                                         }}
                                                         {...register("password", {
-                                                            required: { value: true, message: "Password is required" },
                                                             minLength: { value: 10, message: "Password must be at least 10 characters" },
                                                             maxLength: { value: 30, message: "Password must be at most 30 characters" },
                                                         })}
@@ -498,17 +540,51 @@ export default function UserProfile({ isOwnProfile = true }: { isOwnProfile?: bo
                                         <div className="space-y-2">
                                             <Label htmlFor="portfolio">Portfolio URL (Optional)</Label>
                                             <Input id="portfolio" placeholder="https://your-portfolio.com"
-                                                {...register("portfolio")} />
+                                                {...register("portfolio", {
+                                                    pattern: {
+                                                        value: /^(https?:\/\/)?(www\.)?[a-zA-Z0-9-]+(\.[a-zA-Z]{2,})+\/?([a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;%=]*)?$/,
+                                                        message: "Enter a valid URL",
+                                                    },
+                                                })} />
+                                            {errors.portfolio?.message && (
+                                                <span className="text-red-500 text-sm">
+                                                    {String(errors.portfolio.message)}
+                                                </span>
+                                            )}
                                         </div>
 
                                         <div className="space-y-2">
                                             <Label>Social Links (Optional)</Label>
                                             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                                                 <div className='space-y-2'>
-                                                    <Input id="linkedin" placeholder="LinkedIn URL" {...register("socialLinks.linkedin")} />
+                                                    <Input id="linkedin" placeholder="LinkedIn URL" {
+                                                        ...register("socialLinks.linkedin", {
+                                                            pattern: {
+                                                                value: /^(https?:\/\/)?(www\.)?linkedin.com\/in\/[a-zA-Z0-9-]+\/?$/,
+                                                                message: "Enter a valid LinkedIn URL",
+                                                            },
+                                                        })
+                                                    } />
+                                                    {errors.socialLinks?.linkedin?.message && (
+                                                        <span className="text-red-500 text-sm">
+                                                            {String(errors.socialLinks?.linkedin?.message)}
+                                                        </span>
+                                                    )}
                                                 </div>
                                                 <div className='space-y-2'>
-                                                    <Input id="github" placeholder="GitHub URL" {...register("socialLinks.github")} />
+                                                    <Input id="github" placeholder="GitHub URL" {
+                                                        ...register("socialLinks.github", {
+                                                            pattern: {
+                                                                value: /^(https?:\/\/)?(www\.)?github.com\/[a-zA-Z0-9-]+\/?$/,
+                                                                message: "Enter a valid GitHub URL",
+                                                            },
+                                                        })
+                                                    } />
+                                                    {errors.socialLinks?.github?.message && (
+                                                        <span className="text-red-500 text-sm">
+                                                            {String(errors.socialLinks?.github?.message)}
+                                                        </span>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
@@ -523,7 +599,7 @@ export default function UserProfile({ isOwnProfile = true }: { isOwnProfile?: bo
                                                         className="sr-only bg-gray-600 text-white   "
                                                     />
                                                     <div className="block bg-gray-300 rounded-full w-12 h-7"></div>
-                                                    <div className={`absolute left-1 top-1 bg-white rounded-full w-5 h-5 transition ${watch('availability') ? 'transform translate-x-full bg-stone-800' : ''}`}></div>
+                                                    <div className={`absolute left-1 top-1 bg-black rounded-full w-5 h-5 transition ${watch('availability') ? 'transform translate-x-full bg-stone-800' : ''}`}></div>
                                                 </div>
                                             </Label>
                                             <span>Available for projects</span>
