@@ -12,6 +12,8 @@ import { TokenUser, LoginRequestBody, SignupDetails, IUser, SocialLinks, SignupR
 import { handleErrors } from "../utilities/handleErrors";
 // import PROJECT from "../models/project-model";
 import { AdminPayload } from "../interfaces/admin-interfaces";
+import PROJECT from "../models/project-model";
+import { IProject } from "../interfaces/project-interfaces";
 
 /**
  * Generates a JWT token for the provided user.
@@ -299,8 +301,12 @@ export async function handleUserProfile(req: Request, res: Response) {
     const username: string = req.params.username;
 
     try {
-        const user = await USER.findOne({ username: username });
+        if (mongoose.connection.readyState !== 1) {
+            console.log("Failed to connect to the database");
+            return res.status(500).json({ error: 'Failed to connect to the database' });
+        }
 
+        const user = await USER.findOne({ username: username });
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
@@ -327,7 +333,7 @@ export async function handleUserProfile(req: Request, res: Response) {
         console.log(`Unexpected error occured: ${error}`);
         return res.status(500).json({ error: "Internal Server Error" });
     } finally {
-        await disConnectfromDB();
+        disConnectfromDB();
     }
 }
 
@@ -521,3 +527,45 @@ export async function verifyUserFromToken(req: Request, res: Response) {
     }
 }
 
+export async function handleShowProjectDetails(req: Request, res: Response) {
+    await connectToDB();
+    const projectId: string = req.params.projectId;
+
+    try {
+        if (mongoose.connection.readyState !== 1) {
+            console.log("Failed to connect to the database");
+            return res.status(500).json({ error: 'Failed to connect to the database' });
+        }
+
+        const project: IProject | null = await PROJECT.findOne({ id: projectId });
+        if (!project) {
+            return res.status(404).json({ message: "project not found" });
+        }
+
+        const responseData: Partial<IProject> = {
+            id: project.id,
+            name: project.name,
+            description: project.description,
+            registrationStart: project.registrationStart,
+            registrationEnd: project.registrationEnd,
+            start: project.start,
+            end: project.end,
+            organizer: project.organizer,
+            maxParticipants: project.maxParticipants,
+            judges: project.judges,
+            prizes: project.prizes,
+            rulesAndRegulations: project.rulesAndRegulations,
+            theme: project.theme,
+            techTags: project.techTags,
+            participantTeam: project.participantTeam,
+            status: project.status,
+        }
+        return res.status(200).json({ user: responseData });
+
+    } catch (error) {
+        console.log(`Unexpected error occured: ${error}`);
+        return res.status(500).json({ error: "Internal Server Error" });
+    } finally {
+        disConnectfromDB();
+    }
+}

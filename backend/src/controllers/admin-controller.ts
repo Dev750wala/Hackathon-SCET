@@ -273,7 +273,7 @@ export async function handleCreateProject(req: Request, res: Response): Promise<
         });
 
         console.log("Hello World2 -------------------------------------------------------------");
-        
+
 
         const { _id, __v, ...finalResponse }: IProject = newProject.toObject();
 
@@ -326,6 +326,13 @@ export async function handleUpdateUserProfile(req: Request, res: Response) {
     try {
         const updates: Partial<IUser> = req.body;
 
+        if ("username" in updates) {
+            const userWithSameUsername = await USER.findOne({ username: updates.username });
+            if (userWithSameUsername) {
+                return res.status(400).json({ duplication: "Username already exists" });
+            }
+        }
+
         // Filter out unwanted fields from updates
         const filteredUpdates: Partial<IUser> = {};
         Object.keys(updates).forEach((key) => {
@@ -339,6 +346,8 @@ export async function handleUpdateUserProfile(req: Request, res: Response) {
         //     const salt = await bcrypt.genSalt(10);
         //     filteredUpdates.password = await bcrypt.hash(filteredUpdates.password, salt);
         // }
+
+
 
         const updatedUser = await USER.findByIdAndUpdate(
             req.user?._id as Types.ObjectId,

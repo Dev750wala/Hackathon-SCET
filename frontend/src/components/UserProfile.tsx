@@ -15,6 +15,7 @@ import Navbar from './Navbar'
 import { useParams } from 'react-router-dom'
 import { User } from '@/interfaces'
 import Loader from './Loader'
+import Footer from './Footer'
 
 
 interface RequestSuccessResponse {
@@ -81,11 +82,11 @@ interface RequestSuccessResponse {
     selfProfile: boolean;
 }
 
-export default function UserProfile({ isOwnProfile = true }: { isOwnProfile?: boolean }) {
+export default function UserProfile() {
 
     const { username } = useParams<{ username: string }>();
 
-
+    const [isOwnProfile, setIsOwnProfile] = useState<boolean>(false);
     const [user, setUser] = useState<User>();
     const [loading, setLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false)
@@ -150,6 +151,9 @@ export default function UserProfile({ isOwnProfile = true }: { isOwnProfile?: bo
                         },
                         availability: user?.availability || false,
                     });
+                    setIsOwnProfile((result as RequestSuccessResponse).selfProfile);
+                } else if (r.status === 500) {
+                    setUser(undefined);
                 }
             } catch (error) {
                 console.error(error);
@@ -178,6 +182,7 @@ export default function UserProfile({ isOwnProfile = true }: { isOwnProfile?: bo
             });
             setSkills(user.skills || []);
             setInitialValues(user);
+
             console.log(`Initial Values are: ${JSON.stringify(initialValues)}`);
         }
     }, [user, reset]);
@@ -206,6 +211,7 @@ export default function UserProfile({ isOwnProfile = true }: { isOwnProfile?: bo
     };
 
     const onSubmit = async (data: any) => {
+        setUpdatingProfile(true);
         if (skills.length === 0) {
             setError("skills", {
                 type: "manual",
@@ -232,52 +238,75 @@ export default function UserProfile({ isOwnProfile = true }: { isOwnProfile?: bo
 
         console.log(changedFields);
 
+        try {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/admin/update-profile`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(changedFields),
+                credentials: "include",
+            });
 
-        // const finalData = { ...data, skills: skills };
+            const result = await response.json();
+            console.log(result);
 
-        // console.log(finalData);
-        // alert("Profile updated successfully!");
-        // -----------------------------
-        // try {
-        //     const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/user/profile`, {
-        //         method: "PUT",
-        //         headers: {
-        //             "Content-Type": "application/json",
-        //         },
-        //         body: JSON.stringify(finalData),
-        //         credentials: "include",
-        //     });
+            if (JSON.stringify(result).includes("duplication") && response.status === 400) {
+                setError("username", {
+                    type: "manual",
+                    message: "Username already exists.",
+                })
+            }
+            if (response.ok) {
+                setIsEditing(false);
+                setUser(result.user);
+                setInitialValues(result.user);
+                setSkills(result.user.skills || []);
+            }
 
-        //     const result = await response.json();
-        //     console.log(result);
-
-        //     if ("user" in result) {
-        //         // dispatch(setUser(result.user)); // Update Redux store
-        //     } else {
-        //         // Handle validation or other errors
-        //         // Map errors to form fields as necessary
-        //     }
-        // } catch (error) {
-        //     console.error(error);
-        //     setError("root", {
-        //         type: "manual",
-        //         message: "There was an error updating the profile. Please try again.",
-        //     });
-        // }
+        } catch (error) {
+            console.error(error);
+            setError("root", {
+                type: "manual",
+                message: "There was an error updating the profile. Please try again.",
+            });
+        } finally {
+            setUpdatingProfile(false);
+        }
     };
 
 
     if (loading) {
         return <Loader />;
     }
-
-    if (!user) {
+    if (updatingProfile) {
+        return (
+            <>
+                <Loader />
+                <h1 className='text-black font-semibold'>Updating profile</h1>
+            </>
+        )
+    }
+    // if (!user) {
+    //     return (
+    //         <>
+    //             <Navbar userType='student' />
+    //             <div className="flex flex-col items-center justify-center h-screen">
+    //                 <h1 className="text-3xl font-bold mb-4">User not found</h1>
+    //                 <p className="text-gray-600">The user you are looking for does not exist.</p>
+    //             </div>
+    //         </>
+    //     );
+    // }
+    if (user === undefined) {
         return (
             <>
                 <Navbar userType='student' />
                 <div className="flex flex-col items-center justify-center h-screen">
-                    <h1 className="text-3xl font-bold mb-4">User not found</h1>
-                    <p className="text-gray-600">The user you are looking for does not exist.</p>
+                    <div className='h-3/4'>
+                        <h1 className="text-3xl font-bold mb-4">There was some error</h1>
+                    </div>
+                    {/* <p className="text-gray-600">The user you are looking for does not exist.</p> */}
                 </div>
             </>
         );
@@ -285,7 +314,7 @@ export default function UserProfile({ isOwnProfile = true }: { isOwnProfile?: bo
     return (
         <>
             <Navbar userType='student' />
-            <div className="flex flex-row justify-center items-center min-h-screen bg-transparent text-gray-900 p-6 m-auto">
+            <div className="flex flex-row justify-center mt-14 h-screen bg-transparent text-gray-900 p-6 m-auto">
                 <div className="max-w-7xl mx-auto">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <Card className="col-span-1 border rounded-lg bg-white/50">
@@ -613,190 +642,13 @@ export default function UserProfile({ isOwnProfile = true }: { isOwnProfile?: bo
                                         )}
                                     </form>
 
-
-
-
-
-
-                                    {/* <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                <Controller
-                                                    name="username"
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <div className="flex flex-col space-y-1">
-                                                            <Label htmlFor="username">Username</Label>
-                                                            <Input id="username" {...field} />
-                                                        </div>
-                                                    )}
-                                                />
-                                                <Controller
-                                                    name="password"
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <div className="flex flex-col space-y-1">
-                                                            <Label htmlFor="password">Password</Label>
-                                                            <div className="relative">
-                                                                <Input
-                                                                    id="password"
-                                                                    type={showPassword ? "text" : "password"}
-                                                                    {...field}
-                                                                />
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => setShowPassword(!showPassword)}
-                                                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
-                                                                >
-                                                                    {showPassword ? (
-                                                                        <EyeOff className="h-5 w-5" />
-                                                                    ) : (
-                                                                        <Eye className="h-5 w-5" />
-                                                                    )}
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                />
-                                                <Controller
-                                                    name="fullName"
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <div className="flex flex-col space-y-1">
-                                                            <Label htmlFor="fullName">Full Name</Label>
-                                                            <Input id="fullName" {...field} />
-                                                        </div>
-                                                    )}
-                                                />
-                                                <Controller
-                                                    name="profile_pic"
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <div className="flex flex-col space-y-1">
-                                                            <Label htmlFor="profile_pic">Profile Picture URL</Label>
-                                                            <Input id="profile_pic" {...field} />
-                                                        </div>
-                                                    )}
-                                                />
-                                                <Controller
-                                                    name="contact_no"
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <div className="flex flex-col space-y-1">
-                                                            <Label htmlFor="contact_no">Contact Number</Label>
-                                                            <Input id="contact_no" {...field} />
-                                                        </div>
-                                                    )}
-                                                />
-                                                <div className="flex flex-col space-y-1">
-                                                    <Label htmlFor="skills">Skills</Label>
-                                                    <div className="flex flex-wrap gap-2 mb-2">
-                                                        {fields.map((field, index) => (
-                                                            <Badge key={field.id} variant="secondary" className="text-sm py-1 px-2">
-                                                                {field.value}
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => remove(index)}
-                                                                    className="ml-2 text-gray-500 hover:text-gray-700"
-                                                                >
-                                                                    <X className="h-3 w-3" />
-                                                                </button>
-                                                            </Badge>
-                                                        ))}
-                                                    </div>
-                                                    <div className="flex">
-                                                        <Input
-                                                            id="newSkill"
-                                                            placeholder="Add a skill"
-                                                            onKeyDown={(e) => {
-                                                                if (e.key === 'Enter' && e.currentTarget.value) {
-                                                                    e.preventDefault();
-                                                                    append(e.currentTarget.value);
-                                                                    e.currentTarget.value = '';
-                                                                }
-                                                            }}
-                                                        />
-                                                        <Button
-                                                            type="button"
-                                                            variant="outline"
-                                                            size="icon"
-                                                            onClick={() => {
-                                                                const input = document.getElementById('newSkill') as HTMLInputElement;
-                                                                if (input.value) {
-                                                                    append(input.value);
-                                                                    input.value = '';
-                                                                }
-                                                            }}
-                                                            className="ml-2"
-                                                        >
-                                                            <Plus className="h-4 w-4" />
-                                                        </Button>
-                                                    </div>
-                                                </div>
-                                                <Controller
-                                                    name="biography"
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <div className="flex flex-col space-y-1">
-                                                            <Label htmlFor="biography">Biography</Label>
-                                                            <Textarea id="biography" {...field} />
-                                                        </div>
-                                                    )}
-                                                />
-                                                <Controller
-                                                    name="portfolio"
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <div className="flex flex-col space-y-1">
-                                                            <Label htmlFor="portfolio">Portfolio</Label>
-                                                            <Input id="portfolio" {...field} />
-                                                        </div>
-                                                    )}
-                                                />
-                                                <Controller
-                                                    name="socialLinks.linkedin"
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <div className="flex flex-col space-y-1">
-                                                            <Label htmlFor="linkedin">LinkedIn</Label>
-                                                            <Input id="linkedin" {...field} />
-                                                        </div>
-                                                    )}
-                                                />
-                                                <Controller
-                                                    name="socialLinks.github"
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <div className="flex flex-col space-y-1">
-                                                            <Label htmlFor="github">GitHub</Label>
-                                                            <Input id="github" {...field} />
-                                                        </div>
-                                                    )}
-                                                />
-                                            </div>
-                                            <Controller
-                                                name="availability"
-                                                control={control}
-                                                render={({ field }) => (
-                                                    <div className="flex items-center justify-end space-x-2 mt-4">
-                                                        <Label htmlFor="availability">Available for hire</Label>
-                                                        <Switch
-                                                            id="availability"
-                                                            checked={field.value}
-                                                            onCheckedChange={field.onChange}
-                                                        />
-                                                    </div>
-                                                )}
-                                            />
-                                            <DialogFooter>
-                                                <Button type="submit" size="lg" className="text-lg px-8">Save changes</Button>
-                                            </DialogFooter>
-                                        </form> */}
                                 </DialogContent>
                             </Dialog>
                         </div>
                     )}
                 </div>
             </div>
+            <Footer />
         </>
     )
 

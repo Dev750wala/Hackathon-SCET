@@ -4,7 +4,7 @@
 // 4.> GET /user/logout
 
 import express from 'express';
-import { handleUserLogin, handleUserLogout, handleUserProfile, handleUserSignup, handleVerifyUserEmail, handleParticipateInProject, verifyUserFromToken } from '../controllers/user-controllers';
+import { handleUserLogin, handleUserLogout, handleUserProfile, handleUserSignup, handleVerifyUserEmail, handleParticipateInProject, verifyUserFromToken, handleShowProjectDetails } from '../controllers/user-controllers';
 import { onlyLoggedInUsers, checkIfUserAlreadyLoggedinOrNot, checkFieldsEmptyOrNot } from '../middlewares/user-middleware';
 
 const userRoute: express.Router = express.Router();
@@ -20,6 +20,8 @@ userRoute
     .get("/:username", handleUserProfile)
 
     .get("/verifyEmail/:username/:verificationCode", handleVerifyUserEmail)
+
+    .get("/projects/:projectId", handleShowProjectDetails)
 
     .post("/participate/:username/:projectId", onlyLoggedInUsers, handleParticipateInProject)
 

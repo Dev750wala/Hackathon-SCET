@@ -92,8 +92,6 @@ export async function checkUser(req: Request, res: Response, next: NextFunction)
         } catch (error) {
             console.error("User is null checkUser()");
             req.user = null;
-        } finally {
-            disConnectfromDB();
         }
     }
     return next();
