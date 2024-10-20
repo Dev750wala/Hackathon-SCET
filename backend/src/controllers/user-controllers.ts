@@ -541,8 +541,12 @@ export async function handleShowProjectDetails(req: Request, res: Response) {
         if (!project) {
             return res.status(404).json({ message: "project not found" });
         }
+        const organizer = await USER.findById(project.organizer);
+        if (!organizer) {
+            return res.status(404).json({ message: "Organizer not found" });
+        }
 
-        const responseData: Partial<IProject> = {
+        const responseData = {
             id: project.id,
             name: project.name,
             description: project.description,
@@ -550,17 +554,21 @@ export async function handleShowProjectDetails(req: Request, res: Response) {
             registrationEnd: project.registrationEnd,
             start: project.start,
             end: project.end,
-            organizer: project.organizer,
+            organizer: {
+                username: organizer.username,
+                fullName: organizer.fullName,
+            },
             maxParticipants: project.maxParticipants,
             judges: project.judges,
             prizes: project.prizes,
             rulesAndRegulations: project.rulesAndRegulations,
             theme: project.theme,
             techTags: project.techTags,
-            participantTeam: project.participantTeam,
+            totalTeams: project.participantTeam.length,
             status: project.status,
         }
-        return res.status(200).json({ user: responseData });
+
+        return res.status(200).json({ project: responseData, selfOrganized: (project.organizer === req.user?._id) ? true: false });
 
     } catch (error) {
         console.log(`Unexpected error occured: ${error}`);

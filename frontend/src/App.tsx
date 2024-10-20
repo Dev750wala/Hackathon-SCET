@@ -37,7 +37,7 @@ function App() {
 
                 const resJson: verificationUser = await response.json();
                 console.log(resJson);
-                
+
                 if (resJson.user || resJson.isAdmin) {
                     if (resJson.user) {
                         dispatch(setUser(resJson.user));
@@ -64,8 +64,50 @@ function App() {
                 console.log("Error occurred. User and admin removed from the store.");
             }
         };
-
         verifyToken();
+
+        // TODO: Implement the following code in the future
+        // ----------------- xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx -----------------
+        // const disableRightClick = (e: any) => {
+        //     e.preventDefault();
+        // };
+        // document.addEventListener('contextmenu', disableRightClick);
+
+        // const disableDevToolsShortcuts = (e: any) => {
+        //     // F12
+        //     if (e.key === 'F12') {
+        //         e.preventDefault();
+        //     }
+
+        //     // Ctrl+Shift+I, Ctrl+Shift+C, Ctrl+Shift+J (DevTools)
+        //     if ((e.ctrlKey && e.shiftKey && e.key === 'I') ||
+        //         (e.ctrlKey && e.shiftKey && e.key === 'C') ||
+        //         (e.ctrlKey && e.shiftKey && e.key === 'J')) {
+        //         e.preventDefault();
+        //     }
+
+        //     // Ctrl+U (View Page Source)
+        //     if (e.ctrlKey && e.key === 'U') {
+        //         e.preventDefault();
+        //     }
+
+        //     // Ctrl+S (Save As)
+        //     if (e.ctrlKey && e.key === 'S') {
+        //         e.preventDefault();
+        //     }
+
+        //     // Ctrl+Shift+K (Console)
+        //     if (e.ctrlKey && e.shiftKey && e.key === 'K') {
+        //         e.preventDefault();
+        //     }
+        // };
+        // document.addEventListener('keydown', disableDevToolsShortcuts);
+
+        // return () => {
+        //     document.removeEventListener('contextmenu', disableRightClick);
+        //     document.removeEventListener('keydown', disableDevToolsShortcuts);
+        // };
+        // ----------------- xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx ----------------
     }, [dispatch, location]);
 
 
