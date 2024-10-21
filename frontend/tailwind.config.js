@@ -23,7 +23,7 @@ export default {
 				grid: 'grid 15s linear infinite',
 				'up-down': 'upDown 1s ease-in-out infinite',
 				rainbow: 'rainbow var(--speed, 2s) infinite linear',
-				'scale-up': 'scaleUp 1s linear infinite'
+				'scale-up': 'scaleUp 1s linear infinite',
 			},
 			keyframes: {
 				grid: {
@@ -41,7 +41,7 @@ export default {
 				scaleUp: {
 					'20%': { backgroundColor: '#000', transform: 'scaleY(1.5)' },
 					'40%': { transform: 'scaleY(1)' }
-				}
+				},
 			}
 		}
 	},

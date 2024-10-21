@@ -25,7 +25,7 @@ export interface IProject extends mongoose.Document {
     registrationStart: Date;
     registrationEnd: Date;
     start: Date;
-    end: Date;
+    end?: Date;
     organizer: mongoose.Types.ObjectId;
     maxParticipants: number;
     judges: { name: string; userId?: mongoose.Types.ObjectId }[];

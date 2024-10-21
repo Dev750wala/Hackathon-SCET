@@ -135,3 +135,37 @@ export interface Judge {
     name: string;
     _id: string;
 }
+
+export interface ProjectFetchingSuccessResponse {
+    id: string;
+    name: string;
+    description: string;
+    registrationStart: Date;
+    registrationEnd: Date;
+    start: Date;
+    end: Date | null;
+    organizer: Organizer;
+    maxParticipants: number;
+    judges: Judge1[];
+    prizes: string;
+    rulesAndRegulations: string;
+    theme: string;
+    techTags: string[];
+    totalTeams: number;
+    status: 'planned' | 'ongoing' | 'completed';
+}
+
+export interface Judge1 {
+    name: string;
+    userDetails: UserDetails | null;
+}
+
+export interface UserDetails {
+    fullName: string;
+    username: string;
+}
+
+export interface Organizer {
+    username: string;
+    fullName: string;
+}

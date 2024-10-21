@@ -270,7 +270,7 @@ export async function handleCreateProject(req: Request, res: Response): Promise<
             theme: body.theme,
             techTags: body.techTags,
             status: currentDate.getTime() < startDate.getTime() ? 'planned' : 'ongoing',
-        });
+        })
 
         console.log("Hello World2 -------------------------------------------------------------");
 

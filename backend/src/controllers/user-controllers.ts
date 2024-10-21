@@ -537,7 +537,7 @@ export async function handleShowProjectDetails(req: Request, res: Response) {
             return res.status(500).json({ error: 'Failed to connect to the database' });
         }
 
-        const project: IProject | null = await PROJECT.findOne({ id: projectId });
+        const project: IProject | null = await PROJECT.findOne({ id: projectId }).exec();
         if (!project) {
             return res.status(404).json({ message: "project not found" });
         }
@@ -545,6 +545,21 @@ export async function handleShowProjectDetails(req: Request, res: Response) {
         if (!organizer) {
             return res.status(404).json({ message: "Organizer not found" });
         }
+        const judgeUserIds = project.judges
+            .filter(judge => judge.userId)
+            .map(judge => judge.userId);
+
+        const judges = await USER.find({ _id: { $in: judgeUserIds } }).select('fullName username').exec();
+        const judgesWithDetails = project.judges.map(judge => {
+            const user = judges.find(u => u.id.toString() === judge.userId?.toString());
+            return {
+                name: judge.name,
+                userDetails: user ? {
+                    fullName: user.fullName,
+                    username: user.username
+                } : null
+            };
+        });
 
         const responseData = {
             id: project.id,
@@ -559,7 +574,7 @@ export async function handleShowProjectDetails(req: Request, res: Response) {
                 fullName: organizer.fullName,
             },
             maxParticipants: project.maxParticipants,
-            judges: project.judges,
+            judges: judgesWithDetails,
             prizes: project.prizes,
             rulesAndRegulations: project.rulesAndRegulations,
             theme: project.theme,
@@ -568,7 +583,7 @@ export async function handleShowProjectDetails(req: Request, res: Response) {
             status: project.status,
         }
 
-        return res.status(200).json({ project: responseData, selfOrganized: (project.organizer === req.user?._id) ? true: false });
+        return res.status(200).json({ project: responseData, selfOrganized: (project.organizer === req.user?._id) ? true : false });
 
     } catch (error) {
         console.log(`Unexpected error occured: ${error}`);
