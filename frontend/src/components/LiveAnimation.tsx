@@ -14,7 +14,6 @@ const LiveAnimation = () => {
             animationData: animationData,
         });
 
-        // Cleanup function to stop and destroy the animation when the component unmounts
         return () => {
             animation.stop();
             animation.destroy();
