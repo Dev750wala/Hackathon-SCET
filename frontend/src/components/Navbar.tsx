@@ -9,7 +9,7 @@ import { removeUser } from '@/redux-store/slices/userInfoSlice'
 import { useNavigate } from 'react-router-dom'
 
 interface NavbarProps {
-    userType: "student" | "organizer";
+    userType?: "student" | "organizer";
 }
 
 export default function Navbar({ userType } : NavbarProps) {

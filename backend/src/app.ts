@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser"
 import userRoute from './routes/user-routes';
 import adminRoute from './routes/admin-routes';
 import projectRoute from './routes/project-routes';
+import apiRoute from './routes/api-routes';
 import { checkUser } from './middlewares/user-middleware';
 import cors from "cors"
 
@@ -31,6 +32,10 @@ const port = process.env.BACKEND_PORT || 3000;
 
 
 app.use("*", checkUser);
+app.use("*", (req: Request, res: Response, next) => {
+    console.log("Middleware 2");
+    next();
+});
 app.get("/", (req: Request, res: Response) => {
     console.log(req.user);
     return res.send("Hello World!");
@@ -39,6 +44,8 @@ app.get("/", (req: Request, res: Response) => {
 app.use("/user", userRoute);
 app.use("/admin", adminRoute);
 app.use("/project", projectRoute);
+// /api are routes for searching functionality in the frontend.
+app.use("/api", apiRoute);
 
 app.listen(port, () => {
     console.log(`Server listening at http://localhost:${port}`);
