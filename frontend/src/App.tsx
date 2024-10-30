@@ -18,6 +18,7 @@ import ProjectCreationForm from './components/ProjectCreationForm';
 import { AlertDestructive } from './components/AlertBox';
 import UserProfile from './components/UserProfile';
 import ProjectDetail from './components/ProjectDetail';
+import AdvancedSearch from './components/SearchPage';
 
 
 function App() {
@@ -127,6 +128,7 @@ function App() {
                     <Route path='/admin/create-project' element={<ProjectCreationForm />} />
                     <Route path='/:username' element={<UserProfile />} />
                     <Route path='/projects/:projectId' element={<ProjectDetail />} />
+                    <Route path='/search' element={<AdvancedSearch />} />
                     <Route path='/demo' element={<AlertDestructive />} />
                 </Routes>
             </div>
