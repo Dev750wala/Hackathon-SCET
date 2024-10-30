@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { format } from "date-fns"
 import { Calendar as CalendarIcon, FilterIcon, SearchIcon, UserIcon, FolderIcon } from "lucide-react"
 import { DateRange } from "react-day-picker"
@@ -23,6 +23,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+import { ProjectCards } from './ProjectCard'
 
 interface User {
     id: number;
@@ -33,33 +34,121 @@ interface User {
     available: boolean;
 }
 
-interface Project {
-    id: number;
-    name: string;
-    startDate: string;
-    endDate: string;
-    organizer: string;
-    status: 'planned' | 'ongoing' | 'completed';
-    techTags: string[];
-    maxParticipants: number;
+export interface Project {
+    id: string
+    name: string
+    description: string
+    start: string
+    end?: string
+    maxParticipants: number
+    techTags: string[]
+    status: 'planned' | 'ongoing' | 'completed'
+    organizer: {
+        name: string
+        id: string
+    }
 }
 
 const users: User[] = [
     { id: 1, username: 'johndoe', fullName: 'Dev Sadisatsowala', skills: ['JavaScript', 'React'], role: 'student', available: true },
     { id: 2, username: 'janedoe', fullName: 'Jane Doe', skills: ['Python', 'Machine Learning'], role: 'organizer', available: false },
-    { id: 2, username: 'janedoe', fullName: 'Jane Doe', skills: ['Python', 'Machine Learning'], role: 'organizer', available: false },
-    { id: 2, username: 'janedoe', fullName: 'Jane Doe', skills: ['Python', 'Machine Learning'], role: 'organizer', available: false },
-    { id: 2, username: 'janedoe', fullName: 'Jane Doe', skills: ['Python', 'Machine Learning'], role: 'organizer', available: false },
-    { id: 2, username: 'janedoe', fullName: 'Jane Doe', skills: ['Python', 'Machine Learning'], role: 'organizer', available: false },
-    { id: 2, username: 'janedoe', fullName: 'Jane Doe', skills: ['Python', 'Machine Learning'], role: 'organizer', available: false },
-    { id: 2, username: 'janedoe', fullName: 'Jane Doe', skills: ['Python', 'Machine Learning'], role: 'organizer', available: false },
-    { id: 2, username: 'janedoe', fullName: 'Jane Doe', skills: ['Python', 'Machine Learning'], role: 'organizer', available: false },
+    { id: 3, username: 'janedoe', fullName: 'Jane Doe', skills: ['Python', 'Machine Learning'], role: 'organizer', available: false },
+    { id: 4, username: 'janedoe', fullName: 'Jane Doe', skills: ['Python', 'Machine Learning'], role: 'organizer', available: false },
+    { id: 5, username: 'janedoe', fullName: 'Jane Doe', skills: ['Python', 'Machine Learning'], role: 'organizer', available: false },
+    { id: 6, username: 'janedoe', fullName: 'Jane Doe', skills: ['Python', 'Machine Learning'], role: 'organizer', available: false },
+    { id: 7, username: 'janedoe', fullName: 'Jane Doe', skills: ['Python', 'Machine Learning'], role: 'organizer', available: false },
+    { id: 8, username: 'janedoe', fullName: 'Jane Doe', skills: ['Python', 'Machine Learning'], role: 'organizer', available: false },
+    { id: 9, username: 'janedoe', fullName: 'Jane Doe', skills: ['Python', 'Machine Learning'], role: 'organizer', available: false },
 ]
 
 const projects: Project[] = [
-    { id: 1, name: 'Web App Project', startDate: '2024-03-01', endDate: '2024-06-30', organizer: 'Tech Corp', status: 'ongoing', techTags: ['React', 'Node.js'], maxParticipants: 5 },
-    { id: 2, name: 'AI Research', startDate: '2024-05-01', endDate: '2024-08-31', organizer: 'AI Institute', status: 'planned', techTags: ['Python', 'TensorFlow'], maxParticipants: 3 },
-]
+    {
+        id: "1",
+        name: "AI-Powered Smart City",
+        description: "Develop an AI system to optimize traffic flow, energy usage, and waste management in urban areas.",
+        start: "2023-09-01",
+        end: "2023-12-31",
+        maxParticipants: 50,
+        techTags: ["AI", "IoT", "Big Data", "Cloud Computing"],
+        status: "ongoing",
+        organizer: { name: "TechInnovate Labs", id: "org1" }
+    },
+    {
+        id: "2",
+        name: "Blockchain for Supply Chain",
+        description: "Create a blockchain-based solution to enhance transparency and traceability in global supply chains.",
+        start: "2023-10-15",
+        maxParticipants: 40,
+        techTags: ["Blockchain", "Smart Contracts", "Web3"],
+        status: "planned",
+        organizer: { name: "BlockChain Ventures", id: "org2" }
+    },
+    {
+        id: "3",
+        name: "VR Educational Platform",
+        description: "Build a virtual reality platform for immersive educational experiences across various subjects.",
+        start: "2023-07-01",
+        end: "2023-08-31",
+        maxParticipants: 30,
+        techTags: ["VR", "Unity", "3D Modeling", "Education Tech"],
+        status: "completed",
+        organizer: { name: "EduTech Innovations", id: "org3" }
+    },
+    {
+        id: "4",
+        name: "Green Energy Marketplace",
+        description: "Develop a platform connecting renewable energy producers with consumers, facilitating peer-to-peer energy trading.",
+        start: "2023-11-01",
+        maxParticipants: 45,
+        techTags: ["React", "Node.js", "Smart Grid", "Cryptocurrency"],
+        status: "planned",
+        organizer: { name: "GreenTech Solutions", id: "org4" }
+    },
+    {
+        id: "5",
+        name: "Mental Health AI Chatbot",
+        description: "Create an AI-powered chatbot to provide mental health support and resources to users.",
+        start: "2023-08-15",
+        end: "2023-10-31",
+        maxParticipants: 35,
+        techTags: ["NLP", "Machine Learning", "Python", "Healthcare"],
+        status: "ongoing",
+        organizer: { name: "HealthTech Innovators", id: "org5" }
+    },
+    {
+        id: "6",
+        name: "Augmented Reality Art Gallery",
+        description: "Design an AR app that transforms public spaces into virtual art galleries, showcasing digital artworks.",
+        start: "2023-12-01",
+        maxParticipants: 25,
+        techTags: ["AR", "Unity", "3D Modeling", "Mobile Development"],
+        status: "planned",
+        organizer: { name: "ArtTech Collective", id: "org6" }
+    },
+    {
+        id: "7",
+        name: "Decentralized Finance (DeFi) Platform",
+        description: "Build a DeFi platform that offers lending, borrowing, and yield farming services using smart contracts.",
+        start: "2023-09-15",
+        end: "2024-01-15",
+        maxParticipants: 60,
+        techTags: ["Ethereum", "Solidity", "Web3.js", "React"],
+        status: "ongoing",
+        organizer: { name: "DeFi Innovations", id: "org7" }
+    },
+    {
+        id: "8",
+        name: "Sustainable Fashion Tracker",
+        description: "Create a mobile app that helps consumers track the sustainability and ethical practices of fashion brands.",
+        start: "2023-10-01",
+        end: "2023-11-30",
+        maxParticipants: 20,
+        techTags: ["React Native", "Node.js", "MongoDB", "Machine Learning"],
+        status: "completed",
+        organizer: { name: "EcoFashion Tech", id: "org8" }
+    }
+];
+
 
 interface Filters {
     username: boolean;
@@ -95,6 +184,20 @@ export default function AdvancedSearch() {
     const handleFilterChange = (key: keyof Filters, value: any) => {
         setFilters(prev => ({ ...prev, [key]: value }))
     }
+
+    useEffect(() => {
+        let selectedFilters: Partial<Filters> = {};
+
+        if (filters.username) selectedFilters.username = true;
+        setTimeout(() => {
+            console.log('Searching with term:', searchTerm, 'and filters:', filters)
+            // Implement actual search logic here
+        }, 1000);
+        // return () => {
+        //     second
+        // }
+    }, [filters, searchTerm])
+
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault()
@@ -162,9 +265,10 @@ export default function AdvancedSearch() {
                             ))}
                         </TabsContent>
                         <TabsContent value="projects" className="space-y-4">
-                            {projects.map((project) => (
-                                <ProjectCard key={project.id} project={project} />
-                            ))}
+                            {/* {projects.map((project) => ( */}
+                                {/* // <ProjectCard key={project.id} project={project} /> */}
+                                <ProjectCards projects={projects} />
+                            {/* ))} */}
                         </TabsContent>
                     </Tabs>
                 </div>
@@ -379,20 +483,20 @@ function UserCard({ user }: { user: User }) {
 }
 
 
-function ProjectCard({ project }: { project: Project }) {
-    return (
-        <div className="p-6 bg-white border border-gray-200 rounded-xl shadow-md transition-all hover:shadow-lg duration-300">
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">{project.name}</h3>
-            <p className="text-sm text-gray-500 mb-4">Organizer: <span className="text-gray-700 font-medium">{project.organizer}</span></p>
+// function ProjectCard({ project }: { project: Project }) {
+//     return (
+//         <div className="p-6 bg-white border border-gray-200 rounded-xl shadow-md transition-all hover:shadow-lg duration-300">
+//             <h3 className="text-xl font-semibold text-gray-800 mb-2">{project.name}</h3>
+//             <p className="text-sm text-gray-500 mb-4">Organizer: <span className="text-gray-700 font-medium">{project.organizer}</span></p>
 
-            <div className="space-y-2 text-sm text-gray-700">
-                <p><span className="font-semibold">Status:</span> {project.status}</p>
-                <p><span className="font-semibold">Date:</span> {project.startDate} - {project.endDate}</p>
-                <p><span className="font-semibold">Tech Tags:</span> {project.techTags.join(', ')}</p>
-                <p><span className="font-semibold">Max Participants:</span> {project.maxParticipants}</p>
-            </div>
+//             <div className="space-y-2 text-sm text-gray-700">
+//                 <p><span className="font-semibold">Status:</span> {project.status}</p>
+//                 <p><span className="font-semibold">Date:</span> {project.startDate} - {project.endDate}</p>
+//                 <p><span className="font-semibold">Tech Tags:</span> {project.techTags.join(', ')}</p>
+//                 <p><span className="font-semibold">Max Participants:</span> {project.maxParticipants}</p>
+//             </div>
 
-            <Button variant="link" className="mt-4 text-blue-500 hover:underline p-0">View Project</Button>
-        </div>
-    )
-}
+//             <Button variant="link" className="mt-4 text-blue-500 hover:underline p-0">View Project</Button>
+//         </div>
+//     )
+// }
