@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { CalendarIcon, UsersIcon, UserIcon } from "lucide-react"
+import { ProjectSearchSuccess } from "@/interfaces"
 
 export interface Project {
     id: string
@@ -18,7 +19,7 @@ export interface Project {
 }
 
 interface ProjectCardsProps {
-    projects: Project[]
+    projects: ProjectSearchSuccess[]
 }
 
 export function ProjectCards({ projects }: ProjectCardsProps) {
@@ -55,7 +56,7 @@ export function ProjectCards({ projects }: ProjectCardsProps) {
                         </div>
                         <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                             <UserIcon className="h-4 w-4 flex-shrink-0" />
-                            <span className="truncate">Organizer: {project.organizer.name}</span>
+                            <span className="truncate">Organizer: {project.organizer.fullName}</span>
                         </div>
                     </CardContent>
                     <CardFooter className="flex-wrap gap-2 pt-2">

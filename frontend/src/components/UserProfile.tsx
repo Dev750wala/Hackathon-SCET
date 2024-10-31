@@ -8,9 +8,9 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Linkedin, Mail, Calendar, CalendarIcon, PlusIcon, XIcon, EyeOffIcon, EyeIcon } from 'lucide-react'
+import { Mail, Calendar, CalendarIcon, PlusIcon, XIcon, EyeOffIcon, EyeIcon } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { GitHubLogoIcon } from '@radix-ui/react-icons'
+import { GitHubLogoIcon, LinkedInLogoIcon } from '@radix-ui/react-icons'
 import Navbar from './Navbar'
 import { useParams } from 'react-router-dom'
 import { User } from '@/interfaces'
@@ -47,28 +47,6 @@ interface IUser {
     participationHistory?: ParticipationHistory[];
     availability?: boolean;
     registrationDate?: Date;
-}
-
-const mockUser: IUser = {
-    enrollmentNumber: "EN12345",
-    username: "johndoe",
-    email: "john.doe@example.com",
-    fullName: "John Doe",
-    profile_pic: "/placeholder.svg?height=340&width=340",
-    skills: ["React", "TypeScript", "Node.js", "GraphQL", "MongoDB"],
-    biography: "Passionate developer with 5 years of experience in web technologies. I love creating user-friendly applications and solving complex problems.",
-    portfolio: "https://johndoe.dev",
-    socialLinks: {
-        linkedin: "https://linkedin.com/in/johndoe",
-        github: "https://github.com/johndoe"
-    },
-    availability: true,
-    registrationDate: new Date("2021-01-01"),
-    participationHistory: [
-        { eventId: "1", eventName: "Web Dev Hackathon 2023", date: "2023-05-15" },
-        { eventId: "2", eventName: "AI Conference", date: "2023-07-22" },
-        { eventId: "3", eventName: "Open Source Contributors Summit", date: "2023-09-10" },
-    ]
 }
 
 interface ParticipationHistory {
@@ -349,7 +327,7 @@ export default function UserProfile() {
                                             )}
                                             {user.socialLinks?.linkedin && (
                                                 <Link to={user.socialLinks.linkedin} aria-label="LinkedIn" target="_blank">
-                                                    <Linkedin className="w-6 h-6 hover:text-blue-600 transition-colors duration-200" />
+                                                    <LinkedInLogoIcon className="w-6 h-6 hover:text-blue-600 transition-colors duration-200" />
                                                 </Link>
                                             )}
                                         </div>

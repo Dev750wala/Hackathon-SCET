@@ -169,3 +169,31 @@ export interface Organizer {
     username: string;
     fullName: string;
 }
+
+export interface UserSearchSuccess {
+    availability: boolean;
+    username: string;
+    fullName: string;
+    skills: string[];
+    role: 'student' | 'organizer';
+    biography: string;
+    portfolio: string;
+    socialLinks: SocialLinks;
+}
+
+export interface ProjectSearchSuccess {
+    id: string;
+    name: string;
+    description: string;
+    start: Date;
+    end: Date | null;
+    maxParticipants: number;
+    techTags: string[];
+    status: 'planned' | 'ongoing' | 'completed';
+    organizer: Organizer;
+}
+
+export interface searchingSuccessResponse {
+    users: UserSearchSuccess[];
+    projects: ProjectSearchSuccess[];
+}

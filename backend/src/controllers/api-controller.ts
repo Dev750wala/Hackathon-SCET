@@ -6,10 +6,29 @@ import { PipelineStage } from "mongoose";
 import PROJECT from "../models/project-model";
 // import { ParsedQs } from "qs";
 
+function parseFilters(query: any): Filters {
+    return {
+        username: query.username === 'true',
+        fullName: query.fullName === 'true',
+        role: query.role || '',
+        available: query.available === 'true',
+        projectName: query.projectName === 'true',
+        organizer: query.organizer === 'true',
+        status: query.status || '',
+        dateRange: query.startDate || query.endDate,
+        maxParticipants: query.maxParticipants === 'Select Max Participants' 
+            ? "" 
+            : Number(query.maxParticipants),
+    };
+}
+
 
 export async function handleGetUserData(req: Request, res: Response) {
+    await connectToDB()
     // console.log("handleGetUserData");
-    const filters: Filters = req.query as unknown as Filters;
+    const AllFilters: Filters = req.query as unknown as Filters;
+    const filters = parseFilters(req.query);
+    console.log("Received search request", filters);
     const inputText = req.query.inputText as string;
 
     const userAggregationPipeline: PipelineStage[] = [];
@@ -49,7 +68,7 @@ export async function handleGetUserData(req: Request, res: Response) {
             }
         })
     }
-    if (typeof filters.maxParticipants !== "string") {
+    if (typeof filters.maxParticipants !== "string" && filters.maxParticipants > 0) {
         projectAggregationPipeline.push({
             $match: {
                 maxParticipants: { $lte: filters.maxParticipants }
@@ -109,27 +128,36 @@ export async function handleGetUserData(req: Request, res: Response) {
                     _id: 0,
                     id: 1,
                     name: 1,
+                    description: 1,
                     status: 1,
                     start: 1,
                     end: 1,
                     maxParticipants: 1,
                     techTags: 1,
                     organizer: 1,
-                    description: 1,
                 }
             }
         ]).exec();
+        for( let i = 0; i < projects.length; i++ ) {
+            const organizer = await USER.findOne({ _id: projects[i].organizer }).exec();
+            projects[i].organizer = {
+                username: organizer?.username,
+                fullName: organizer?.fullName,
+            }
+        }
         console.log("--------------------------------------------------");
         console.log(users);
         console.log("--------------------------------------------------");
         console.log(projects);
         console.log("--------------------------------------------------");
         
-        
+        return res.status(200).json({ users, projects });
 
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: 'Internal Server Error' });
+    } finally {
+        disConnectfromDB();
     }
 
     // if (filters.username && inputText) {

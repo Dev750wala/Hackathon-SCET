@@ -1,9 +1,10 @@
 // import React from 'react'
 import Navbar from "./Navbar"
 import { ProjectCards } from "./ProjectCard"
-import { Project } from "./ProjectCard"
+// import { Project } from "./ProjectCard"
 import Footer from "./Footer"
 import { useAppSelector } from "@/redux-store/hooks"
+import { ProjectSearchSuccess } from "@/interfaces"
 
 const Home = () => {
 
@@ -12,48 +13,50 @@ const Home = () => {
     console.log(`The user in store ${JSON.stringify(user)}`);
 
 
-    const sampleProjects: Project[] = [
+    const sampleProjects: ProjectSearchSuccess[] = [
         {
             id: "1",
             name: "AI-Powered Smart City",
             description: "Develop an AI system to optimize traffic flow, energy usage, and waste management in urban areas.",
-            start: "2023-09-01",
-            end: "2023-12-31",
+            start: new Date("2023-09-01"),
+            end: new Date("2023-12-31"),
             maxParticipants: 50,
             techTags: ["AI", "IoT", "Big Data", "Cloud Computing"],
             status: "ongoing",
-            organizer: { name: "TechInnovate Labs", id: "org1" }
+            organizer: { fullName: "TechInnovate Labs", username: "org1" }
         },
         {
             id: "2",
             name: "Blockchain for Supply Chain",
             description: "Create a blockchain-based solution to enhance transparency and traceability in global supply chains.",
-            start: "2023-10-15",
+            start: new Date("2023-10-15"),
+            end: null,
             maxParticipants: 40,
             techTags: ["Blockchain", "Smart Contracts", "Web3"],
             status: "planned",
-            organizer: { name: "BlockChain Ventures", id: "org2" }
+            organizer: { fullName: "BlockChain Ventures", username: "org2" }
         },
         {
             id: "3",
             name: "VR Educational Platform",
             description: "Build a virtual reality platform for immersive educational experiences across various subjects.",
-            start: "2023-07-01",
-            end: "2023-08-31",
+            start: new Date("2023-07-01"),
+            end: new Date("2023-08-31"),
             maxParticipants: 30,
             techTags: ["VR", "Unity", "3D Modeling", "Education Tech"],
             status: "completed",
-            organizer: { name: "EduTech Innovations", id: "org3" }
+            organizer: { fullName: "EduTech Innovations", username: "org3" }
         },
         {
             id: "4",
             name: "Green Energy Marketplace",
             description: "Develop a platform connecting renewable energy producers with consumers, facilitating peer-to-peer energy trading.",
-            start: "2023-11-01",
+            start: new Date("2023-11-01"),
+            end: new Date("2024-02-28"),
             maxParticipants: 45,
             techTags: ["React", "Node.js", "Smart Grid", "Cryptocurrency"],
             status: "planned",
-            organizer: { name: "GreenTech Solutions", id: "org4" }
+            organizer: { fullName: "GreenTech Solutions", username: "org4" }
         },
         // {
         //     id: "5",

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { format } from "date-fns"
-import { Calendar as CalendarIcon, FilterIcon, SearchIcon, UserIcon, FolderIcon } from "lucide-react"
+import { Calendar as CalendarIcon, FilterIcon, UserIcon, FolderIcon, GlobeIcon } from "lucide-react"
 import { DateRange } from "react-day-picker"
 
 import { Button } from "@/components/ui/button"
@@ -15,6 +15,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTr
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
+import { GitHubLogoIcon, LinkedInLogoIcon } from '@radix-ui/react-icons'
 import {
     Select,
     SelectContent,
@@ -26,15 +27,7 @@ import {
 } from "@/components/ui/select"
 import { ProjectCards } from './ProjectCard'
 import { Link } from 'react-router-dom'
-
-interface User {
-    id: number;
-    username: string;
-    fullName: string;
-    skills: string[];
-    role: 'student' | 'organizer';
-    available: boolean;
-}
+import { searchingSuccessResponse, UserSearchSuccess, ProjectSearchSuccess } from '@/interfaces'
 
 export interface Project {
     id: string
@@ -51,105 +44,19 @@ export interface Project {
     }
 }
 
-const users: User[] = [
-    { id: 1, username: 'johndoe', fullName: 'Dev Sadisatsowala', skills: ['JavaScript', 'React'], role: 'student', available: true },
-    { id: 2, username: 'janedoe', fullName: 'Jane Doe', skills: ['Python', 'Machine Learning'], role: 'organizer', available: false },
-    { id: 3, username: 'janedoe', fullName: 'Jane Doe', skills: ['Python', 'Machine Learning'], role: 'organizer', available: false },
-    { id: 4, username: 'janedoe', fullName: 'Jane Doe', skills: ['Python', 'Machine Learning'], role: 'organizer', available: false },
-    { id: 5, username: 'janedoe', fullName: 'Jane Doe', skills: ['Python', 'Machine Learning'], role: 'organizer', available: false },
-    { id: 6, username: 'janedoe', fullName: 'Jane Doe', skills: ['Python', 'Machine Learning'], role: 'organizer', available: false },
-    { id: 7, username: 'janedoe', fullName: 'Jane Doe', skills: ['Python', 'Machine Learning'], role: 'organizer', available: false },
-    { id: 8, username: 'janedoe', fullName: 'Jane Doe', skills: ['Python', 'Machine Learning'], role: 'organizer', available: false },
-    { id: 9, username: 'janedoe', fullName: 'Jane Doe', skills: ['Python', 'Machine Learning'], role: 'organizer', available: false },
-]
-
-const projects: Project[] = [
-    {
-        id: "1",
-        name: "AI-Powered Smart City",
-        description: "Develop an AI system to optimize traffic flow, energy usage, and waste management in urban areas.",
-        start: "2023-09-01",
-        end: "2023-12-31",
-        maxParticipants: 50,
-        techTags: ["AI", "IoT", "Big Data", "Cloud Computing"],
-        status: "ongoing",
-        organizer: { name: "TechInnovate Labs", id: "org1" }
-    },
-    {
-        id: "2",
-        name: "Blockchain for Supply Chain",
-        description: "Create a blockchain-based solution to enhance transparency and traceability in global supply chains.",
-        start: "2023-10-15",
-        maxParticipants: 40,
-        techTags: ["Blockchain", "Smart Contracts", "Web3"],
-        status: "planned",
-        organizer: { name: "BlockChain Ventures", id: "org2" }
-    },
-    {
-        id: "3",
-        name: "VR Educational Platform",
-        description: "Build a virtual reality platform for immersive educational experiences across various subjects.",
-        start: "2023-07-01",
-        end: "2023-08-31",
-        maxParticipants: 30,
-        techTags: ["VR", "Unity", "3D Modeling", "Education Tech"],
-        status: "completed",
-        organizer: { name: "EduTech Innovations", id: "org3" }
-    },
-    {
-        id: "4",
-        name: "Green Energy Marketplace",
-        description: "Develop a platform connecting renewable energy producers with consumers, facilitating peer-to-peer energy trading.",
-        start: "2023-11-01",
-        maxParticipants: 45,
-        techTags: ["React", "Node.js", "Smart Grid", "Cryptocurrency"],
-        status: "planned",
-        organizer: { name: "GreenTech Solutions", id: "org4" }
-    },
-    {
-        id: "5",
-        name: "Mental Health AI Chatbot",
-        description: "Create an AI-powered chatbot to provide mental health support and resources to users.",
-        start: "2023-08-15",
-        end: "2023-10-31",
-        maxParticipants: 35,
-        techTags: ["NLP", "Machine Learning", "Python", "Healthcare"],
-        status: "ongoing",
-        organizer: { name: "HealthTech Innovators", id: "org5" }
-    },
-    {
-        id: "6",
-        name: "Augmented Reality Art Gallery",
-        description: "Design an AR app that transforms public spaces into virtual art galleries, showcasing digital artworks.",
-        start: "2023-12-01",
-        maxParticipants: 25,
-        techTags: ["AR", "Unity", "3D Modeling", "Mobile Development"],
-        status: "planned",
-        organizer: { name: "ArtTech Collective", id: "org6" }
-    },
-    {
-        id: "7",
-        name: "Decentralized Finance (DeFi) Platform",
-        description: "Build a DeFi platform that offers lending, borrowing, and yield farming services using smart contracts.",
-        start: "2023-09-15",
-        end: "2024-01-15",
-        maxParticipants: 60,
-        techTags: ["Ethereum", "Solidity", "Web3.js", "React"],
-        status: "ongoing",
-        organizer: { name: "DeFi Innovations", id: "org7" }
-    },
-    {
-        id: "8",
-        name: "Sustainable Fashion Tracker",
-        description: "Create a mobile app that helps consumers track the sustainability and ethical practices of fashion brands.",
-        start: "2023-10-01",
-        end: "2023-11-30",
-        maxParticipants: 20,
-        techTags: ["React Native", "Node.js", "MongoDB", "Machine Learning"],
-        status: "completed",
-        organizer: { name: "EcoFashion Tech", id: "org8" }
-    }
-];
+// const projects: ProjectSearchSuccess[] = [
+//     {
+//         id: "1",
+//         name: "AI-Powered Smart City",
+//         description: "Develop an AI system to optimize traffic flow, energy usage, and waste management in urban areas.",
+//         start: new Date("2023-09-01"),
+//         end: "2023-12-31",
+//         maxParticipants: 50,
+//         techTags: ["AI", "IoT", "Big Data", "Cloud Computing"],
+//         status: "ongoing",
+//         organizer: { name: "TechInnovate Labs", id: "org1" }
+//     },
+// ];
 
 
 interface Filters {
@@ -165,53 +72,89 @@ interface Filters {
 }
 
 export default function AdvancedSearch() {
+    const [users, setUsers] = useState<UserSearchSuccess[]>([]);
+    const [projects, setProjects] = useState<ProjectSearchSuccess[]>([]);
+
     const [searchTerm, setSearchTerm] = useState<string>('')
     const [filters, setFilters] = useState<Filters>({
         username: false,
         fullName: false,
-        // skills: [],
         role: '',
         available: false,
         projectName: false,
         dateRange: undefined,
         organizer: false,
         status: "",
+        // TODO - Add more filters like below
+        // skills: [],
         // techTags: [],
         maxParticipants: 'Select Max Participants',
     })
     const [activeTab, setActiveTab] = useState('users')
+    const [isRequestSent, setIsRequestSent] = useState(false);
 
     const handleFilterChange = (key: keyof Filters, value: any) => {
+        console.log("Key: ", key, "Value: ", value);
         setFilters(prev => ({ ...prev, [key]: value }))
     }
 
     useEffect(() => {
-        const queryParams: Record<string, string> = {};
+        const delay = 500;
 
+        console.log("Current filters:", filters);
+        console.log("Current searchTerm:", searchTerm);
+
+        // Construct query parameters
+        const queryParams: Record<string, string> = {};
         Object.keys(filters).forEach((key) => {
             const value = filters[key as keyof Filters];
-
             if (value !== undefined && value !== null) {
                 queryParams[key] = typeof value === "object" ? JSON.stringify(value) : String(value);
             }
         });
         const queryString = new URLSearchParams(queryParams).toString();
-        console.log('Searching with term:', searchTerm, 'and filters:', filters)
 
-        const getData = async () => {
-            const r = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/users/search?${queryString}&inputText=${searchTerm}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include',
-            })
-            console.log(await r.json());
-            
+        const timeoutId = setTimeout(async () => {
+            try {
+                console.log("Attempting to send request...");
+                const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/users/search?${queryString}&inputText=${searchTerm}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                const data = await response.json() as searchingSuccessResponse;
+                console.log("Request Sent-------------------------");
+                console.log("Response Data:", data);
+                setUsers(data.users)
+                setProjects(data.projects)
+                setIsRequestSent(true);
+
+            } catch (error) {
+                console.error("An error occurred during fetch:", error);
+            }
+        }, delay);
+
+        return () => {
+            clearTimeout(timeoutId);
+            setIsRequestSent(false);
         };
-        getData();
+    }, [filters, searchTerm]);
 
-    }, [filters, searchTerm])
+    // Log state of request after effect has been applied
+    useEffect(() => {
+        if (isRequestSent) {
+            console.log("A search request has been sent.");
+        } else {
+            console.log("Waiting to send a search request...");
+        }
+    }, [isRequestSent]);
 
 
     const handleSearch = (e: React.FormEvent) => {
@@ -232,9 +175,9 @@ export default function AdvancedSearch() {
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="flex-grow"
                         />
-                        <Button type="submit">
+                        {/* <Button type="submit">
                             <SearchIcon className="mr-2 h-4 w-4" /> Search
-                        </Button>
+                        </Button> */}
                     </form>
                 </div>
             </header>
@@ -275,9 +218,7 @@ export default function AdvancedSearch() {
                             </TabsTrigger>
                         </TabsList>
                         <TabsContent value="users" className="space-y-4">
-                            {/* {users.map((user) => ( */}
                             <UserCard users={users} />
-                            {/* ))} */}
                         </TabsContent>
                         <TabsContent value="projects" className="space-y-4">
                             <ProjectCards projects={projects} />
@@ -337,7 +278,7 @@ function FiltersContent({ filters, handleFilterChange }: FiltersContentProps) {
                 </div>
 
                 <div className='my-4'>
-                    <Select>
+                    <Select onValueChange={(value: "student" | "organizer") => handleFilterChange("role", value)}>
                         <SelectTrigger className="w-[180px]">
                             <SelectValue placeholder="Role" />
                         </SelectTrigger>
@@ -472,35 +413,38 @@ function DatePickerWithRange({ dateRange, onChange }: DatePickerWithRangeProps) 
 
 
 
-function UserCard({ users }: { users: User[] }) {
+// import { Link } from 'react-router-dom';
+// import { CalendarIcon, GlobeIcon } from '@heroicons/react/outline';
+// import Badge from './Badge';
+
+function UserCard({ users }: { users: UserSearchSuccess[] }) {
     return (
-        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4'>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 auto-rows-fr">
             {users.map((user) => (
-                <Link to={`/${user.username}`} >
-                    <div key={user.username} className="p-6 bg-white border border-gray-200 rounded-lg shadow-md transition-all hover:shadow-lg duration-300 space-y-4">
-                        {/* User Role Badge at the Top Right */}
+                <Link to={`/${user.username}`} key={user.username}>
+                    <div className="p-6 bg-white border border-gray-200 rounded-lg shadow-md transition-all hover:shadow-lg duration-300 space-y-4 hover:border-neutral-950/65">
                         <div className="flex justify-between">
                             <h3 className="text-lg font-bold truncate">{user.fullName}</h3>
                             <span
-                                className={`px-2 py-1 rounded-full text-xs font-semibold ${user.role === 'student' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'
-                                    }`}
-                            >
+                                className={`px-2 pt-1 rounded-full text-xs font-semibold ${user.role === 'student' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'}`}>
                                 {user.role}
                             </span>
                         </div>
 
                         <p className="text-sm text-gray-500">@{user.username}</p>
+                        <p className="text-sm text-gray-700 ">{user.biography}</p>
 
-                        {/* Details Section */}
                         <div className="space-y-2 text-sm text-gray-700">
                             <div className="flex items-center space-x-2">
                                 <CalendarIcon className="h-4 w-4 flex-shrink-0" />
                                 <p>
-                                    Available: <span className="font-medium">{user.available ? 'Yes' : 'No'}</span>
+                                    Available: <span className="font-medium">{user.availability ? 'Yes' : 'No'}</span>
                                 </p>
                             </div>
                         </div>
+                        
 
+                        {/* Skills */}
                         <div className="flex flex-wrap gap-2 mt-2">
                             {user.skills.map((skill, index) => (
                                 <Badge key={index} variant="secondary" className="text-xs">
@@ -508,6 +452,31 @@ function UserCard({ users }: { users: User[] }) {
                                 </Badge>
                             ))}
                         </div>
+
+
+                        {/* Social Links and Portfolio
+                        <div className='flex flex-row justify-start gap-3'>
+                            {user.portfolio && (
+                                <span className="flex items-center space-x-2 mt-3">
+                                    <a href={user.portfolio} target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-gray-800">
+                                        <GlobeIcon className="w-5 h-5 hover:text-black transition-colors duration-200" />
+                                    </a>
+                                </span>
+                            )}
+
+                            <div className="flex gap-3 mt-3">
+                                {user.socialLinks?.github && (
+                                    <a href={user.socialLinks.github} target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-gray-800">
+                                        <GitHubLogoIcon className="w-5 h-5 hover:text-black transition-colors duration-200" />
+                                    </a>
+                                )}
+                                {user.socialLinks?.linkedin && (
+                                    <a href={user.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-gray-800">
+                                        <LinkedInLogoIcon className="w-5 h-5 hover:text-black transition-colors duration-200" />
+                                    </a>
+                                )}
+                            </div>
+                        </div> */}
                     </div>
                 </Link>
             ))}
