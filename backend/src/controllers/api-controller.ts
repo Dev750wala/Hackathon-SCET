@@ -26,7 +26,7 @@ function parseFilters(query: any): Filters {
 export async function handleGetUserData(req: Request, res: Response) {
     await connectToDB()
     // console.log("handleGetUserData");
-    const AllFilters: Filters = req.query as unknown as Filters;
+    // const AllFilters: Filters = req.query as unknown as Filters;
     const filters = parseFilters(req.query);
     console.log("Received search request", filters);
     const inputText = req.query.inputText as string;

@@ -356,8 +356,15 @@ function FiltersContent({ filters, handleFilterChange }: FiltersContentProps) {
                     type="number"
                     placeholder="Max Participants"
                     value={filters.maxParticipants}
-                    onChange={(e) => handleFilterChange('maxParticipants', e.target.value)}
+                    onChange={(e) => handleFilterChange('maxParticipants', Math.max(1, parseInt(e.target.value) || 1))}
+                    step={2}
+                    min={1}
+                    onInput={(e) => {
+                        const target = e.target as HTMLInputElement;
+                        if (parseInt(target.value) < 1) target.value = '1';
+                    }}
                 />
+
             </div>
         </div>
     )
@@ -425,10 +432,13 @@ function UserCard({ users }: { users: UserSearchSuccess[] }) {
                     <div className="p-6 bg-white border border-gray-200 rounded-lg shadow-md transition-all hover:shadow-lg duration-300 space-y-4 hover:border-neutral-950/65">
                         <div className="flex justify-between">
                             <h3 className="text-lg font-bold truncate">{user.fullName}</h3>
-                            <span
-                                className={`px-2 pt-1 rounded-full text-xs font-semibold ${user.role === 'student' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'}`}>
+                            {/* <span
+                                className={`px-2 pt-1 rounded-lg text-xs font-semibold ${user.role === 'student' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'}`}>
                                 {user.role}
-                            </span>
+                            </span> */}
+                            <Badge variant={'secondary'} className={` rounded-lg text-xs font-semibold ${user.role === 'student' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'}`}>
+                                {user.role}
+                            </Badge>
                         </div>
 
                         <p className="text-sm text-gray-500">@{user.username}</p>
@@ -442,7 +452,7 @@ function UserCard({ users }: { users: UserSearchSuccess[] }) {
                                 </p>
                             </div>
                         </div>
-                        
+
 
                         {/* Skills */}
                         <div className="flex flex-wrap gap-2 mt-2">

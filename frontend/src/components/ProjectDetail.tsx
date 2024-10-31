@@ -1,6 +1,4 @@
-'use client'
-
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -15,6 +13,8 @@ import { Link } from "react-router-dom"
 import LiveAnimation from "./LiveAnimation"
 import { debounce } from 'lodash';
 import Navbar from './Navbar'
+import { useAppSelector } from '@/redux-store/hooks'
+import { useParams } from 'react-router-dom'
 
 interface TeamMember {
     name: string;
@@ -95,12 +95,38 @@ const demoProject: ProjectFetchingSuccessResponse = {
     status: "planned"
 }
 
-export default function ProjectDetail({ isLoggedIn = true }: { isLoggedIn?: boolean }) {
-    const project = demoProject
+export default function ProjectDetail() {
+    const { projectId } = useParams<{ projectId: string }>();
+    const [project, setProject] = useState<ProjectFetchingSuccessResponse | null>(null)
+    setProject(demoProject)
+
     const [expandedSection, setExpandedSection] = useState<string | null>(null)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
+    const user = useAppSelector(state => state.userInfo);
+    const [isLoggedIn, _setIsLoggedIn] = useState<boolean>(user ? true : false);
+
+    useEffect(() => {
+        setLoading(true);
+
+        const fetchProject = async () => {
+            try {
+                const r = await fetch(`${import.meta.env.VITE_BACKEND_URL}/projects/${projectId}`, {
+                    method: "GET",
+                    credentials: "include",
+                })
+                if (r.ok) {
+                    const project = await r.json();
+                    console.log("Project fetched:", project);
+                    // setProject(project);
+                }
+            } catch (error) {
+
+            }
+        }
+        fetchProject()
+    }, [projectId])
 
     const { register, control, handleSubmit, formState: { errors } } = useForm<Team>({
         defaultValues: {
