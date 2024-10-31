@@ -14,6 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
+import { Badge } from "@/components/ui/badge"
 import {
     Select,
     SelectContent,
@@ -24,6 +25,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { ProjectCards } from './ProjectCard'
+import { Link } from 'react-router-dom'
 
 interface User {
     id: number;
@@ -153,14 +155,12 @@ const projects: Project[] = [
 interface Filters {
     username: boolean;
     fullName: boolean;
-    // skills: string[];
     role: 'student' | 'organizer' | '';
     available: boolean;
     projectName: boolean;
     dateRange: DateRange | undefined;
     organizer: boolean;
-    status: boolean;
-    // techTags: string[];
+    status: "student" | "organizer" | "";
     maxParticipants: number | string;
 }
 
@@ -175,7 +175,7 @@ export default function AdvancedSearch() {
         projectName: false,
         dateRange: undefined,
         organizer: false,
-        status: false,
+        status: "",
         // techTags: [],
         maxParticipants: 'Select Max Participants',
     })
@@ -186,16 +186,31 @@ export default function AdvancedSearch() {
     }
 
     useEffect(() => {
-        let selectedFilters: Partial<Filters> = {};
+        const queryParams: Record<string, string> = {};
 
-        if (filters.username) selectedFilters.username = true;
-        setTimeout(() => {
-            console.log('Searching with term:', searchTerm, 'and filters:', filters)
-            // Implement actual search logic here
-        }, 1000);
-        // return () => {
-        //     second
-        // }
+        Object.keys(filters).forEach((key) => {
+            const value = filters[key as keyof Filters];
+
+            if (value !== undefined && value !== null) {
+                queryParams[key] = typeof value === "object" ? JSON.stringify(value) : String(value);
+            }
+        });
+        const queryString = new URLSearchParams(queryParams).toString();
+        console.log('Searching with term:', searchTerm, 'and filters:', filters)
+
+        const getData = async () => {
+            const r = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/users/search?${queryString}&inputText=${searchTerm}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+            })
+            console.log(await r.json());
+            
+        };
+        getData();
+
     }, [filters, searchTerm])
 
 
@@ -260,15 +275,12 @@ export default function AdvancedSearch() {
                             </TabsTrigger>
                         </TabsList>
                         <TabsContent value="users" className="space-y-4">
-                            {users.map((user) => (
-                                <UserCard key={user.id} user={user} />
-                            ))}
+                            {/* {users.map((user) => ( */}
+                            <UserCard users={users} />
+                            {/* ))} */}
                         </TabsContent>
                         <TabsContent value="projects" className="space-y-4">
-                            {/* {projects.map((project) => ( */}
-                                {/* // <ProjectCard key={project.id} project={project} /> */}
-                                <ProjectCards projects={projects} />
-                            {/* ))} */}
+                            <ProjectCards projects={projects} />
                         </TabsContent>
                     </Tabs>
                 </div>
@@ -460,43 +472,45 @@ function DatePickerWithRange({ dateRange, onChange }: DatePickerWithRangeProps) 
 
 
 
-function UserCard({ user }: { user: User }) {
+function UserCard({ users }: { users: User[] }) {
     return (
-        <div className="p-6 bg-white border border-gray-200 rounded-xl shadow-md transition-all hover:shadow-lg duration-300">
-            <div className="flex items-center space-x-4 mb-4">
-                <div className="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center text-white font-bold text-lg">
-                    {user.fullName[0]}
-                </div>
-                <div>
-                    <h3 className="text-xl font-semibold text-gray-800">{user.fullName}</h3>
-                    <p className="text-sm text-gray-500">@{user.username}</p>
-                </div>
-            </div>
-            <div className="space-y-2 text-sm text-gray-700">
-                <p><span className="font-semibold">Skills:</span> {user.skills.join(', ')}</p>
-                <p><span className="font-semibold">Role:</span> {user.role}</p>
-                <p><span className="font-semibold">Available:</span> {user.available ? 'Yes' : 'No'}</p>
-            </div>
-            <Button variant="link" className="mt-4 text-blue-500 hover:underline p-0">View Profile</Button>
+        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4'>
+            {users.map((user) => (
+                <Link to={`/${user.username}`} >
+                    <div key={user.username} className="p-6 bg-white border border-gray-200 rounded-lg shadow-md transition-all hover:shadow-lg duration-300 space-y-4">
+                        {/* User Role Badge at the Top Right */}
+                        <div className="flex justify-between">
+                            <h3 className="text-lg font-bold truncate">{user.fullName}</h3>
+                            <span
+                                className={`px-2 py-1 rounded-full text-xs font-semibold ${user.role === 'student' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'
+                                    }`}
+                            >
+                                {user.role}
+                            </span>
+                        </div>
+
+                        <p className="text-sm text-gray-500">@{user.username}</p>
+
+                        {/* Details Section */}
+                        <div className="space-y-2 text-sm text-gray-700">
+                            <div className="flex items-center space-x-2">
+                                <CalendarIcon className="h-4 w-4 flex-shrink-0" />
+                                <p>
+                                    Available: <span className="font-medium">{user.available ? 'Yes' : 'No'}</span>
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-wrap gap-2 mt-2">
+                            {user.skills.map((skill, index) => (
+                                <Badge key={index} variant="secondary" className="text-xs">
+                                    {skill}
+                                </Badge>
+                            ))}
+                        </div>
+                    </div>
+                </Link>
+            ))}
         </div>
-    )
+    );
 }
-
-
-// function ProjectCard({ project }: { project: Project }) {
-//     return (
-//         <div className="p-6 bg-white border border-gray-200 rounded-xl shadow-md transition-all hover:shadow-lg duration-300">
-//             <h3 className="text-xl font-semibold text-gray-800 mb-2">{project.name}</h3>
-//             <p className="text-sm text-gray-500 mb-4">Organizer: <span className="text-gray-700 font-medium">{project.organizer}</span></p>
-
-//             <div className="space-y-2 text-sm text-gray-700">
-//                 <p><span className="font-semibold">Status:</span> {project.status}</p>
-//                 <p><span className="font-semibold">Date:</span> {project.startDate} - {project.endDate}</p>
-//                 <p><span className="font-semibold">Tech Tags:</span> {project.techTags.join(', ')}</p>
-//                 <p><span className="font-semibold">Max Participants:</span> {project.maxParticipants}</p>
-//             </div>
-
-//             <Button variant="link" className="mt-4 text-blue-500 hover:underline p-0">View Project</Button>
-//         </div>
-//     )
-// }

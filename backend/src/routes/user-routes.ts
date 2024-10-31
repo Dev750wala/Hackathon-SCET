@@ -16,7 +16,6 @@ userRoute
 
     .post("/logout", handleUserLogout)
 
-    // to see the other users' as well as their self profile
     .get("/:username", handleUserProfile)
 
     .get("/verifyEmail/:username/:verificationCode", handleVerifyUserEmail)

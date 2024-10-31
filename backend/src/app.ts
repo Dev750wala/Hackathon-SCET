@@ -9,6 +9,9 @@ import apiRoute from './routes/api-routes';
 import { checkUser } from './middlewares/user-middleware';
 import cors from "cors"
 
+import { connectToDB } from './utilities/connection';
+connectToDB();
+
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 const app = express();

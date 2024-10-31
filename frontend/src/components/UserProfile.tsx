@@ -87,7 +87,7 @@ export default function UserProfile() {
     const { username } = useParams<{ username: string }>();
 
     const [isOwnProfile, setIsOwnProfile] = useState<boolean>(false);
-    const [user, setUser] = useState<User>();
+    const [user, setUser] = useState<User | null>();
     const [loading, setLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false)
     const [skills, setSkills] = useState<string[]>(user?.skills || []);
@@ -154,6 +154,8 @@ export default function UserProfile() {
                     setIsOwnProfile((result as RequestSuccessResponse).selfProfile);
                 } else if (r.status === 500) {
                     setUser(undefined);
+                } else if (r.status === 404) {
+                    setUser(null);
                 }
             } catch (error) {
                 console.error(error);
@@ -311,345 +313,358 @@ export default function UserProfile() {
             </>
         );
     }
-    return (
-        <>
-            <Navbar userType='student' />
-            <div className="flex flex-row justify-center mt-14 h-screen bg-transparent text-gray-900 p-6 m-auto">
-                <div className="max-w-7xl mx-auto">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <Card className="col-span-1 border rounded-lg bg-white/50">
-                            <CardContent className="p-6">
-                                <div className="flex flex-col items-center">
-                                    <Avatar className="w-48 h-48 mb-4 border-4 border-sky-600">
-                                        <AvatarImage src={user.profile_pic} alt={user.fullName} />
-                                        <AvatarFallback>
-                                            {user.fullName.split(' ').map(n => n[0]).join('')}
-                                        </AvatarFallback>
-                                    </Avatar>
-                                    <h1 className="text-2xl font-bold mb-1">{user.fullName}</h1>
-                                    <div className="flex items-center text-gray-600 gap-4 mb-4">
-                                        {user.socialLinks?.github && (
-                                            <Link to={user.socialLinks.github} aria-label="GitHub" target="_blank">
-                                                <GitHubLogoIcon className="w-6 h-6 hover:text-black transition-colors duration-200" />
-                                            </Link>
-                                        )}
-                                        {user.socialLinks?.linkedin && (
-                                            <Link to={user.socialLinks.linkedin} aria-label="LinkedIn" target="_blank">
-                                                <Linkedin className="w-6 h-6 hover:text-blue-600 transition-colors duration-200" />
-                                            </Link>
-                                        )}
-                                    </div>
-                                    <div className="w-full space-y-2 text-gray-700">
-                                        <div className="flex items-center">
-                                            <Mail className="w-4 h-4 mr-2 text-gray-500" />
-                                            <span>{user.email}</span>
+    if (user === null) {
+        return (
+            <>
+                <Navbar userType='student' />
+                <div className="flex flex-col items-center justify-center h-screen">
+                    <h1 className="text-3xl font-bold mb-4">User not found</h1>
+                    <p className="text-gray-600">The user you are looking for does not exist.</p>
+                </div>
+            </>
+        );
+    }
+    if (user) {
+        return (
+            <>
+                <Navbar userType='student' />
+                <div className="flex flex-row justify-center mt-14 h-screen bg-transparent text-gray-900 p-6 m-auto">
+                    <div className="max-w-7xl mx-auto">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <Card className="col-span-1 border rounded-lg bg-white/50">
+                                <CardContent className="p-6">
+                                    <div className="flex flex-col items-center">
+                                        <Avatar className="w-48 h-48 mb-4 border-4 border-sky-600">
+                                            <AvatarImage src={user.profile_pic} alt={user.fullName} />
+                                            <AvatarFallback>
+                                                {user.fullName.split(' ').map(n => n[0]).join('')}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                        <h1 className="text-2xl font-bold mb-1">{user.fullName}</h1>
+                                        <div className="flex items-center text-gray-600 gap-4 mb-4">
+                                            {user.socialLinks?.github && (
+                                                <Link to={user.socialLinks.github} aria-label="GitHub" target="_blank">
+                                                    <GitHubLogoIcon className="w-6 h-6 hover:text-black transition-colors duration-200" />
+                                                </Link>
+                                            )}
+                                            {user.socialLinks?.linkedin && (
+                                                <Link to={user.socialLinks.linkedin} aria-label="LinkedIn" target="_blank">
+                                                    <Linkedin className="w-6 h-6 hover:text-blue-600 transition-colors duration-200" />
+                                                </Link>
+                                            )}
                                         </div>
-                                        {/* <div className="flex items-center">
-                                                    <Phone className="w-4 h-4 mr-2 text-gray-500" />
-                                                    <span>{user.contact_no}</span>
-                                                </div> 
-                                            */}
-                                        <div className="flex items-center">
-                                            <Calendar className="w-4 h-4 mr-2 text-gray-500" />
-                                            <span>{user.registrationDate
-                                                ? `Joined ${new Date(user.registrationDate).toLocaleDateString('en-CA')}`
-                                                : 'Joining date not available'}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="mt-6">
-                                    <h2 className="text-xl font-semibold mb-2">Skills</h2>
-                                    <div className="flex flex-wrap gap-2">
-                                        {user.skills?.map((skill, index) => (
-                                            <Badge key={index} variant="secondary" className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full shadow-sm">
-                                                {skill}
-                                            </Badge>
-                                        ))}
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card className="col-span-1 md:col-span-2 border rounded-lg bg-white/60">
-                            <CardContent className="p-6">
-                                <h2 className="text-2xl font-bold mb-4">General Information</h2>
-                                <div className="space-y-6">
-                                    <div>
-                                        <h3 className="text-xl font-semibold mb-2">About me</h3>
-                                        <p className="text-gray-600">{user.biography}</p>
-                                    </div>
-                                    <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-4">
-                                        <div>
-                                            <h3 className="text-lg font-semibold mb-1">Portfolio</h3>
-                                            <a href={user.portfolio} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{user.portfolio}</a>
-                                        </div>
-
-
-                                        <div>
-                                            <h3 className="text-lg font-semibold mb-1">Availability</h3>
+                                        <div className="w-full space-y-2 text-gray-700">
                                             <div className="flex items-center">
-                                                <span className={`w-3 h-3 rounded-full mr-2 ${user.availability ? "bg-green-500" : "bg-red-500"
-                                                    }`}></span>
-                                                <span className={user.availability ? "text-green-600" : "text-red-600"}>
-                                                    {user.availability ? "Currently available for projects" : "Currently unavailable for projects"}
-                                                </span>
+                                                <Mail className="w-4 h-4 mr-2 text-gray-500" />
+                                                <span>{user.email}</span>
+                                            </div>
+                                            {/* <div className="flex items-center">
+                                                        <Phone className="w-4 h-4 mr-2 text-gray-500" />
+                                                        <span>{user.contact_no}</span>
+                                                    </div> 
+                                                */}
+                                            <div className="flex items-center">
+                                                <Calendar className="w-4 h-4 mr-2 text-gray-500" />
+                                                <span>{user.registrationDate
+                                                    ? `Joined ${new Date(user.registrationDate).toLocaleDateString('en-CA')}`
+                                                    : 'Joining date not available'}</span>
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="space-y-4">
-                                        <h2 className="text-xl font-semibold mb-4">Participation History</h2>
-                                        {
-                                            user.participationHistory?.length === 0 && (
-                                                <p className="text-gray-600">No participation history available</p>
-                                            )
-                                        }
-                                        {user.participationHistory?.map((event) => (
-                                            <div
-                                                key={event.eventName}
-                                                className="flex items-center p-4 bg-gray-50 rounded-lg shadow-sm hover:shadow-md transition-shadow"
-                                            >
-                                                <CalendarIcon className="w-4 h-4 mr-2" />
-                                                <div>
-                                                    <p className="text-lg font-medium text-gray-800">{event.eventName}</p>
-                                                    <p className="text-sm text-gray-600">{new Date(event.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                                    <div className="mt-6">
+                                        <h2 className="text-xl font-semibold mb-2">Skills</h2>
+                                        <div className="flex flex-wrap gap-2">
+                                            {user.skills?.map((skill, index) => (
+                                                <Badge key={index} variant="secondary" className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full shadow-sm">
+                                                    {skill}
+                                                </Badge>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            <Card className="col-span-1 md:col-span-2 border rounded-lg bg-white/60">
+                                <CardContent className="p-6">
+                                    <h2 className="text-2xl font-bold mb-4">General Information</h2>
+                                    <div className="space-y-6">
+                                        <div>
+                                            <h3 className="text-xl font-semibold mb-2">About me</h3>
+                                            <p className="text-gray-600">{user.biography}</p>
+                                        </div>
+                                        <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-4">
+                                            <div>
+                                                <h3 className="text-lg font-semibold mb-1">Portfolio</h3>
+                                                <a href={user.portfolio} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{user.portfolio}</a>
+                                            </div>
+
+
+                                            <div>
+                                                <h3 className="text-lg font-semibold mb-1">Availability</h3>
+                                                <div className="flex items-center">
+                                                    <span className={`w-3 h-3 rounded-full mr-2 ${user.availability ? "bg-green-500" : "bg-red-500"
+                                                        }`}></span>
+                                                    <span className={user.availability ? "text-green-600" : "text-red-600"}>
+                                                        {user.availability ? "Currently available for projects" : "Currently unavailable for projects"}
+                                                    </span>
                                                 </div>
                                             </div>
-                                        ))}
+                                        </div>
+                                        <div className="space-y-4">
+                                            <h2 className="text-xl font-semibold mb-4">Participation History</h2>
+                                            {
+                                                user.participationHistory?.length === 0 && (
+                                                    <p className="text-gray-600">No participation history available</p>
+                                                )
+                                            }
+                                            {user.participationHistory?.map((event) => (
+                                                <div
+                                                    key={event.eventName}
+                                                    className="flex items-center p-4 bg-gray-50 rounded-lg shadow-sm hover:shadow-md transition-shadow"
+                                                >
+                                                    <CalendarIcon className="w-4 h-4 mr-2" />
+                                                    <div>
+                                                        <p className="text-lg font-medium text-gray-800">{event.eventName}</p>
+                                                        <p className="text-sm text-gray-600">{new Date(event.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        {/* <div>
+                                                <h3 className="text-xl font-semibold mb-2">Participation History</h3>
+                                                <ul className="space-y-2">
+                                                    {user.participationHistory?.map((event, index) => (
+                                                        <li key={index} className="flex items-center">
+                                                            <Briefcase className="w-4 h-4 mr-2" />
+                                                            <span>{event.eventName} - {event.date}</span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div> */}
                                     </div>
-
-                                    {/* <div>
-                                            <h3 className="text-xl font-semibold mb-2">Participation History</h3>
-                                            <ul className="space-y-2">
-                                                {user.participationHistory?.map((event, index) => (
-                                                    <li key={index} className="flex items-center">
-                                                        <Briefcase className="w-4 h-4 mr-2" />
-                                                        <span>{event.eventName} - {event.date}</span>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </div> */}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-                    {isOwnProfile && (
-                        <div className="mt-8 text-center">
-                            <Dialog open={isEditing} onOpenChange={setIsEditing}>
-                                <DialogTrigger asChild>
-                                    <Button onClick={() => setIsEditing(true)} size="lg" className="text-lg px-8">Edit Profile</Button>
-                                </DialogTrigger>
-                                <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
-                                    <DialogHeader>
-                                        <DialogTitle className="text-2xl">Edit Profile</DialogTitle>
-                                        <DialogDescription className="text-lg">
-                                            Make changes to your profile here. Click save when you're done.
-                                        </DialogDescription>
-                                    </DialogHeader>
+                                </CardContent>
+                            </Card>
+                        </div>
+                        {isOwnProfile && (
+                            <div className="mt-8 text-center">
+                                <Dialog open={isEditing} onOpenChange={setIsEditing}>
+                                    <DialogTrigger asChild>
+                                        <Button onClick={() => setIsEditing(true)} size="lg" className="text-lg px-8">Edit Profile</Button>
+                                    </DialogTrigger>
+                                    <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
+                                        <DialogHeader>
+                                            <DialogTitle className="text-2xl">Edit Profile</DialogTitle>
+                                            <DialogDescription className="text-lg">
+                                                Make changes to your profile here. Click save when you're done.
+                                            </DialogDescription>
+                                        </DialogHeader>
 
 
 
 
 
-                                    <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div className="space-y-2">
-                                                <Label htmlFor="username">Username</Label>
-                                                <Input id="username" placeholder="Choose a username" required
-                                                    {...register("username", {
-                                                        required: { value: true, message: "Username is required" },
-                                                        pattern: {
-                                                            value: /^(?=.{7,20}$)[a-z0-9._]+$/,
-                                                            message: 'Username must be 7-20 characters long and can only contain lowercase letters, numbers, periods, and underscores',
-                                                        },
-                                                    })}
-                                                />
-                                                {errors.username?.message && (
-                                                    <span className="text-red-500 text-sm">{errors.username.message}</span>
-                                                )}
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="password" className="text-sm font-medium">Password</Label>
-                                                <div className="relative">
-                                                    <Input
-                                                        id="password"
-                                                        type={showPassword ? "text" : "password"}
-                                                        placeholder="Leave blank if you don't want to change"
-                                                        className="w-full pr-10"
-                                                        onPaste={(e) => {
-                                                            e.preventDefault();
-                                                            alert('Pasting is not allowed in password');
-                                                        }}
-                                                        {...register("password", {
-                                                            minLength: { value: 10, message: "Password must be at least 10 characters" },
-                                                            maxLength: { value: 30, message: "Password must be at most 30 characters" },
+                                        <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="username">Username</Label>
+                                                    <Input id="username" placeholder="Choose a username" required
+                                                        {...register("username", {
+                                                            required: { value: true, message: "Username is required" },
+                                                            pattern: {
+                                                                value: /^(?=.{7,20}$)[a-z0-9._]+$/,
+                                                                message: 'Username must be 7-20 characters long and can only contain lowercase letters, numbers, periods, and underscores',
+                                                            },
                                                         })}
                                                     />
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setShowPassword(!showPassword)}
-                                                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
-                                                    >
-                                                        {showPassword ? (
-                                                            <EyeOffIcon className="h-5 w-5" />
-                                                        ) : (
-                                                            <EyeIcon className="h-5 w-5" />
-                                                        )}
-                                                    </button>
+                                                    {errors.username?.message && (
+                                                        <span className="text-red-500 text-sm">{errors.username.message}</span>
+                                                    )}
                                                 </div>
-                                                {
-                                                    errors.password?.message && (
-                                                        <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
-                                                    )
-                                                }
-                                            </div>
-                                        </div>
-
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div className="space-y-2">
-                                                <Label htmlFor="fullName">Full Name</Label>
-                                                <Input id="fullName" placeholder="Enter your full name" required
-                                                    {...register("fullName", {
-                                                        required: { value: true, message: "Full name is required" },
-                                                    })} />
-                                                {errors.fullName?.message && (
-                                                    <span className="text-red-500 text-sm">{errors.fullName.message}</span>
-                                                )}
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="contact_no">Contact Number</Label>
-                                                <Input id="contact_no" placeholder="Enter your contact number" required
-                                                    {...register("contact_no", {
-                                                        required: { value: true, message: "Contact number is required" },
-                                                    })} />
-                                                {errors.contact_no?.message && (
-                                                    <span className="text-red-500 text-sm">{errors.contact_no.message}</span>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        <div className="space-y-2">
-                                            <Label>Skills</Label>
-                                            <div className="flex flex-wrap gap-2 mb-2">
-                                                {skills.map((skill, index) => (
-                                                    <span key={index} className="bg-primary text-primary-foreground px-2 py-1 rounded-xl text-sm flex items-center bg-black text-white">
-                                                        {skill}
-                                                        <button type="button" onClick={() => removeSkill(skill)} className="ml-2 text-primary-foreground">
-                                                            <XIcon size={14} />
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+                                                    <div className="relative">
+                                                        <Input
+                                                            id="password"
+                                                            type={showPassword ? "text" : "password"}
+                                                            placeholder="Leave blank if you don't want to change"
+                                                            className="w-full pr-10"
+                                                            onPaste={(e) => {
+                                                                e.preventDefault();
+                                                                alert('Pasting is not allowed in password');
+                                                            }}
+                                                            {...register("password", {
+                                                                minLength: { value: 10, message: "Password must be at least 10 characters" },
+                                                                maxLength: { value: 30, message: "Password must be at most 30 characters" },
+                                                            })}
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setShowPassword(!showPassword)}
+                                                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                                                        >
+                                                            {showPassword ? (
+                                                                <EyeOffIcon className="h-5 w-5" />
+                                                            ) : (
+                                                                <EyeIcon className="h-5 w-5" />
+                                                            )}
                                                         </button>
-                                                    </span>
-                                                ))}
+                                                    </div>
+                                                    {
+                                                        errors.password?.message && (
+                                                            <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
+                                                        )
+                                                    }
+                                                </div>
                                             </div>
-                                            <div className="flex gap-2">
-                                                <Input
-                                                    value={newSkill}
-                                                    onChange={(e) => setNewSkill(e.target.value)}
-                                                    placeholder="Add a skill"
-                                                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addSkill())}
-                                                />
-                                                <Button type="button" onClick={addSkill} size="icon">
-                                                    <PlusIcon size={20} />
-                                                </Button>
-                                            </div>
-                                            {errors.skills?.message && (
-                                                <span className="text-red-500 text-sm">{errors.skills.message}</span>
-                                            )}
-                                        </div>
 
-                                        <div className="space-y-2">
-                                            <Label htmlFor="biography">Biography</Label>
-                                            <Textarea id="biography" placeholder="Tell us a bit about yourself" className="min-h-[100px]"
-                                                {...register("biography", {
-                                                    required: { value: true, message: "Biography is required" },
-                                                })} />
-                                            {errors.biography?.message && (
-                                                <span className="text-red-500 text-sm">{errors.biography.message}</span>
-                                            )}
-                                        </div>
-
-                                        <div className="space-y-2">
-                                            <Label htmlFor="portfolio">Portfolio URL (Optional)</Label>
-                                            <Input id="portfolio" placeholder="https://your-portfolio.com"
-                                                {...register("portfolio", {
-                                                    pattern: {
-                                                        value: /^(https?:\/\/)?(www\.)?[a-zA-Z0-9-]+(\.[a-zA-Z]{2,})+\/?([a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;%=]*)?$/,
-                                                        message: "Enter a valid URL",
-                                                    },
-                                                })} />
-                                            {errors.portfolio?.message && (
-                                                <span className="text-red-500 text-sm">
-                                                    {String(errors.portfolio.message)}
-                                                </span>
-                                            )}
-                                        </div>
-
-                                        <div className="space-y-2">
-                                            <Label>Social Links (Optional)</Label>
-                                            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                                                <div className='space-y-2'>
-                                                    <Input id="linkedin" placeholder="LinkedIn URL" {
-                                                        ...register("socialLinks.linkedin", {
-                                                            pattern: {
-                                                                value: /^(https?:\/\/)?(www\.)?linkedin.com\/in\/[a-zA-Z0-9-]+\/?$/,
-                                                                message: "Enter a valid LinkedIn URL",
-                                                            },
-                                                        })
-                                                    } />
-                                                    {errors.socialLinks?.linkedin?.message && (
-                                                        <span className="text-red-500 text-sm">
-                                                            {String(errors.socialLinks?.linkedin?.message)}
-                                                        </span>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="fullName">Full Name</Label>
+                                                    <Input id="fullName" placeholder="Enter your full name" required
+                                                        {...register("fullName", {
+                                                            required: { value: true, message: "Full name is required" },
+                                                        })} />
+                                                    {errors.fullName?.message && (
+                                                        <span className="text-red-500 text-sm">{errors.fullName.message}</span>
                                                     )}
                                                 </div>
-                                                <div className='space-y-2'>
-                                                    <Input id="github" placeholder="GitHub URL" {
-                                                        ...register("socialLinks.github", {
-                                                            pattern: {
-                                                                value: /^(https?:\/\/)?(www\.)?github.com\/[a-zA-Z0-9-]+\/?$/,
-                                                                message: "Enter a valid GitHub URL",
-                                                            },
-                                                        })
-                                                    } />
-                                                    {errors.socialLinks?.github?.message && (
-                                                        <span className="text-red-500 text-sm">
-                                                            {String(errors.socialLinks?.github?.message)}
-                                                        </span>
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="contact_no">Contact Number</Label>
+                                                    <Input id="contact_no" placeholder="Enter your contact number" required
+                                                        {...register("contact_no", {
+                                                            required: { value: true, message: "Contact number is required" },
+                                                        })} />
+                                                    {errors.contact_no?.message && (
+                                                        <span className="text-red-500 text-sm">{errors.contact_no.message}</span>
                                                     )}
                                                 </div>
                                             </div>
-                                        </div>
 
-                                        <div className="flex items-center space-x-2">
-                                            <Label htmlFor="availability" className="cursor-pointer">
-                                                <div className="relative">
-                                                    <input
-                                                        type="checkbox"
-                                                        id="availability"
-                                                        {...register("availability")}
-                                                        className="sr-only bg-gray-600 text-white   "
+                                            <div className="space-y-2">
+                                                <Label>Skills</Label>
+                                                <div className="flex flex-wrap gap-2 mb-2">
+                                                    {skills.map((skill, index) => (
+                                                        <span key={index} className="bg-primary text-primary-foreground px-2 py-1 rounded-xl text-sm flex items-center bg-black text-white">
+                                                            {skill}
+                                                            <button type="button" onClick={() => removeSkill(skill)} className="ml-2 text-primary-foreground">
+                                                                <XIcon size={14} />
+                                                            </button>
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <Input
+                                                        value={newSkill}
+                                                        onChange={(e) => setNewSkill(e.target.value)}
+                                                        placeholder="Add a skill"
+                                                        onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addSkill())}
                                                     />
-                                                    <div className="block bg-gray-300 rounded-full w-12 h-7"></div>
-                                                    <div className={`absolute left-1 top-1 bg-black rounded-full w-5 h-5 transition ${watch('availability') ? 'transform translate-x-full bg-stone-800' : ''}`}></div>
+                                                    <Button type="button" onClick={addSkill} size="icon">
+                                                        <PlusIcon size={20} />
+                                                    </Button>
                                                 </div>
-                                            </Label>
-                                            <span>Available for projects</span>
-                                        </div>
+                                                {errors.skills?.message && (
+                                                    <span className="text-red-500 text-sm">{errors.skills.message}</span>
+                                                )}
+                                            </div>
 
-                                        <Button type="submit" disabled={isSubmitting} className="w-full">
-                                            {isSubmitting ? "Updating Profile..." : "Update Profile"}
-                                        </Button>
-                                        {errors.root?.message && (
-                                            <span className="text-red-500 text-sm">{errors.root.message}</span>
-                                        )}
-                                    </form>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="biography">Biography</Label>
+                                                <Textarea id="biography" placeholder="Tell us a bit about yourself" className="min-h-[100px]"
+                                                    {...register("biography", {
+                                                        required: { value: true, message: "Biography is required" },
+                                                    })} />
+                                                {errors.biography?.message && (
+                                                    <span className="text-red-500 text-sm">{errors.biography.message}</span>
+                                                )}
+                                            </div>
 
-                                </DialogContent>
-                            </Dialog>
-                        </div>
-                    )}
+                                            <div className="space-y-2">
+                                                <Label htmlFor="portfolio">Portfolio URL (Optional)</Label>
+                                                <Input id="portfolio" placeholder="https://your-portfolio.com"
+                                                    {...register("portfolio", {
+                                                        pattern: {
+                                                            value: /^(https?:\/\/)?(www\.)?[a-zA-Z0-9-]+(\.[a-zA-Z]{2,})+\/?([a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;%=]*)?$/,
+                                                            message: "Enter a valid URL",
+                                                        },
+                                                    })} />
+                                                {errors.portfolio?.message && (
+                                                    <span className="text-red-500 text-sm">
+                                                        {String(errors.portfolio.message)}
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <Label>Social Links (Optional)</Label>
+                                                <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                                                    <div className='space-y-2'>
+                                                        <Input id="linkedin" placeholder="LinkedIn URL" {
+                                                            ...register("socialLinks.linkedin", {
+                                                                pattern: {
+                                                                    value: /^(https?:\/\/)?(www\.)?linkedin.com\/in\/[a-zA-Z0-9-]+\/?$/,
+                                                                    message: "Enter a valid LinkedIn URL",
+                                                                },
+                                                            })
+                                                        } />
+                                                        {errors.socialLinks?.linkedin?.message && (
+                                                            <span className="text-red-500 text-sm">
+                                                                {String(errors.socialLinks?.linkedin?.message)}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <div className='space-y-2'>
+                                                        <Input id="github" placeholder="GitHub URL" {
+                                                            ...register("socialLinks.github", {
+                                                                pattern: {
+                                                                    value: /^(https?:\/\/)?(www\.)?github.com\/[a-zA-Z0-9-]+\/?$/,
+                                                                    message: "Enter a valid GitHub URL",
+                                                                },
+                                                            })
+                                                        } />
+                                                        {errors.socialLinks?.github?.message && (
+                                                            <span className="text-red-500 text-sm">
+                                                                {String(errors.socialLinks?.github?.message)}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center space-x-2">
+                                                <Label htmlFor="availability" className="cursor-pointer">
+                                                    <div className="relative">
+                                                        <input
+                                                            type="checkbox"
+                                                            id="availability"
+                                                            {...register("availability")}
+                                                            className="sr-only bg-gray-600 text-white   "
+                                                        />
+                                                        <div className="block bg-gray-300 rounded-full w-12 h-7"></div>
+                                                        <div className={`absolute left-1 top-1 bg-black rounded-full w-5 h-5 transition ${watch('availability') ? 'transform translate-x-full bg-stone-800' : ''}`}></div>
+                                                    </div>
+                                                </Label>
+                                                <span>Available for projects</span>
+                                            </div>
+
+                                            <Button type="submit" disabled={isSubmitting} className="w-full">
+                                                {isSubmitting ? "Updating Profile..." : "Update Profile"}
+                                            </Button>
+                                            {errors.root?.message && (
+                                                <span className="text-red-500 text-sm">{errors.root.message}</span>
+                                            )}
+                                        </form>
+
+                                    </DialogContent>
+                                </Dialog>
+                            </div>
+                        )}
+                    </div>
                 </div>
-            </div>
-            <Footer />
-        </>
-    )
+                <Footer />
+            </>
+        )
+    }
 
 }

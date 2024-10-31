@@ -297,10 +297,10 @@ export function handleUserLogout(req: Request, res: Response) {
  * @throws - Throws an error if any unexpected error occurs during the profile retrieval process.
  */
 export async function handleUserProfile(req: Request, res: Response) {
-    await connectToDB();
-    const username: string = req.params.username;
-
     try {
+        await connectToDB();
+        const username: string = req.params.username;
+
         if (mongoose.connection.readyState !== 1) {
             console.log("Failed to connect to the database");
             return res.status(500).json({ error: 'Failed to connect to the database' });
@@ -333,6 +333,7 @@ export async function handleUserProfile(req: Request, res: Response) {
         console.log(`Unexpected error occured: ${error}`);
         return res.status(500).json({ error: "Internal Server Error" });
     } finally {
+        console.log("Hefdfdfdsggsgfsgsfg");
         disConnectfromDB();
     }
 }

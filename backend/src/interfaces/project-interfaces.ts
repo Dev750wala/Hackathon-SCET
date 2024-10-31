@@ -62,3 +62,21 @@ export interface ProjectCreationDetails {
     techTags: string[];
     // status: 'planned' | 'ongoing' | 'completed';
 }
+
+
+interface DateRange {
+    startDate: Date;
+    endDate: Date;
+}
+
+export interface Filters {
+    username: boolean;
+    fullName: boolean;
+    role: 'student' | 'organizer' | '';
+    available: boolean;
+    projectName: boolean;
+    dateRange: DateRange | undefined;
+    organizer: boolean;
+    status: "student" | "organizer" | "";
+    maxParticipants: number | string;
+}

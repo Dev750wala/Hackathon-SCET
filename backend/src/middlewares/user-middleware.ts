@@ -51,8 +51,6 @@ export async function onlyLoggedInUsers(req: Request, res: Response, next: NextF
         disConnectfromDB();
         // Render the page where it tells that please try again later.
         return res.status(500).json({ message: "Internal server error" });
-    } finally {
-        disConnectfromDB();
     }
     next();
 }
@@ -67,8 +65,8 @@ export async function onlyLoggedInUsers(req: Request, res: Response, next: NextF
  */
 export async function checkUser(req: Request, res: Response, next: NextFunction) {
     
-    const cookie = req.cookies?.jwt_token;
     await connectToDB();
+    const cookie = req.cookies?.jwt_token;
     console.log("Hello World 2");
     
 
