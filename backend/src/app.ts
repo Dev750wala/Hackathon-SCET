@@ -7,7 +7,7 @@ import adminRoute from './routes/admin-routes';
 import projectRoute from './routes/project-routes';
 import apiRoute from './routes/api-routes';
 import { checkUser } from './middlewares/user-middleware';
-import cors from "cors"
+import cors from "cors";
 
 import { connectToDB } from './utilities/connection';
 // connectToDB();

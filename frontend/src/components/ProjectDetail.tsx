@@ -1,23 +1,26 @@
-import { useState, useEffect } from 'react'
-import { useForm, useFieldArray } from 'react-hook-form'
+import { useState, useEffect, useCallback } from 'react'
+import { useForm, useFieldArray, Controller, Form } from 'react-hook-form'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { CalendarDays, Users, PenTool, ChevronDown, ChevronUp } from "lucide-react"
+import { CalendarDays, Users, PenTool, ChevronDown, ChevronUp, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Link } from "react-router-dom"
 import LiveAnimation from "./LiveAnimation"
-import { debounce } from 'lodash';
+// import { debounce } from 'lodash';
 import Navbar from './Navbar'
 import { useAppSelector } from '@/redux-store/hooks'
 import { useParams } from 'react-router-dom'
+import { AvatarImage } from '@radix-ui/react-avatar'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@radix-ui/react-select'
 
 interface TeamMember {
-    name: string;
+    fullName: string;
+    username: string;
     participatingStatus: 'accepted' | 'pending';
 }
 
@@ -65,6 +68,13 @@ interface ProjectFetchingSuccessResponse {
         }[];
     } | null;
 }
+const mockUsers = [
+    { username: 'johndoe', fullName: 'John Doe', avatar: 'https://i.pravatar.cc/150?u=johndoe' },
+    { username: 'janedoe', fullName: 'Jane Doe', avatar: 'https://i.pravatar.cc/150?u=janedoe' },
+    { username: 'bobsmith', fullName: 'Bob Smith', avatar: 'https://i.pravatar.cc/150?u=bobsmith' },
+    { username: 'alicejohnson', fullName: 'Alice Johnson', avatar: 'https://i.pravatar.cc/150?u=alicejohnson' },
+    { username: 'charliebravo', fullName: 'Charlie Bravo', avatar: 'https://i.pravatar.cc/150?u=charliebravo' },
+]
 
 export default function ProjectDetail() {
     const { projectId } = useParams<{ projectId: string }>();
@@ -73,13 +83,64 @@ export default function ProjectDetail() {
 
     const [expandedSection, setExpandedSection] = useState<string | null>(null)
     const [loading, setLoading] = useState(false)
-    const [error, setError] = useState<string | null>(null);
+    // const [error, setError] = useState<string | null>(null);
     const [projectSearchErrorCode, setProjectSearchErrorCode] = useState<number>(0);
 
     const user = useAppSelector(state => state.userInfo);
     const [isLoggedIn, setIsLoggedIn] = useState<boolean>(!!user);
 
-    const [currentFormTotalMembers, setCurrentFormTotalMembers] = useState(0);
+    // const [currentFormTotalMembers, setCurrentFormTotalMembers] = useState(0);
+    const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
+    const [userSuggestions, setUserSuggestions] = useState<typeof mockUsers>([])
+
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const { register, control, handleSubmit, watch, setValue, formState: { errors } } = useForm<Team>({
+        defaultValues: {
+            name: '',
+            description: '',
+            teamMembers: []
+        }
+    })
+
+    const { fields, append, remove, update } = useFieldArray({
+        control,
+        name: 'teamMembers'
+    })
+
+    const onSubmit = (data: Team) => {
+        console.log(data)
+        // Here you would typically send the data to your backend
+    }
+    const MAX_TEAM_MEMBERS = 4
+
+    const searchUsers = (query: string) => {
+        return mockUsers.filter(user => {
+            const isNotInTeam = fields.every(member => member.username !== user.username);
+            const matchesQuery = user.username.toLowerCase().includes(query.toLowerCase()) ||
+                user.fullName.toLowerCase().includes(query.toLowerCase());
+
+            return isNotInTeam && matchesQuery;
+        });
+    };
+
+    const handleUserSearch = useCallback((query: string) => {
+        if (query.length > 1) {
+            const suggestions = searchUsers(query)
+            setUserSuggestions(suggestions)
+        } else {
+            setUserSuggestions([])
+        }
+    }, [])
+
+    const addTeamMember = useCallback((user: typeof mockUsers[0]) => {
+        if (fields.length < MAX_TEAM_MEMBERS && !fields.some(member => member.username === user.username)) {
+            append({ ...user, participatingStatus: 'pending' });
+            setUserSuggestions([]);
+            setSearchQuery(''); 
+        }
+    }, [fields, append]);
+
 
     useEffect(() => {
         setIsLoggedIn(!!user);
@@ -93,7 +154,6 @@ export default function ProjectDetail() {
                     method: "GET",
                     credentials: "include",
                 })
-                // console.log((await r.json() as ProjectFetchingSuccessResponse).project);
                 const response = await r.json();
                 if (r.ok) {
                     const project = (response as ProjectFetchingSuccessResponse).project;
@@ -122,55 +182,6 @@ export default function ProjectDetail() {
 
     }, [projectId])
 
-    const { register, control, handleSubmit, formState: { errors } } = useForm<Team>({
-        defaultValues: {
-            name: '',
-            description: '',
-            teamMembers: []
-        }
-    })
-
-    const { fields, append, remove } = useFieldArray({
-        control,
-        name: 'teamMembers'
-    })
-
-    const onSubmit = async (data: Team) => {
-        setLoading(true)
-        setError(null)
-        try {
-            // Simulating API call
-            await new Promise(resolve => setTimeout(resolve, 1000))
-            console.log('Form submitted:', data)
-            // Reset form or navigate to success page
-        } catch (err) {
-            setError('An error occurred while submitting the form.')
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    const searchUser = async (username: string): Promise<any> => {
-        // console.log("Hello")
-        try {
-            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/users/search?username=${username}`, {
-                method: "GET",
-                credentials: "include",
-            });
-            // console.log(await response.json());
-
-            return response.json();
-        } catch (error) {
-            console.error("Error searching user:", error);
-            return null;
-        }
-    };
-
-
-    const addTeamMember = () => {
-        append({ name: '', participatingStatus: 'pending' })
-    }
-
     const formatDate = (date: Date | undefined) => {
         return date ? new Date(date).toLocaleDateString('en-US', {
             year: 'numeric',
@@ -184,11 +195,11 @@ export default function ProjectDetail() {
     }
 
 
-    console.log("Is logged in:", isLoggedIn);
-    console.log("Self Team Data is null:", selfTeamData === null);
-    console.log("Registration date:", project && new Date().getTime() > new Date(project.registrationStart).getTime());
-    console.log("Current Date:", new Date(Date.now()).getTime());
-    console.log("Registration end date:", project && new Date().getTime() < new Date(project.registrationEnd).getTime());
+    // console.log("Is logged in:", isLoggedIn);
+    // console.log("Self Team Data is null:", selfTeamData === null);
+    // console.log("Registration date:", project && new Date().getTime() > new Date(project.registrationStart).getTime());
+    // console.log("Current Date:", new Date(Date.now()).getTime());
+    // console.log("Registration end date:", project && new Date().getTime() < new Date(project.registrationEnd).getTime());
 
     if (!project && projectSearchErrorCode === 404) {
         return <div className="container mx-auto p-4">Project not found.</div>
@@ -434,65 +445,114 @@ export default function ProjectDetail() {
                         selfTeamData === null &&
                         new Date().getTime() > new Date(project.registrationStart).getTime() &&
                         new Date().getTime() < new Date(project.registrationEnd).getTime() && (
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Participate in the Hackathon</CardTitle>
+                            <Card className="w-full">
+                                <CardHeader className="bg-primary text-primary-foreground">
+                                    <CardTitle className="text-2xl">Create a Team</CardTitle>
                                 </CardHeader>
-                                <CardContent>
-                                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                                <CardContent className="p-6">
+                                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                                         <div>
-                                            <Label htmlFor="name">Team Name</Label>
+                                            <Label htmlFor="name" className="text-lg font-semibold">Team Name</Label>
                                             <Input
                                                 id="name"
                                                 {...register('name', { required: 'Team name is required' })}
+                                                className="mt-1"
                                             />
-                                            {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
+                                            {errors.name && <p className="text-destructive text-sm mt-1 text-red-700">{errors.name.message}</p>}
                                         </div>
+
                                         <div>
-                                            <Label htmlFor="description">Team Description</Label>
+                                            <Label htmlFor="description" className="text-lg font-semibold">Team Description</Label>
                                             <Textarea
                                                 id="description"
-                                                {...register('description', { required: 'Team description is required' })}
+                                                {...register('description', { required: 'Description is required' })}
+                                                className="mt-1"
+                                                rows={4}
                                             />
-                                            {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description.message}</p>}
+                                            {errors.description && <p className="text-destructive text-sm mt-1 text-red-700">{errors.description.message}</p>}
                                         </div>
-                                        <div>
-                                            <div><Label>Team Members</Label></div>
-                                            {fields.map((field, index) => (
-                                                <div key={field.id} className="flex items-center space-x-2 mt-2">
-                                                    <Input
-                                                        {...register(`teamMembers.${index}.name` as const, {
-                                                            required: 'Member name is required',
-                                                            onChange: debounce(async (e: React.ChangeEvent<HTMLInputElement>) => {
-                                                                const searchValue = e.target.value;
-                                                                if (searchValue) {
-                                                                    console.log("Searching for user with username:", searchValue);
 
-                                                                    const result = await searchUser(searchValue);
-                                                                    console.log(`The below result for it: ${JSON.stringify(result[0])}`);
-                                                                }
-                                                            }, 750),
-                                                        })}
-                                                        placeholder="Find with username"
-                                                    />
-                                                    <Button type="button" variant="destructive" onClick={() => remove(index)}>
-                                                        Remove
-                                                    </Button>
+                                        <div>
+                                            <Label htmlFor="username" className="text-lg font-semibold">Add Team Member (optional)</Label>
+                                            <div className="relative">
+                                                <Input
+                                                    id="username"
+                                                    placeholder="Search by username or full name"
+                                                    value={searchQuery}
+                                                    onChange={(e) => {
+                                                        setSearchQuery(e.target.value);
+                                                        handleUserSearch(e.target.value);
+                                                    }}
+                                                    className="mt-1"
+                                                />
+                                                {userSuggestions.length > 0 && (
+                                                    <ul className="absolute z-10 w-full mt-1 bg-slate-300 border rounded-md shadow-lg">
+                                                        {userSuggestions.map((user) => (
+                                                            <li
+                                                                key={user.username}
+                                                                className="px-4 py-2 hover:bg-muted cursor-pointer flex items-center space-x-2"
+                                                                onClick={() => {
+                                                                    addTeamMember(user)
+                                                                } }
+                                                            >
+                                                                {/* <Avatar>
+                                                                    <AvatarImage src={user.avatar} alt={user.fullName} />
+                                                                    <AvatarFallback>{user.fullName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                                                </Avatar> */}
+                                                                <span>{user.fullName} (@{user.username})</span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <h3 className="text-lg font-semibold mb-2">Team Members:</h3>
+                                            {fields.map((field, index) => (
+                                                <div key={field.id} className="flex items-center justify-between bg-muted p-2 rounded-md mb-2">
+                                                    <div className="flex items-center space-x-2">
+                                                        <Avatar>
+                                                            <AvatarFallback>{field.fullName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                                        </Avatar>
+                                                        <span>{field.fullName} (@{field.username})</span>
+                                                    </div>
+                                                    <div className="flex items-center space-x-2">
+                                                        {/* <Controller
+                                                            name={`teamMembers.${index}.participatingStatus`}
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <Select
+                                                                    onValueChange={field.onChange}
+                                                                    defaultValue={field.value}
+                                                                >
+                                                                    <SelectTrigger className="w-[130px]">
+                                                                        <SelectValue placeholder="Select status" />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        <SelectItem value="accepted">Accepted</SelectItem>
+                                                                        <SelectItem value="pending">Pending</SelectItem>
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            )}
+                                                        /> */}
+                                                        <Button type="button" variant="ghost" size="icon" onClick={() => {
+                                                            remove(index);
+                                                            setTeamMembers(teamMembers.filter(member => member.username !== field.username));
+                                                        }}>
+                                                            <X className="h-4 w-4" />
+                                                            <span className="sr-only">Remove team member</span>
+                                                        </Button>
+                                                    </div>
                                                 </div>
                                             ))}
-                                            <Button type="button" onClick={addTeamMember} className="mt-2">
-                                                Add Team Member
-                                            </Button>
                                         </div>
-                                        <Button type="submit" disabled={loading}>
-                                            {loading ? "Submitting..." : "Submit Team"}
-                                        </Button>
-                                        {error && <p className="text-red-500 mt-2">{error}</p>}
+
+                                        <Button type="submit" className="w-full">Create Team</Button>
                                     </form>
                                 </CardContent>
                             </Card>
                         )}
-
                 </div>
             </>
         )
