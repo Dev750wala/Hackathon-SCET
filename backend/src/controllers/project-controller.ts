@@ -3,7 +3,7 @@ import { connectToDB, disConnectfromDB } from "../utilities/connection";
 import PROJECT from "../models/project-model";
 import USER from "../models/user-model";
 import { IProject, ParticipationTeam } from "../interfaces/project-interfaces";
-import mongoose from "mongoose";
+// import mongoose from "mongoose";
 
 export async function handleShowProject(req: Request, res: Response) {
     try {
@@ -68,11 +68,10 @@ export async function handleShowProject(req: Request, res: Response) {
         if (req.user !== null || req.user !== undefined) {
             for (let i = 0; i < project.participantTeam.length; i++) {
                 for (let j = 0; j < project.participantTeam[i].teamMembers.length; j++) {
-                    // if (project.participantTeam[i].teamMembers[j].id.equals(req.user?._id as mongoose.Types.ObjectId)) {
                     if (project.participantTeam[i].teamMembers[j].id === req.user?._id) {
                         selfTeamStatus = project.participantTeam[i];
                         flag = true;
-                    }
+                    }   
                 }
             }
 
@@ -119,7 +118,8 @@ export async function handleShowProject(req: Request, res: Response) {
     } catch (error) {
         console.log(`Unexpected error occurred: ${error}`);
         return res.status(500).json({ error: "Internal Server Error" });
-    } finally {
-        await disConnectfromDB();
-    }
+    } 
+    // finally {
+    //     await disConnectfromDB();
+    // }
 }

@@ -67,9 +67,6 @@ export async function checkUser(req: Request, res: Response, next: NextFunction)
     
     // await connectToDB();
     const cookie = req.cookies?.jwt_token;
-    
-    
-
     if (!cookie) {
             req.user = null;
     } else {

@@ -77,7 +77,13 @@ export default function ProjectDetail() {
     const [projectSearchErrorCode, setProjectSearchErrorCode] = useState<number>(0);
 
     const user = useAppSelector(state => state.userInfo);
-    const [isLoggedIn, _setIsLoggedIn] = useState<boolean>(user ? true : false);
+    const [isLoggedIn, setIsLoggedIn] = useState<boolean>(!!user);
+
+    const [currentFormTotalMembers, setCurrentFormTotalMembers] = useState(0);
+
+    useEffect(() => {
+        setIsLoggedIn(!!user);
+    }, [user]);
 
     useEffect(() => {
         setLoading(true);
@@ -87,13 +93,13 @@ export default function ProjectDetail() {
                     method: "GET",
                     credentials: "include",
                 })
-                console.log(await r.json());
-                
+                // console.log((await r.json() as ProjectFetchingSuccessResponse).project);
+                const response = await r.json();
                 if (r.ok) {
-                    const project = (await r.json() as ProjectFetchingSuccessResponse).project;
+                    const project = (response as ProjectFetchingSuccessResponse).project;
                     console.log("Project fetched:", project);
                     setProject(project);
-                    setSelfTeamData((await r.json() as ProjectFetchingSuccessResponse).selfTeamData);
+                    setSelfTeamData((response as ProjectFetchingSuccessResponse).selfTeamData);
                     setLoading(false);
                 } else if (r.status === 404) {
                     console.error("Project not found");
@@ -113,7 +119,7 @@ export default function ProjectDetail() {
             }
         }
         fetchProject()
-        
+
     }, [projectId])
 
     const { register, control, handleSubmit, formState: { errors } } = useForm<Team>({
@@ -177,6 +183,13 @@ export default function ProjectDetail() {
         setExpandedSection(expandedSection === section ? null : section)
     }
 
+
+    console.log("Is logged in:", isLoggedIn);
+    console.log("Self Team Data is null:", selfTeamData === null);
+    console.log("Registration date:", project && new Date().getTime() > new Date(project.registrationStart).getTime());
+    console.log("Current Date:", new Date(Date.now()).getTime());
+    console.log("Registration end date:", project && new Date().getTime() < new Date(project.registrationEnd).getTime());
+
     if (!project && projectSearchErrorCode === 404) {
         return <div className="container mx-auto p-4">Project not found.</div>
     } else if (!project && projectSearchErrorCode === 500) {
@@ -222,11 +235,11 @@ export default function ProjectDetail() {
                                 <div className="space-y-4">
                                     <div className="flex items-center space-x-2 mr-1">
                                         <Users className="text-muted-foreground" />
-                                        <span><span className="font-bold">Max Participants:</span> {project.maxParticipants}</span>
+                                        <span><span className="font-bold">Max Participants per Team:</span> {project.maxParticipants}</span>
                                     </div>
                                     <div className="flex items-center space-x-2 mr-1">
                                         <Users className="text-muted-foreground" />
-                                        <span><span className="font-bold">Total Teams:</span> {project.totalTeams}</span>
+                                        <span><span className="font-bold">Total Teams Participated:</span> {project.totalTeams}</span>
                                     </div>
                                 </div>
                             </div>
@@ -364,9 +377,12 @@ export default function ProjectDetail() {
                             </Badge>
                         </CardContent>
                     </Card>
-                    
+
                     {
-                        isLoggedIn && selfTeamData !== null && (
+                        isLoggedIn &&
+                        selfTeamData !== null &&
+                        new Date().getTime() > new Date(project.registrationStart).getTime() &&
+                        new Date().getTime() < new Date(project.registrationEnd).getTime() && (
                             <Card>
                                 <CardHeader>
                                     <CardTitle>Your Team</CardTitle>
@@ -413,66 +429,69 @@ export default function ProjectDetail() {
                         )
                     }
 
-                    {isLoggedIn && selfTeamData === null && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Participate in the Hackathon</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                                    <div>
-                                        <Label htmlFor="name">Team Name</Label>
-                                        <Input
-                                            id="name"
-                                            {...register('name', { required: 'Team name is required' })}
-                                        />
-                                        {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
-                                    </div>
-                                    <div>
-                                        <Label htmlFor="description">Team Description</Label>
-                                        <Textarea
-                                            id="description"
-                                            {...register('description', { required: 'Team description is required' })}
-                                        />
-                                        {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description.message}</p>}
-                                    </div>
-                                    <div>
-                                        <div><Label>Team Members</Label></div>
-                                        {fields.map((field, index) => (
-                                            <div key={field.id} className="flex items-center space-x-2 mt-2">
-                                                <Input
-                                                    {...register(`teamMembers.${index}.name` as const, {
-                                                        required: 'Member name is required',
-                                                        onChange: debounce(async (e: React.ChangeEvent<HTMLInputElement>) => {
-                                                            const searchValue = e.target.value;
-                                                            if (searchValue) {
-                                                                console.log("Searching for user with username:", searchValue);
+                    {
+                        isLoggedIn &&
+                        selfTeamData === null &&
+                        new Date().getTime() > new Date(project.registrationStart).getTime() &&
+                        new Date().getTime() < new Date(project.registrationEnd).getTime() && (
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Participate in the Hackathon</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                                        <div>
+                                            <Label htmlFor="name">Team Name</Label>
+                                            <Input
+                                                id="name"
+                                                {...register('name', { required: 'Team name is required' })}
+                                            />
+                                            {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
+                                        </div>
+                                        <div>
+                                            <Label htmlFor="description">Team Description</Label>
+                                            <Textarea
+                                                id="description"
+                                                {...register('description', { required: 'Team description is required' })}
+                                            />
+                                            {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description.message}</p>}
+                                        </div>
+                                        <div>
+                                            <div><Label>Team Members</Label></div>
+                                            {fields.map((field, index) => (
+                                                <div key={field.id} className="flex items-center space-x-2 mt-2">
+                                                    <Input
+                                                        {...register(`teamMembers.${index}.name` as const, {
+                                                            required: 'Member name is required',
+                                                            onChange: debounce(async (e: React.ChangeEvent<HTMLInputElement>) => {
+                                                                const searchValue = e.target.value;
+                                                                if (searchValue) {
+                                                                    console.log("Searching for user with username:", searchValue);
 
-                                                                const result = await searchUser(searchValue);
-                                                                // Optional: set state to display results or provide feedback to the user
-                                                                console.log(`The below result for it: ${JSON.stringify(result[0])}`);
-                                                            }
-                                                        }, 750),
-                                                    })}
-                                                    placeholder="Find with username"
-                                                />
-                                                <Button type="button" variant="destructive" onClick={() => remove(index)}>
-                                                    Remove
-                                                </Button>
-                                            </div>
-                                        ))}
-                                        <Button type="button" onClick={addTeamMember} className="mt-2">
-                                            Add Team Member
+                                                                    const result = await searchUser(searchValue);
+                                                                    console.log(`The below result for it: ${JSON.stringify(result[0])}`);
+                                                                }
+                                                            }, 750),
+                                                        })}
+                                                        placeholder="Find with username"
+                                                    />
+                                                    <Button type="button" variant="destructive" onClick={() => remove(index)}>
+                                                        Remove
+                                                    </Button>
+                                                </div>
+                                            ))}
+                                            <Button type="button" onClick={addTeamMember} className="mt-2">
+                                                Add Team Member
+                                            </Button>
+                                        </div>
+                                        <Button type="submit" disabled={loading}>
+                                            {loading ? "Submitting..." : "Submit Team"}
                                         </Button>
-                                    </div>
-                                    <Button type="submit" disabled={loading}>
-                                        {loading ? "Submitting..." : "Submit Team"}
-                                    </Button>
-                                    {error && <p className="text-red-500 mt-2">{error}</p>}
-                                </form>
-                            </CardContent>
-                        </Card>
-                    )}
+                                        {error && <p className="text-red-500 mt-2">{error}</p>}
+                                    </form>
+                                </CardContent>
+                            </Card>
+                        )}
 
                 </div>
             </>
