@@ -12,10 +12,20 @@ export interface TeamMember {
     _id: mongoose.Types.ObjectId;
 }
 
-export interface ParticipationTeam extends mongoose.Document {
+// export interface ParticipationTeam extends mongoose.Document {
+//     name: string;
+//     description: string;
+//     teamMembers: mongoose.Types.ObjectId[] | TeamMember[];
+// }
+
+export interface ParticipationTeam {
     name: string;
     description: string;
-    teamMembers: mongoose.Types.ObjectId[] | TeamMember[];
+    teamMembers: {
+        id: mongoose.Types.ObjectId;
+        name: string;
+        participatingStatus: 'accepted' | 'pending';
+    }[];
 }
 
 export interface IProject extends mongoose.Document {
@@ -33,16 +43,7 @@ export interface IProject extends mongoose.Document {
     rulesAndRegulations: string;
     theme?: string;
     techTags: string[];
-    participantTeam: {
-        id: mongoose.Types.ObjectId;
-        name: string;
-        description: string;
-        teamMembers: {
-            id: mongoose.Types.ObjectId;
-            name: string;
-            participatingStatus: 'accepted' | 'pending';
-        }[];
-    }[];
+    participantTeam: ParticipationTeam[];
     status: 'planned' | 'ongoing' | 'completed';
 }
 

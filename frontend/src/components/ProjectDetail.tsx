@@ -27,7 +27,7 @@ interface Team {
     teamMembers: TeamMember[];
 }
 
-interface ProjectFetchingSuccessResponse {
+interface Project {
     id: string;
     name: string;
     description: string;
@@ -43,7 +43,6 @@ interface ProjectFetchingSuccessResponse {
     judges: {
         name: string;
         userDetails: {
-            fullName: string;
             username: string;
         } | null;
     }[];
@@ -54,10 +53,23 @@ interface ProjectFetchingSuccessResponse {
     totalTeams: number;
     status: 'planned' | 'ongoing' | 'completed';
 }
+interface ProjectFetchingSuccessResponse {
+    project: Project;
+    selfTeamData: {
+        name: string;
+        description: string;
+        teamMembers: {
+            username: string;
+            fullName: string;
+            participatingStatus: string;
+        }[];
+    } | null;
+}
 
 export default function ProjectDetail() {
     const { projectId } = useParams<{ projectId: string }>();
-    const [project, setProject] = useState<ProjectFetchingSuccessResponse | null>(null)
+    const [project, setProject] = useState<ProjectFetchingSuccessResponse['project'] | null>(null);
+    const [selfTeamData, setSelfTeamData] = useState<ProjectFetchingSuccessResponse['selfTeamData'] | null>(null);
 
     const [expandedSection, setExpandedSection] = useState<string | null>(null)
     const [loading, setLoading] = useState(false)
@@ -75,10 +87,13 @@ export default function ProjectDetail() {
                     method: "GET",
                     credentials: "include",
                 })
+                console.log(await r.json());
+                
                 if (r.ok) {
-                    const project = await r.json();
+                    const project = (await r.json() as ProjectFetchingSuccessResponse).project;
                     console.log("Project fetched:", project);
                     setProject(project);
+                    setSelfTeamData((await r.json() as ProjectFetchingSuccessResponse).selfTeamData);
                     setLoading(false);
                 } else if (r.status === 404) {
                     console.error("Project not found");
@@ -265,7 +280,7 @@ export default function ProjectDetail() {
                                                 </TooltipTrigger>
                                             </div>
                                             <TooltipContent side="right">
-                                                <p>{judge.userDetails?.fullName || 'N/A'}</p>
+                                                <p>{judge.name}</p>
                                             </TooltipContent>
                                         </Tooltip>
                                     </TooltipProvider>
@@ -349,8 +364,56 @@ export default function ProjectDetail() {
                             </Badge>
                         </CardContent>
                     </Card>
+                    
+                    {
+                        isLoggedIn && selfTeamData !== null && (
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Your Team</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="space-y-4">
+                                        <div>
+                                            <Label>Team Name</Label>
+                                            <p>{selfTeamData.name}</p>
+                                        </div>
+                                        <div>
+                                            <Label>Team Description</Label>
+                                            <p>{selfTeamData.description}</p>
+                                        </div>
+                                        <div>
+                                            <Label>Team Members</Label>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                {selfTeamData.teamMembers.map((member, index) => (
+                                                    <div key={index}>
+                                                        <TooltipProvider>
+                                                            <Tooltip>
+                                                                <div className="flex items-center space-x-2 cursor-pointer">
+                                                                    <TooltipTrigger asChild>
+                                                                        <div className="flex flex-row justify-center items-center gap-2">
+                                                                            <Avatar>
+                                                                                <AvatarFallback>{member.username[0].toUpperCase()}</AvatarFallback>
+                                                                            </Avatar>
+                                                                            <span className="font-medium">{member.username}</span>
+                                                                        </div>
+                                                                    </TooltipTrigger>
+                                                                </div>
+                                                                <TooltipContent side="right">
+                                                                    <p>{member.fullName}</p>
+                                                                </TooltipContent>
+                                                            </Tooltip>
+                                                        </TooltipProvider>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )
+                    }
 
-                    {isLoggedIn && (
+                    {isLoggedIn && selfTeamData === null && (
                         <Card>
                             <CardHeader>
                                 <CardTitle>Participate in the Hackathon</CardTitle>

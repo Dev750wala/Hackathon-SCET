@@ -453,7 +453,7 @@ export async function verifyUserFromToken(req: Request, res: Response) {
         });
     }
 
-    await connectToDB();
+    // await connectToDB();
 
     try {
         if (jwt_token) {
@@ -523,8 +523,6 @@ export async function verifyUserFromToken(req: Request, res: Response) {
             isAdmin: false,
             message: "Some error occurred",
         });
-    } finally {
-        disConnectfromDB();
     }
 }
 

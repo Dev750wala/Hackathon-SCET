@@ -42,13 +42,13 @@ export async function onlyLoggedInUsers(req: Request, res: Response, next: NextF
     try {
         const user = await USER.findOne({ email: userFromToken.email });
         if (!user) {
-            disConnectfromDB();
+            // disConnectfromDB();
             // redirect user back to the login page.
             return res.status(404).json({ message: "User not found" })
         }
     } catch (error) {
         console.error("Error connecting to DB", error);
-        disConnectfromDB();
+        // disConnectfromDB();
         // Render the page where it tells that please try again later.
         return res.status(500).json({ message: "Internal server error" });
     }
@@ -65,9 +65,9 @@ export async function onlyLoggedInUsers(req: Request, res: Response, next: NextF
  */
 export async function checkUser(req: Request, res: Response, next: NextFunction) {
     
-    await connectToDB();
+    // await connectToDB();
     const cookie = req.cookies?.jwt_token;
-    console.log("Hello World 2");
+    
     
 
     if (!cookie) {

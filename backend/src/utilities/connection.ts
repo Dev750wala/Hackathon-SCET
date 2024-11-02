@@ -1,23 +1,33 @@
 import mongoose from "mongoose";
 import USER from "../models/user-model";
 
+let isConnected = false; // Track the connection status
+
 export async function connectToDB() {
-    const uri: string = process.env.DB_STRING!;
+    if (isConnected) {
+        console.log('Already connected to MongoDB.');
+        return;
+    }
 
+    try {
+        const uri: string = process.env.DB_STRING!;
+        
+        await mongoose.connect(uri);
 
-    await mongoose.connect(uri)
-        .then(async () => {
-            await USER.init();
-            console.log("index created");
-            const indexes = await mongoose.connection.db.collection('users').indexes();
-            // console.log(indexes);
-            // const indexes = await mongoose.connection.db.collection('users').dropIndex('enrollmentNumber_1');
-            // console.log(`droppped index: ${indexes}`);
-        })
-        .catch(err => console.error(err));
-    // await USER.init();
-    console.log(`Successfully connected to the database!`);
+        isConnected = true;
+        console.log('Successfully connected to the database!');
+
+        await USER.init();
+        console.log('User model indexes created.');
+
+        const indexes = await mongoose.connection.db.collection('users').indexes();
+        console.log('Indexes:', indexes);
+    } catch (error) {
+        console.error('Error connecting to the database:', error);
+        isConnected = false;
+    }
 }
+
 
 export async function disConnectfromDB() {
     try {

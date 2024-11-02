@@ -10,7 +10,11 @@ import { checkUser } from './middlewares/user-middleware';
 import cors from "cors"
 
 import { connectToDB } from './utilities/connection';
-connectToDB();
+// connectToDB();
+
+(async () => {
+    await connectToDB();
+})();
 
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
@@ -23,7 +27,6 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: false }));
-// app.use(checkUser)
 app.use(function(req: Request, res, next) {
     console.log(`${req.originalUrl} ${req.ip} ${new Date().toISOString()}\n`);
     next();
@@ -36,10 +39,6 @@ const port = process.env.BACKEND_PORT || 3000;
 
 
 app.use("*", checkUser);
-app.use("*", (req: Request, res: Response, next) => {
-    console.log("Middleware 2");
-    next();
-});
 app.get("/", (req: Request, res: Response) => {
     console.log(req.user);
     return res.send("Hello World!");
