@@ -17,7 +17,12 @@ VITE_BACKEND_URL=backend-url
 
 Include screenshots here to show examples of the UI or results.
 
+![Home Page](https://github.com/Dev750wala/Hackathon-SCET/blob/main/Photos/Home%20Page.png?raw=true)
 ![Admin Auth](https://github.com/Dev750wala/Hackathon-SCET/blob/main/Photos/Admin%20Auth.png?raw=true)
+![Admin Login](https://github.com/Dev750wala/Hackathon-SCET/blob/main/Photos/Admin%20Login.png?raw=true)
+![Create Project](https://github.com/Dev750wala/Hackathon-SCET/blob/main/Photos/Create%20Project.png?raw=true)
+![Searching Page with Filters](https://github.com/Dev750wala/Hackathon-SCET/blob/main/Photos/FIlter%20Search.png?raw=true)
+![Project Details](https://github.com/Dev750wala/Hackathon-SCET/blob/main/Photos/Project%20Details.png?raw=true)
+![User Login Page](https://github.com/Dev750wala/Hackathon-SCET/blob/main/Photos/User%20Login%20Page.png?raw=true)
+![User Signup Page](https://github.com/Dev750wala/Hackathon-SCET/blob/main/Photos/User%20Signup%20Page.png?raw=true)
 
-![Screenshot 2](./path/to/screenshot2.png)
-*Description of Screenshot 2*
