@@ -26,3 +26,5 @@ Include screenshots here to show examples of the UI or results.
 ![User Login Page](https://github.com/Dev750wala/Hackathon-SCET/blob/main/Photos/User%20Login%20Page.png?raw=true)
 ![User Signup Page](https://github.com/Dev750wala/Hackathon-SCET/blob/main/Photos/User%20Signup%20Page.png?raw=true)
 
+
+Though, this project is not completed yet. there are some issues in the repo, like store management is still improper. I will do it in future.
