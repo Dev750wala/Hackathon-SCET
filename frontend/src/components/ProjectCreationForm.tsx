@@ -225,7 +225,6 @@ export default function ProjectCreationForm(): React.ReactElement {
             </div>
         )
     }
-    // TODO set the both admin cookies and jet_token expireIn 2-3 hours.
     return (
         <>
             {showAlert && <AlertDestructive />}

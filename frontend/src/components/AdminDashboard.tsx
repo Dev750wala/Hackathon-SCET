@@ -4,7 +4,7 @@ import { useAppSelector } from '../redux-store/hooks'
 import { removeUser } from '../redux-store/slices/userInfoSlice'
 import { useAppDispatch } from '../redux-store/hooks'
 import { useNavigate } from 'react-router-dom'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { RainbowButton } from "@/components/ui/rainbow-button";
 import { PlusIcon } from 'lucide-react'
 
@@ -18,6 +18,13 @@ const AdminDashboard = () => {
     const navigate = useNavigate();
     const [error1, setError] = useState<string>("");
     console.log(user);
+
+    useEffect(() => {
+        setTimeout(() => {
+            console.log("Hedjsifhsdo");
+            
+        }, 1500);
+    }, [])
 
     const handleLogout = async () => {
         console.log("logging out");

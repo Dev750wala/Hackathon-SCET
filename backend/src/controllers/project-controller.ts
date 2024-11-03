@@ -6,7 +6,7 @@ import { IProject, ParticipationTeam } from "../interfaces/project-interfaces";
 // import mongoose from "mongoose";
 
 export async function handleShowProject(req: Request, res: Response) {
-    try {
+    try { 
         await connectToDB();
         const projectId: string = req.params.projectId;
         if (!projectId) {
@@ -14,12 +14,16 @@ export async function handleShowProject(req: Request, res: Response) {
         }
 
         let project = await PROJECT.findOne({ id: projectId }, { _id: 0, __v: 0 }).lean() as IProject;
-
+        console.log("The project is below: ")
+        console.log(project);
         if (!project) {
             return res.status(404).json({ message: "Project not found" });
         }
-
+        
+        console.log("before");
         const organizerData = await USER.findById(project.organizer, { _id: 0, username: 1, fullName: 1 });
+        console.log("after");
+        
         if (!organizerData) {
             return res.status(404).json({ message: "Organizer not found" });
         }

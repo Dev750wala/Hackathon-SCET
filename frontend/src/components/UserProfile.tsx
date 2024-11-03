@@ -102,7 +102,7 @@ export default function UserProfile() {
 
     useEffect(() => {
         setLoading(true);
-        const fetchUser = async () => {
+        const fetchUser = async () => { 
             try {
                 const r = await fetch(`${import.meta.env.VITE_BACKEND_URL}/user/${username}`, {
                     method: "GET",

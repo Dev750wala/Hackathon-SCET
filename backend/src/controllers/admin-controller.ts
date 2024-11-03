@@ -166,9 +166,10 @@ export async function handleAdminSignup(req: Request, res: Response) {
  * the response object will contain a status code of 500 and an error message.
  */
 export async function handleAdminLogin(req: Request, res: Response): Promise<Response> {
+    try {
     const body: AdminLoginRequestBody = req.body;
 
-    try {
+        await connectToDB();
         const user: IUser = await USER.adminLogin(body);
 
         const tokenObject: AdminTokenUser = {
@@ -201,7 +202,7 @@ export async function handleAdminLogin(req: Request, res: Response): Promise<Res
         console.log(`Unexpected error occured during user signup: ${error}`);
         const errors = handleErrors(error, "organizer");
         return res.status(500).json({ error: errors });
-    }
+    } 
 
 }
 

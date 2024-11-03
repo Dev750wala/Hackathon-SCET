@@ -502,7 +502,9 @@ export async function verifyUserFromToken(req: Request, res: Response) {
     const adminToken: string | undefined = req.cookies.admin;
 
     let userResponse: any = null;
-    let isAdmin: boolean | null = null;
+    let isAdmin: boolean = false;
+    let userError: string | null = null;
+    let adminError: string | null = null;
 
     if (!jwt_token && !adminToken) {
         return res.status(401).json({
@@ -512,50 +514,34 @@ export async function verifyUserFromToken(req: Request, res: Response) {
         });
     }
 
-    // await connectToDB();
-
     try {
         if (jwt_token) {
             const decodedToken: TokenUser | false = tokenCheckUp(jwt_token);
             if (!decodedToken) {
-                if (adminToken) {
-                    try {
-                        const decodedAdminToken = jwt.verify(adminToken, process.env.JWT_STRING as string) as AdminPayload;
-                        isAdmin = decodedAdminToken.isAdmin;
-                    } catch (error) {
-                        return res.status(403).json({
-                            user: null,
-                            isAdmin: false,
-                            message: "Admin token verification failed",
-                        });
-                    }
+                userError = "Invalid user token";
+            } else {
+                const user = await USER.findOne({ email: decodedToken.email });
+                if (user) {
+                    userResponse = {
+                        enrollmentNumber: user.enrollmentNumber,
+                        username: user.username, 
+                        email: user.email,
+                        role: user.role,
+                        fullName: user.fullName,
+                        contact_no: user.contact_no,
+                        skills: user.skills,
+                        biography: user.biography,
+                        portfolio: user.portfolio,
+                        socialLinks: user.socialLinks,
+                        verified: user.verified,
+                        registrationDate: user.registrationDate,
+                        participationHistory: user.participationHistory,
+                        availability: user.availability,
+                    };
                 }
-                return res.status(403).json({
-                    user: null,
-                    isAdmin: false,
-                    message: "Invalid user token",
-                });
             }
-
-            const user = await USER.findOne({ email: decodedToken.email });
-            if (user) {
-                userResponse = {
-                    enrollmentNumber: user.enrollmentNumber,
-                    username: user.username,
-                    email: user.email,
-                    role: user.role,
-                    fullName: user.fullName,
-                    contact_no: user.contact_no,
-                    skills: user.skills,
-                    biography: user.biography,
-                    portfolio: user.portfolio,
-                    socialLinks: user.socialLinks,
-                    verified: user.verified,
-                    registrationDate: user.registrationDate,
-                    participationHistory: user.participationHistory,
-                    availability: user.availability,
-                };
-            }
+        } else {
+            userError = "User token not provided";
         }
 
         if (adminToken) {
@@ -563,18 +549,36 @@ export async function verifyUserFromToken(req: Request, res: Response) {
                 const decodedAdminToken = jwt.verify(adminToken, process.env.JWT_STRING as string) as AdminPayload;
                 isAdmin = decodedAdminToken.isAdmin;
             } catch (error) {
-                return res.status(403).json({
-                    user: userResponse,
-                    isAdmin: false,
-                    message: "Admin token verification failed",
-                });
+                adminError = "Admin token verification failed";
             }
+        } else {
+            adminError = "Admin token not provided";
         }
 
-        return res.status(200).json({
-            user: userResponse,
-            isAdmin: isAdmin ?? false,
-        });
+        if (userError && adminError) {
+            return res.status(403).json({
+                user: null,
+                isAdmin: false,
+                message: `${userError} & ${adminError}`,
+            });
+        } else if (userError) {
+            return res.status(403).json({
+                user: null,
+                isAdmin: isAdmin,
+                message: userError,
+            });
+        } else if (adminError) {
+            return res.status(403).json({
+                user: userResponse,
+                isAdmin: false,
+                message: adminError,
+            });
+        } else {
+            return res.status(200).json({
+                user: userResponse,
+                isAdmin: isAdmin,
+            });
+        }
 
     } catch (error) {
         return res.status(500).json({
@@ -584,6 +588,8 @@ export async function verifyUserFromToken(req: Request, res: Response) {
         });
     }
 }
+
+
 
 export async function handleShowProjectDetails(req: Request, res: Response) {
     await connectToDB();
