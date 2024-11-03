@@ -81,3 +81,14 @@ export interface Filters {
     status: "student" | "organizer" | "";
     maxParticipants: number | string;
 }
+
+
+export interface ParticipationTeamRequestInterface {
+    name: string;
+    description: string;
+    teamMembers: {
+        fullName: string;
+        username: string;
+        participatingStatus: 'accepted' | 'pending';
+    }[];
+}

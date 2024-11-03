@@ -6,6 +6,7 @@ import { AdminLoginRequestBody } from "./admin-interfaces";
 // date: string;
 // awards?: string[];
 export interface ParticipationHistory {
+    name: string;
     eventId: mongoose.Types.ObjectId;
 }
 

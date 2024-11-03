@@ -70,6 +70,9 @@ const userSchema = new mongoose.Schema<IUser>({
         // awards: {
         //     type: [String],
         // }
+        name: {
+            type: String,
+        },
         eventId: {
             type: mongoose.Types.ObjectId,
         }

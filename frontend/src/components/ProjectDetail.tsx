@@ -15,7 +15,7 @@ import LiveAnimation from "./LiveAnimation"
 import Navbar from './Navbar'
 import { useAppSelector } from '@/redux-store/hooks'
 import { useParams } from 'react-router-dom'
-import { UserSuggestionSearchInterface } from '@/interfaces'
+import { User, UserSuggestionSearchInterface } from '@/interfaces'
 // import { AvatarImage } from '@radix-ui/react-avatar'
 // import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@radix-ui/react-select'
 
@@ -70,32 +70,28 @@ interface ProjectFetchingSuccessResponse {
     } | null;
 }
 
-const mockUsers = [
-    { username: 'johndoe', fullName: 'John Doe', avatar: 'https://i.pravatar.cc/150?u=johndoe' },
-    { username: 'janedoe', fullName: 'Jane Doe', avatar: 'https://i.pravatar.cc/150?u=janedoe' },
-    { username: 'bobsmith', fullName: 'Bob Smith', avatar: 'https://i.pravatar.cc/150?u=bobsmith' },
-    { username: 'alicejohnson', fullName: 'Alice Johnson', avatar: 'https://i.pravatar.cc/150?u=alicejohnson' },
-    { username: 'charliebravo', fullName: 'Charlie Bravo', avatar: 'https://i.pravatar.cc/150?u=charliebravo' },
-]
+// const mockUsers = [
+//     { username: 'johndoe', fullName: 'John Doe', avatar: 'https://i.pravatar.cc/150?u=johndoe' },
+//     { username: 'janedoe', fullName: 'Jane Doe', avatar: 'https://i.pravatar.cc/150?u=janedoe' },
+//     { username: 'bobsmith', fullName: 'Bob Smith', avatar: 'https://i.pravatar.cc/150?u=bobsmith' },
+//     { username: 'alicejohnson', fullName: 'Alice Johnson', avatar: 'https://i.pravatar.cc/150?u=alicejohnson' },
+//     { username: 'charliebravo', fullName: 'Charlie Bravo', avatar: 'https://i.pravatar.cc/150?u=charliebravo' },
+// ]
 
 export default function ProjectDetail() {
     const { projectId } = useParams<{ projectId: string }>();
+
     const [project, setProject] = useState<ProjectFetchingSuccessResponse['project'] | null>(null);
     const [selfTeamData, setSelfTeamData] = useState<ProjectFetchingSuccessResponse['selfTeamData'] | null>(null);
-
     const [expandedSection, setExpandedSection] = useState<string | null>(null)
     const [loading, setLoading] = useState(false)
-    // const [error, setError] = useState<string | null>(null);
     const [projectSearchErrorCode, setProjectSearchErrorCode] = useState<number>(0);
+    const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
+    const [userSuggestions, setUserSuggestions] = useState<UserSuggestionSearchInterface[]>([])
+    const [searchQuery, setSearchQuery] = useState('');
 
     const user = useAppSelector(state => state.userInfo);
     const [isLoggedIn, setIsLoggedIn] = useState<boolean>(!!user);
-
-    // const [currentFormTotalMembers, setCurrentFormTotalMembers] = useState(0);
-    const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
-    const [userSuggestions, setUserSuggestions] = useState<UserSuggestionSearchInterface[]>([])
-
-    const [searchQuery, setSearchQuery] = useState('');
 
     const { register, control, handleSubmit, watch, setValue, setError, formState: { errors } } = useForm<Team>({
         defaultValues: {
@@ -111,7 +107,8 @@ export default function ProjectDetail() {
     })
 
     const onSubmit = (data: Team) => {
-        console.log(data);
+        let finalData = data.teamMembers.push({ fullName: (user as User).fullName, username: (user as User).username, participatingStatus: 'accepted' });
+        console.log(finalData);
         try {
             const r = fetch(`${import.meta.env.VITE_BACKEND_URL}/api/project/${projectId}/team`, {
                 method: "POST",
@@ -119,7 +116,7 @@ export default function ProjectDetail() {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(data)
+                body: JSON.stringify(finalData)
             })
         } catch (error) {
             setError('name', {
@@ -129,7 +126,7 @@ export default function ProjectDetail() {
         }
         // Here you would typically send the data to your backend
     }
-    const MAX_TEAM_MEMBERS = project?.maxParticipants || 4;
+    const MAX_TEAM_MEMBERS = project?.maxParticipants as number - 1 || 4;
 
     const searchUsers = async (query: string) => {
         try {

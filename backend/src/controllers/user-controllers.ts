@@ -13,7 +13,7 @@ import { handleErrors } from "../utilities/handleErrors";
 // import PROJECT from "../models/project-model";
 import { AdminPayload } from "../interfaces/admin-interfaces";
 import PROJECT from "../models/project-model";
-import { IProject } from "../interfaces/project-interfaces";
+import { IProject, ParticipationTeam, ParticipationTeamRequestInterface } from "../interfaces/project-interfaces";
 
 /**
  * Generates a JWT token for the provided user.
@@ -151,7 +151,7 @@ export async function handleUserSignup(req: Request, res: Response) {
         }
 
         const token = signToken(tokenObject);
-        sendMail(newUser, "verify");
+        sendMail(newUser, null, null, "verify");
         res.cookie("jwt_token", token, {
             httpOnly: true,
             secure: false,
@@ -433,8 +433,66 @@ export async function handleVerifyUserEmail(req: Request, res: Response) {
 
 
 export async function handleParticipateInProject(req: Request, res: Response) {
-    // TODO continue from here!
-    console.log("hello world");
+    // console.log("hello world");
+    const projectId = req.params.projectId;
+    const username = req.params.username;
+    const body: ParticipationTeamRequestInterface = req.body;
+    try {
+        await connectToDB();
+
+        const project = await PROJECT.findOne({ id: projectId });
+        if (!project) {
+            return res.status(404).json({ message: "Project not found" });
+        }
+        let userAlreadyParticipated = false;
+        const user = await USER.findOne({ username: username })
+
+        for (const team of project.participantTeam) {
+            for (const member of team.teamMembers) {
+                if (member.id.equals(user?.id) && member.participatingStatus === 'accepted') {
+                    userAlreadyParticipated = true;
+                }
+            }
+        }
+        if (userAlreadyParticipated) {
+            return res.status(400).json({ message: "User already participated in this project" });
+        }
+        const memberLookup = await USER.find({ username: { $in: body.teamMembers.map(member => member.username) } });
+
+        const finalDataToInsert: ParticipationTeam = {
+            name: body.name,
+            description: body.description,
+            teamMembers: body.teamMembers.map(member => {
+                const foundMember: IUser = memberLookup.find(dbMember => dbMember.username === member.username) as IUser;
+                return {
+                    id: foundMember._id as mongoose.Types.ObjectId,
+                    name: member.fullName,
+                    participatingStatus: member.participatingStatus,
+                };
+            }).filter(member => member.id !== null),
+        };
+        const updatedProject = await PROJECT.findOneAndUpdate({ id: projectId }, {
+            $push: { participantTeam: finalDataToInsert },
+        }, { new: true });
+
+        if (!updatedProject) {
+            return res.status(500).json({ message: "Failed to participate in the project" });
+        }
+
+        const allMembers = await USER.find({ _id: { $in: finalDataToInsert.teamMembers.map(member => member.id)}});
+        allMembers.map(async (member) => {
+            const updatedMember: IUser | null = await USER.findByIdAndUpdate(member.id, {
+                $push: { participationHistory: { 
+                    eventId: updatedProject.id,
+                    name: updatedProject.name,
+                }},
+            }, { new: true });
+        })
+        
+
+    } catch (error) {
+
+    }
 }
 
 
