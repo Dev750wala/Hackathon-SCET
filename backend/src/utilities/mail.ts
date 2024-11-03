@@ -62,9 +62,6 @@ export async function sendMail(user: IUser, project: IProject | null, user2: IUs
         html: emailBody,
     };
 
-    // console.log("%c mailOptions", "color: red; font-size: 16px; font-weight: bold", mailOptions);
-
-
     try {
         await transporter.sendMail(mailOptions);
     } catch (error: any) {

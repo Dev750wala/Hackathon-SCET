@@ -649,3 +649,68 @@ export async function handleShowProjectDetails(req: Request, res: Response) {
         disConnectfromDB();
     }
 }
+
+
+export async function handleReviewCollabProposal (req: Request, res: Response) {
+    try {
+        await connectToDB();
+        const projectId: string = req.params.projectId;
+        const recipientId: string = req.params.recipientId;
+        const reviewCode = req.params.reviewCode;
+        
+        if (recipientId !== req.user?.username) {
+            return res.status(400).json({ message: "INVALID URL" }).redirect(`${process.env.FRONTEND_URL}/user/login`);
+        }
+        if (!projectId || !recipientId || !reviewCode) {
+            return res.status(400).json({ message: "Invalid request" });
+        }
+        if (reviewCode !== "f3b42cb0cb114a408139735f762ab9b6r" && reviewCode !== "6d0373a2e96149859786420dc6873457a") {
+            return res.status(400).json({ message: " INVALID URL" });
+        }
+        
+        const project = await PROJECT.findOne({ id: projectId });
+        if (!project) {
+            return res.status(404).json({ message: "INVALID URL" });
+        }
+        if (new Date().getTime() > new Date(project.registrationEnd).getTime()) {
+            return res.status(400).json({ message: "Registration period has ended" });
+        }
+        const recipient: IUser | null | undefined= await USER.findOne({ username: recipientId });
+        if (!recipient) {
+            return res.status(404).json({ message: "INVALID URL" });
+        }
+        const userInProjectTeams = project.participantTeam.map(team => team.teamMembers.some(member => member.id.equals(recipient._id as mongoose.Types.ObjectId)));
+        if (!userInProjectTeams) {
+            return res.status(400).json({ message: "YOU ARE NOT IN THIS PROJECT" });
+        }
+
+        for (const team of project.participantTeam) {
+            for (const member of team.teamMembers) {
+                if (member.id.equals(recipient._id as mongoose.Types.ObjectId)) {
+                    if (member.participatingStatus === "accepted") {
+                        return res.status(400).json({ message: "You have already reviewed" });
+                    } else {
+                        if (reviewCode === "6d0373a2e96149859786420dc6873457a") {
+                            member.participatingStatus = "accepted";
+                        } else {
+                            team.teamMembers = team.teamMembers.filter(member => !member.id.equals(recipient._id as mongoose.Types.ObjectId));
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+        const updatedProject = await PROJECT.findOneAndUpdate({ id: projectId, "participantTeam.teamMembers.id": recipient._id }, {
+            $set: { "participantTeam.$.teamMembers.$[elem].participatingStatus": "accepted" },
+        }, {
+            arrayFilters: [{ "elem.id": recipient._id }],
+            new: true,
+        });
+        if (!updatedProject) {
+            return res.status(500).json({ message: "Internal Server Error" });
+        }
+        return res.status(200).json({ message: "Successfully accepted the proposal" });
+    } catch (error) {
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
+}
