@@ -1,17 +1,17 @@
-/.env
-BASE_URL=backend-url
-FRONTEND_URL=frontend-url
-DB_STRING=mongodb-connection-string
-BACKEND_PORT=port
-JWT_STRING=string
-ADMIN_JWT_STRING=string
-SESSION_MAX_AGE=10d
-NODEMAILER_EMAIL=your mail id
-NODEMAILER_PASSKEY=mail pass key in format [xxxx xxxx xxxx xxxx]
-ADMIN_PASSWORD=admin auth password
+### /.env
+- BASE_URL=backend-url
+- FRONTEND_URL=frontend-url
+- DB_STRING=mongodb-connection-string
+- BACKEND_PORT=port
+- JWT_STRING=string
+- ADMIN_JWT_STRING=string
+- SESSION_MAX_AGE=10d
+- NODEMAILER_EMAIL=your mail id
+- NODEMAILER_PASSKEY=mail pass key in format [xxxx xxxx xxxx xxxx]
+- ADMIN_PASSWORD=admin auth password
 
-/frontend/.env
-VITE_BACKEND_URL=backend-url
+### /frontend/.env
+- VITE_BACKEND_URL=backend-url
 
 ## Screenshots
 
