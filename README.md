@@ -17,7 +17,7 @@ VITE_BACKEND_URL=backend-url
 
 Include screenshots here to show examples of the UI or results.
 
-![Admin Auth]("https://github.com/Dev750wala/Hackathon-SCET/blob/main/Photos/Admin%20Auth.png?raw=true")
+![Admin Auth](https://github.com/Dev750wala/Hackathon-SCET/blob/main/Photos/Admin%20Auth.png?raw=true)
 
 ![Screenshot 2](./path/to/screenshot2.png)
 *Description of Screenshot 2*
