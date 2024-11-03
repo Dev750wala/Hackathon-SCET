@@ -479,19 +479,20 @@ export async function handleParticipateInProject(req: Request, res: Response) {
             return res.status(500).json({ message: "Failed to participate in the project" });
         }
 
-        const allMembers = await USER.find({ _id: { $in: finalDataToInsert.teamMembers.map(member => member.id)}});
-        allMembers.map(async (member) => {
-            const updatedMember: IUser | null = await USER.findByIdAndUpdate(member.id, {
-                $push: { participationHistory: { 
-                    eventId: updatedProject.id,
-                    name: updatedProject.name,
-                }},
-            }, { new: true });
-        })
-        
+        // const allMembers = await USER.find({ _id: { $in: finalDataToInsert.teamMembers.map(member => member.id)}});
+        // allMembers.map(async (member) => {
+        //     const updatedMember: IUser | null = await USER.findByIdAndUpdate(member.id, {
+        //         $push: { participationHistory: { 
+        //             eventId: updatedProject.id,
+        //             name: updatedProject.name,
+        //         }},
+        //     }, { new: true });
+        // })
+        return res.status(200).json({ message: "Successfully participated in the project" });
 
     } catch (error) {
-
+        console.log(`Unexpected error occured: ${error}`);
+        return res.status(500).json({ message: "Internal Server Error" });
     }
 }
 
@@ -651,13 +652,13 @@ export async function handleShowProjectDetails(req: Request, res: Response) {
 }
 
 
-export async function handleReviewCollabProposal (req: Request, res: Response) {
+export async function handleReviewCollabProposal(req: Request, res: Response) {
     try {
         await connectToDB();
         const projectId: string = req.params.projectId;
         const recipientId: string = req.params.recipientId;
         const reviewCode = req.params.reviewCode;
-        
+
         if (recipientId !== req.user?.username) {
             return res.status(400).json({ message: "INVALID URL" }).redirect(`${process.env.FRONTEND_URL}/user/login`);
         }
@@ -667,7 +668,7 @@ export async function handleReviewCollabProposal (req: Request, res: Response) {
         if (reviewCode !== "f3b42cb0cb114a408139735f762ab9b6r" && reviewCode !== "6d0373a2e96149859786420dc6873457a") {
             return res.status(400).json({ message: " INVALID URL" });
         }
-        
+
         const project = await PROJECT.findOne({ id: projectId });
         if (!project) {
             return res.status(404).json({ message: "INVALID URL" });
@@ -675,7 +676,7 @@ export async function handleReviewCollabProposal (req: Request, res: Response) {
         if (new Date().getTime() > new Date(project.registrationEnd).getTime()) {
             return res.status(400).json({ message: "Registration period has ended" });
         }
-        const recipient: IUser | null | undefined= await USER.findOne({ username: recipientId });
+        const recipient: IUser | null | undefined = await USER.findOne({ username: recipientId });
         if (!recipient) {
             return res.status(404).json({ message: "INVALID URL" });
         }
@@ -692,7 +693,15 @@ export async function handleReviewCollabProposal (req: Request, res: Response) {
                     } else {
                         if (reviewCode === "6d0373a2e96149859786420dc6873457a") {
                             member.participatingStatus = "accepted";
-                        } else {
+                            const updatedMember: IUser | null = await USER.findByIdAndUpdate(recipient.id, {
+                                $push: {
+                                    participationHistory: {
+                                        eventId: project.id,
+                                        name: project.name,
+                                    }
+                                },
+                            }, { new: true });
+                        } else if (reviewCode === "f3b42cb0cb114a408139735f762ab9b6r") {
                             team.teamMembers = team.teamMembers.filter(member => !member.id.equals(recipient._id as mongoose.Types.ObjectId));
                         }
                         break;
@@ -700,8 +709,9 @@ export async function handleReviewCollabProposal (req: Request, res: Response) {
                 }
             }
         }
-        const updatedProject = await PROJECT.findOneAndUpdate({ id: projectId }, project, 
-            {new: true}
+
+        const updatedProject = await PROJECT.findOneAndUpdate({ id: projectId }, project,
+            { new: true }
         );
         if (!updatedProject) {
             return res.status(500).json({ message: "Internal Server Error" });
