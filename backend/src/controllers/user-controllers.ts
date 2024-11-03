@@ -700,12 +700,9 @@ export async function handleReviewCollabProposal (req: Request, res: Response) {
                 }
             }
         }
-        const updatedProject = await PROJECT.findOneAndUpdate({ id: projectId, "participantTeam.teamMembers.id": recipient._id }, {
-            $set: { "participantTeam.$.teamMembers.$[elem].participatingStatus": "accepted" },
-        }, {
-            arrayFilters: [{ "elem.id": recipient._id }],
-            new: true,
-        });
+        const updatedProject = await PROJECT.findOneAndUpdate({ id: projectId }, project, 
+            {new: true}
+        );
         if (!updatedProject) {
             return res.status(500).json({ message: "Internal Server Error" });
         }
