@@ -197,3 +197,9 @@ export interface searchingSuccessResponse {
     users: UserSearchSuccess[];
     projects: ProjectSearchSuccess[];
 }
+
+
+export interface UserSuggestionSearchInterface {
+    username: string;
+    fullName: string;
+}

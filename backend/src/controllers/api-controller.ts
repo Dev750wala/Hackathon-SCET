@@ -16,8 +16,8 @@ function parseFilters(query: any): Filters {
         organizer: query.organizer === 'true',
         status: query.status || '',
         dateRange: query.startDate || query.endDate,
-        maxParticipants: query.maxParticipants === 'Select Max Participants' 
-            ? "" 
+        maxParticipants: query.maxParticipants === 'Select Max Participants'
+            ? ""
             : Number(query.maxParticipants),
     };
 }
@@ -138,7 +138,7 @@ export async function handleGetUserData(req: Request, res: Response) {
                 }
             }
         ]).exec();
-        for( let i = 0; i < projects.length; i++ ) {
+        for (let i = 0; i < projects.length; i++) {
             const organizer = await USER.findOne({ _id: projects[i].organizer }).exec();
             projects[i].organizer = {
                 username: organizer?.username,
@@ -150,7 +150,7 @@ export async function handleGetUserData(req: Request, res: Response) {
         console.log("--------------------------------------------------");
         console.log(projects);
         console.log("--------------------------------------------------");
-        
+
         return res.status(200).json({ users, projects });
 
     } catch (error) {
@@ -191,4 +191,35 @@ export async function handleGetUserData(req: Request, res: Response) {
     //     query.maxParticipants = { $lte: filters.maxParticipants };
     // }
 
+}
+
+
+export async function handleGetUserSuggestionData(req: Request, res: Response) {
+    try {
+        await connectToDB();
+        const q = req.query.q as string;
+        console.log("Received search request", q);
+        if (!q) {
+            return res.status(400).json({ message: 'Bad Request' });
+        }
+
+        const users = await USER.find({
+            $and: [
+                { role: 'student' },
+                {
+                    $or: [
+                        { username: { $regex: q, $options: 'i' } },
+                        { fullName: { $regex: q, $options: 'i' } }
+                    ]
+                },
+            ],
+        }, { _id: 0, username: 1, fullName: 1 });
+        console.log(users);
+        
+
+        return res.status(200).json(users);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
 }

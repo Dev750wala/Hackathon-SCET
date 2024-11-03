@@ -26,4 +26,4 @@ userRoute
 
     .get("/api/auth/verify", verifyUserFromToken)
 
-export default userRoute;
+export default userRoute; 

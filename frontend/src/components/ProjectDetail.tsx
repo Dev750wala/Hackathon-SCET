@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useForm, useFieldArray, Controller, Form } from 'react-hook-form'
+import { useForm, useFieldArray } from 'react-hook-form'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -15,8 +15,9 @@ import LiveAnimation from "./LiveAnimation"
 import Navbar from './Navbar'
 import { useAppSelector } from '@/redux-store/hooks'
 import { useParams } from 'react-router-dom'
-import { AvatarImage } from '@radix-ui/react-avatar'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@radix-ui/react-select'
+import { UserSuggestionSearchInterface } from '@/interfaces'
+// import { AvatarImage } from '@radix-ui/react-avatar'
+// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@radix-ui/react-select'
 
 interface TeamMember {
     fullName: string;
@@ -68,6 +69,7 @@ interface ProjectFetchingSuccessResponse {
         }[];
     } | null;
 }
+
 const mockUsers = [
     { username: 'johndoe', fullName: 'John Doe', avatar: 'https://i.pravatar.cc/150?u=johndoe' },
     { username: 'janedoe', fullName: 'Jane Doe', avatar: 'https://i.pravatar.cc/150?u=janedoe' },
@@ -91,11 +93,11 @@ export default function ProjectDetail() {
 
     // const [currentFormTotalMembers, setCurrentFormTotalMembers] = useState(0);
     const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
-    const [userSuggestions, setUserSuggestions] = useState<typeof mockUsers>([])
+    const [userSuggestions, setUserSuggestions] = useState<UserSuggestionSearchInterface[]>([])
 
     const [searchQuery, setSearchQuery] = useState('');
 
-    const { register, control, handleSubmit, watch, setValue, formState: { errors } } = useForm<Team>({
+    const { register, control, handleSubmit, watch, setValue, setError, formState: { errors } } = useForm<Team>({
         defaultValues: {
             name: '',
             description: '',
@@ -109,35 +111,65 @@ export default function ProjectDetail() {
     })
 
     const onSubmit = (data: Team) => {
-        console.log(data)
+        console.log(data);
+        try {
+            const r = fetch(`${import.meta.env.VITE_BACKEND_URL}/api/project/${projectId}/team`, {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+        } catch (error) {
+            setError('name', {
+                type: 'manual',
+                message: 'An unexpected error occurred. Please try again later.'    
+            })
+        }
         // Here you would typically send the data to your backend
     }
-    const MAX_TEAM_MEMBERS = 4
+    const MAX_TEAM_MEMBERS = project?.maxParticipants || 4;
 
-    const searchUsers = (query: string) => {
-        return mockUsers.filter(user => {
-            const isNotInTeam = fields.every(member => member.username !== user.username);
-            const matchesQuery = user.username.toLowerCase().includes(query.toLowerCase()) ||
-                user.fullName.toLowerCase().includes(query.toLowerCase());
+    const searchUsers = async (query: string) => {
+        try {
+            const r = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/users/suggestions/search?q=${query}`, {
+                method: "GET",
+                credentials: "include",
+            })
+            const response = await r.json() as UserSuggestionSearchInterface[];
 
-            return isNotInTeam && matchesQuery;
-        });
+            if (r.ok) {
+                return response.filter(user => {
+                    const isNotInTeam = fields.every(member => member.username !== user.username);
+                    const matchesQuery = user.username.toLowerCase().includes(query.toLowerCase()) ||
+                        user.fullName.toLowerCase().includes(query.toLowerCase());
+
+                    return isNotInTeam && matchesQuery;
+                });
+            }
+        } catch (error) {
+            console.error("Error searching users:", error);
+        }
+
     };
 
-    const handleUserSearch = useCallback((query: string) => {
+    const handleUserSearch = useCallback(async (query: string) => {
         if (query.length > 1) {
-            const suggestions = searchUsers(query)
-            setUserSuggestions(suggestions)
+            const suggestions = await searchUsers(query)
+            if (suggestions !== undefined) {
+                setUserSuggestions(suggestions)
+            }
         } else {
             setUserSuggestions([])
         }
     }, [])
 
-    const addTeamMember = useCallback((user: typeof mockUsers[0]) => {
+    const addTeamMember = useCallback((user: UserSuggestionSearchInterface) => {
         if (fields.length < MAX_TEAM_MEMBERS && !fields.some(member => member.username === user.username)) {
             append({ ...user, participatingStatus: 'pending' });
             setUserSuggestions([]);
-            setSearchQuery(''); 
+            setSearchQuery('');
         }
     }, [fields, append]);
 
@@ -493,7 +525,7 @@ export default function ProjectDetail() {
                                                                 className="px-4 py-2 hover:bg-muted cursor-pointer flex items-center space-x-2"
                                                                 onClick={() => {
                                                                     addTeamMember(user)
-                                                                } }
+                                                                }}
                                                             >
                                                                 {/* <Avatar>
                                                                     <AvatarImage src={user.avatar} alt={user.fullName} />
@@ -548,7 +580,15 @@ export default function ProjectDetail() {
                                             ))}
                                         </div>
 
-                                        <Button type="submit" className="w-full">Create Team</Button>
+                                        <Button type="submit" className="w-full">
+                                            Create a Team
+                                        </Button>
+                                        <div className="flex justify-center mt-2 py-2">
+                                            <label className="text-center text-red-700 font-semibold text-sm">
+                                                * While creating a team, An invitation mail will be sent to all the members you have added.
+                                            </label>
+                                        </div>
+
                                     </form>
                                 </CardContent>
                             </Card>
