@@ -28,6 +28,7 @@ import { IProject, ParticipationTeam, ParticipationTeamRequestInterface } from "
  * @throws - Throws an error if the JWT secret is not provided.
  */
 function signToken(user: TokenUser) {
+    console.log("The jwt string: ", process.env.JWT_STRING);
     const token = jwt.sign(user, process.env.JWT_STRING as string, {
         expiresIn: process.env.SESSION_MAX_AGE,
     })
@@ -76,7 +77,7 @@ function tokenCheckUp(token: string) {
  * @throws - Throws an error if any unexpected error occurs during the signup process.
  */
 export async function handleUserSignup(req: Request, res: Response) {
-    await connectToDB();
+    connectToDB();
     const body: SignupDetails = req.body;
     console.log(body);
 
@@ -175,7 +176,7 @@ export async function handleUserSignup(req: Request, res: Response) {
         }
 
     } finally {
-        await disConnectfromDB();
+        disConnectfromDB();
     }
 }
 

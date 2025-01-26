@@ -5,7 +5,7 @@ import path from "path"
 import dotenv from "dotenv"
 import { IProject } from '../interfaces/project-interfaces';
 
-dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 const transporter = nodemailer.createTransport({
     service: 'gmail',

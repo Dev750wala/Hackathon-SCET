@@ -10,13 +10,13 @@ import { checkUser } from './middlewares/user-middleware';
 import cors from "cors";
 
 import { connectToDB } from './utilities/connection';
-// connectToDB();
+connectToDB();
 
-(async () => {
-    await connectToDB();
-})();
+// (async () => {
+//     await connectToDB();
+// })();
 
-dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 const app = express();
 app.use(cors({
