@@ -507,8 +507,8 @@ export async function verifyUserFromToken(req: Request, res: Response) {
     console.log("jwt_token: ", jwt_token);
     console.log("adminToken: ", adminToken);
 
-    let userResponse: any = null;
-    let isAdmin: boolean = false;
+    let userResponse: any;
+    let isAdmin: boolean;
     let userError: string | null = null;
     let adminError: string | null = null;
 
@@ -523,11 +523,17 @@ export async function verifyUserFromToken(req: Request, res: Response) {
     try {
         if (jwt_token) {
             const decodedToken: TokenUser | false = tokenCheckUp(jwt_token);
+            console.log(decodedToken);
+            
             if (!decodedToken) {
                 userError = "Invalid user token";
             } else {
                 const user = await USER.findOne({ email: decodedToken.email });
+                console.log("user: ", user);
+                
                 if (user) {
+                    console.log(user);
+                    
                     userResponse = {
                         enrollmentNumber: user.enrollmentNumber,
                         username: user.username, 
@@ -556,35 +562,44 @@ export async function verifyUserFromToken(req: Request, res: Response) {
                 isAdmin = decodedAdminToken.isAdmin;
             } catch (error) {
                 adminError = "Admin token verification failed";
+                isAdmin = false;
             }
         } else {
             adminError = "Admin token not provided";
+            isAdmin = false;
         }
+        console.log("userResponse: ", userResponse);
+        
+        return res.json({
+            user: userResponse,
+            isAdmin: isAdmin,
+            message: userError || adminError || "Successfully verified",
+        })
 
-        if (userError && adminError) {
-            return res.status(403).json({
-                user: null,
-                isAdmin: false,
-                message: `${userError} & ${adminError}`,
-            });
-        } else if (userError) {
-            return res.status(403).json({
-                user: null,
-                isAdmin: isAdmin,
-                message: userError,
-            });
-        } else if (adminError) {
-            return res.status(403).json({
-                user: userResponse,
-                isAdmin: false,
-                message: adminError,
-            });
-        } else {
-            return res.status(200).json({
-                user: userResponse,
-                isAdmin: isAdmin,
-            });
-        }
+        // if (userError && adminError) {
+        //     return res.status(403).json({
+        //         user: null,
+        //         isAdmin: false,
+        //         message: `${userError} & ${adminError}`,
+        //     });
+        // } else if (userError) {
+        //     return res.status(403).json({
+        //         user: null,
+        //         isAdmin: isAdmin,
+        //         message: userError,
+        //     });
+        // } else if (adminError) {
+        //     return res.status(403).json({
+        //         user: userResponse,
+        //         isAdmin: false,
+        //         message: adminError,
+        //     });
+        // } else {
+        //     return res.status(200).json({
+        //         user: userResponse,
+        //         isAdmin: isAdmin,
+        //     });
+        // }
 
     } catch (error) {
         return res.status(500).json({

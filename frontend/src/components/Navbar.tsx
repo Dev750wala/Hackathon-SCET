@@ -7,6 +7,7 @@ import { Link } from "react-router-dom"
 import { useAppSelector, useAppDispatch } from '@/redux-store/hooks'
 import { removeUser } from '@/redux-store/slices/userInfoSlice'
 import { useNavigate } from 'react-router-dom'
+// import { User } from '@/interfaces'
 
 interface NavbarProps {
     userType?: "student" | "organizer";
@@ -14,14 +15,14 @@ interface NavbarProps {
 
 export default function Navbar({ userType } : NavbarProps) {
     var isLoggedIn;
-
+    var user: any;
     const navigate = useNavigate();
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     // const [scrollPosition, setScrollPosition] = useState(0);
     const [isNavbarVisible, setIsNavbarVisible] = useState(true);
 
     const dispatch = useAppDispatch();
-    const user = useAppSelector(state => state.userInfo);
+    user = useAppSelector(state => state.userInfo);
     user ? isLoggedIn = true : isLoggedIn = false;
 
     const handleLogout = async () => {
@@ -108,7 +109,7 @@ export default function Navbar({ userType } : NavbarProps) {
                                     My Events
                                 </Link>
                                 <Link
-                                    to="/profile"
+                                    to={`/${user.username}`}
                                     className="hidden sm:flex items-center hover:bg-sky-950 hover:text-cyan-100 rounded-full transition duration-200 ease-in-out px-5 py-2 mx-1"
                                 >
                                     <User className="h-5 w-5 mr-2" />

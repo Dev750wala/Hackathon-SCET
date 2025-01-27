@@ -66,6 +66,7 @@ export async function onlyLoggedInUsers(req: Request, res: Response, next: NextF
 export async function checkUser(req: Request, res: Response, next: NextFunction) {
     
     // await connectToDB();
+
     const cookie = req.cookies?.jwt_token;
     if (!cookie) {
             req.user = null;
@@ -76,6 +77,8 @@ export async function checkUser(req: Request, res: Response, next: NextFunction)
             if (typeof userFromToken === 'object') {
                 // ERROR might occur.
                 const user = await USER.findOne({ email: userFromToken.email });
+                console.log("User found:", user);
+                
                 if (user) {
                         req.user = user;
                 } else {

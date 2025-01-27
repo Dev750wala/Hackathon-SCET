@@ -43,14 +43,14 @@ function App() {
                     if (resJson.user) {
                         dispatch(setUser(resJson.user));
                         console.log("STORE: user set");
-                    } else {
+                    } else if (resJson.user === null) {
                         dispatch(removeUser());
                         console.log("STORE: user removed");
                     }
                     if (resJson.isAdmin) {
                         dispatch(setAdmin());
                         console.log("STORE: admin set");
-                    } else {
+                    } else if (resJson.isAdmin === null) {
                         dispatch(removeAdmin());
                         console.log("STORE: admin removed");
                     }
