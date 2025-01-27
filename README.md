@@ -28,3 +28,8 @@ Include screenshots here to show examples of the UI or results.
 
 
 Though, this project is not completed yet. there are some issues in the repo, like store management is still improper. I will do it in the future.
+
+
+
+
+TIP To myself: keep the db connection alive.
