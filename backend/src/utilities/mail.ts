@@ -24,7 +24,10 @@ export async function sendMail(user: IUser, project: IProject | null, user2: IUs
     let emailBody;
     try {
         if (subject === "verify") {
-            const data = fs.readFileSync(path.join(__dirname, "../mail-formats/email-verification.txt"), "utf8").replace("[User]", `${user.fullName}`).replace("[VERIFICATION_LINK]", `${process.env.FRONTEND_URL}/user/verifyEmail/${user.username}/${user.verificationCode.code}`);
+            const data = fs.readFileSync(path.join(__dirname, "../mail-formats/email-verification.txt"), "utf8")
+            .replace("[User]", `${user.fullName}`)
+            .replace("[VERIFICATION_LINK]", `${process.env.FRONTEND_URL}/user/verifyEmail/${user.username}/${user.verificationCode.code}`);
+            
             emailBody = data;
         } else {
 

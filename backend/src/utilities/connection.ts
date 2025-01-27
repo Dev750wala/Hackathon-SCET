@@ -3,7 +3,7 @@ import USER from "../models/user-model";
 
 let isConnected = false; // Track the connection status
 
-export function connectToDB() {
+export async  function connectToDB() {
     if (isConnected) {
         console.log('Already connected to MongoDB.');
         return;
@@ -14,7 +14,7 @@ export function connectToDB() {
         const uri: string = "mongodb+srv://dev_sadisatsowala:rV6x65fSvugqhrq0@cluster0.y5ndt9w.mongodb.net/SCET?retryWrites=true&w=majority&appName=Cluster0";
         console.log("Connecting to the database...", uri);
         
-        mongoose.connect(uri);
+        await mongoose.connect(uri);
 
         isConnected = true;
         console.log('Successfully connected to the database!');

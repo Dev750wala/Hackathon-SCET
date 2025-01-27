@@ -36,6 +36,7 @@ const port = process.env.BACKEND_PORT || 3000;
 
 // app.get("/", async (req: Request, res: Response) => {
 // });
+// connectToDB()
 
 
 app.use("*", checkUser);

@@ -77,7 +77,7 @@ function tokenCheckUp(token: string) {
  * @throws - Throws an error if any unexpected error occurs during the signup process.
  */
 export async function handleUserSignup(req: Request, res: Response) {
-    connectToDB();
+    // connectToDB();
     const body: SignupDetails = req.body;
     console.log(body);
 
@@ -175,9 +175,10 @@ export async function handleUserSignup(req: Request, res: Response) {
             return res.status(400).json({ signupErrors: err });
         }
 
-    } finally {
-        disConnectfromDB();
-    }
+    } 
+    // finally {
+    //     disConnectfromDB();
+    // }
 }
 
 
@@ -299,7 +300,7 @@ export function handleUserLogout(req: Request, res: Response) {
  */
 export async function handleUserProfile(req: Request, res: Response) {
     try {
-        await connectToDB();
+        // await connectToDB();
         const username: string = req.params.username;
 
         if (mongoose.connection.readyState !== 1) {
@@ -333,10 +334,11 @@ export async function handleUserProfile(req: Request, res: Response) {
     } catch (error) {
         console.log(`Unexpected error occured: ${error}`);
         return res.status(500).json({ error: "Internal Server Error" });
-    } finally {
-        console.log("Hefdfdfdsggsgfsgsfg");
-        disConnectfromDB();
-    }
+    } 
+    // finally {
+    //     console.log("Hefdfdfdsggsgfsgsfg");
+    //     disConnectfromDB();
+    // }
 }
 
 
@@ -501,6 +503,9 @@ export async function handleParticipateInProject(req: Request, res: Response) {
 export async function verifyUserFromToken(req: Request, res: Response) {
     const jwt_token: string | undefined = req.cookies.jwt_token;
     const adminToken: string | undefined = req.cookies.admin;
+
+    console.log("jwt_token: ", jwt_token);
+    console.log("adminToken: ", adminToken);
 
     let userResponse: any = null;
     let isAdmin: boolean = false;

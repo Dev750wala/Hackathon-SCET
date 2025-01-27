@@ -104,6 +104,7 @@ export default function LoginPage() {
         const resJson = await r.json();
         if (r.status === 403) {
             console.log("user already logged in");
+            dispatch(setUser(resJson.user as User));
         } else if (resJson.error === undefined) {
             // console.log("logged in successfully");
             dispatch(setUser(resJson.user as User));
