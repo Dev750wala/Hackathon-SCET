@@ -196,7 +196,6 @@ export async function handleUserSignup(req: Request, res: Response) {
  * @throws - Throws an error if any unexpected error occurs during the login process.
  */
 export async function handleUserLogin(req: Request<{}, {}, LoginRequestBody>, res: Response) {
-    await connectToDB();
     const body: LoginRequestBody = req.body;
 
     try {
@@ -236,9 +235,10 @@ export async function handleUserLogin(req: Request<{}, {}, LoginRequestBody>, re
         // console.log(`Unexpected error occured during user signup: ${error}`);
         const errors = handleErrors(error, "student");
         return res.status(errors.statusCode).json({ error: errors });
-    } finally {
-        await disConnectfromDB();
-    }
+    } 
+    // finally {
+    //     await disConnectfromDB();
+    // }
 }
 
 
@@ -370,8 +370,6 @@ export async function handleVerifyUserEmail(req: Request, res: Response) {
     const verificationString: string = req.params.verificationCode;
     const usernameInParam: string = req.params.username;
 
-    await connectToDB();
-
     try {
         const user: IUser | null = await USER.findOne(
             { username: usernameInParam },
@@ -429,9 +427,10 @@ export async function handleVerifyUserEmail(req: Request, res: Response) {
         console.log(`Unexpected error occured: ${error}`);
         return res.status(500).json({ error: "Internal Server Error" });
 
-    } finally {
-        disConnectfromDB();
-    }
+    } 
+    // finally {
+    //     disConnectfromDB();
+    // }
 }
 
 
@@ -441,7 +440,6 @@ export async function handleParticipateInProject(req: Request, res: Response) {
     const username = req.params.username;
     const body: ParticipationTeamRequestInterface = req.body;
     try {
-        await connectToDB();
 
         const project = await PROJECT.findOne({ id: projectId });
         if (!project) {
@@ -613,7 +611,6 @@ export async function verifyUserFromToken(req: Request, res: Response) {
 
 
 export async function handleShowProjectDetails(req: Request, res: Response) {
-    await connectToDB();
     const projectId: string = req.params.projectId;
 
     try {
@@ -673,15 +670,15 @@ export async function handleShowProjectDetails(req: Request, res: Response) {
     } catch (error) {
         console.log(`Unexpected error occured: ${error}`);
         return res.status(500).json({ error: "Internal Server Error" });
-    } finally {
-        disConnectfromDB();
     }
+    // finally {
+    //     disConnectfromDB();
+    // }
 }
 
 
 export async function handleReviewCollabProposal(req: Request, res: Response) {
     try {
-        await connectToDB();
         const projectId: string = req.params.projectId;
         const recipientId: string = req.params.recipientId;
         const reviewCode = req.params.reviewCode;

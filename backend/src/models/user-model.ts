@@ -139,7 +139,6 @@ userSchema.pre('save', function (next) {
  * @returns Returns the user document if the authentication is successful.
  */
 userSchema.statics.adminLogin = async function (body: AdminLoginRequestBody) {
-    await connectToDB();
 
     try {
         const user: IUser = await this.findOne(
@@ -168,9 +167,10 @@ userSchema.statics.adminLogin = async function (body: AdminLoginRequestBody) {
             console.error(`This is the error in else: ${error}`);
             throw new Error("internal error");
         }
-    } finally {
-        disConnectfromDB();
-    }
+    } 
+    // finally {
+    //     disConnectfromDB();
+    // }
 }
 
 
@@ -185,7 +185,6 @@ userSchema.statics.adminLogin = async function (body: AdminLoginRequestBody) {
  * @returns Returns the user document if the authentication is successful.
  */
 userSchema.statics.userLogin = async function (body: LoginRequestBody) {
-    await connectToDB();
 
     try {
         console.log(body);
@@ -213,9 +212,10 @@ userSchema.statics.userLogin = async function (body: LoginRequestBody) {
             console.error(`This is the error in else: ${error}`);
             throw new Error("internal error");
         }
-    } finally {
-        disConnectfromDB();
-    }
+    } 
+    // finally {
+    //     disConnectfromDB();
+    // }
 }
 
 const USER: UserModel = mongoose.model<IUser, UserModel>('user', userSchema);
