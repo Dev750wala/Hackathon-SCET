@@ -24,7 +24,7 @@ function parseFilters(query: any): Filters {
 
 
 export async function handleGetUserData(req: Request, res: Response) {
-    await connectToDB()
+
     // console.log("handleGetUserData");
     // const AllFilters: Filters = req.query as unknown as Filters;
     const filters = parseFilters(req.query);
@@ -156,9 +156,10 @@ export async function handleGetUserData(req: Request, res: Response) {
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: 'Internal Server Error' });
-    } finally {
-        disConnectfromDB();
     }
+    // finally {
+    //     disConnectfromDB();
+    // }
 
     // if (filters.username && inputText) {
     //     query.username = { $regex: inputText, $options: 'i' };
@@ -196,7 +197,6 @@ export async function handleGetUserData(req: Request, res: Response) {
 
 export async function handleGetUserSuggestionData(req: Request, res: Response) {
     try {
-        await connectToDB();
         const q = req.query.q as string;
         console.log("Received search request", q);
         if (!q) {

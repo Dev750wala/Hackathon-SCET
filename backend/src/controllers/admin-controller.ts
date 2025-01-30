@@ -77,7 +77,6 @@ export async function handleAdminAuth(req: Request, res: Response) {
  *                  }
  */
 export async function handleAdminSignup(req: Request, res: Response) {
-    await connectToDB();
 
     // console.log(req.body);
 
@@ -147,9 +146,10 @@ export async function handleAdminSignup(req: Request, res: Response) {
             return res.status(400).json({ signupErrors: err });
         }
 
-    } finally {
-        disConnectfromDB();
-    }
+    } 
+    // finally {
+    //     disConnectfromDB();
+    // }
 }
 
 
@@ -169,7 +169,6 @@ export async function handleAdminLogin(req: Request, res: Response): Promise<Res
     try {
     const body: AdminLoginRequestBody = req.body;
 
-        await connectToDB();
         const user: IUser = await USER.adminLogin(body);
 
         const tokenObject: AdminTokenUser = {
@@ -237,8 +236,6 @@ export function handleAdminLogout(req: Request, res: Response) {
 export async function handleCreateProject(req: Request, res: Response): Promise<Response> {
     const body: ProjectCreationDetails = req.body;
 
-    await connectToDB();
-
     try {
         const id = nanoid(15);
 
@@ -284,9 +281,10 @@ export async function handleCreateProject(req: Request, res: Response): Promise<
         console.log(`Error creating project: ${error}`);
         const errors = handleProjectErrors(error);
         return res.status(errors.statusCode).json({ error: errors });
-    } finally {
-        disConnectfromDB();
-    }
+    } 
+    // finally {
+    //     disConnectfromDB();
+    // }
 }
 
 /**
@@ -321,8 +319,6 @@ export async function handleUpdateUserProfile(req: Request, res: Response) {
         'github',
         'availability'
     ];
-
-    await connectToDB();
 
     try {
         const updates: Partial<IUser> = req.body;
@@ -365,9 +361,10 @@ export async function handleUpdateUserProfile(req: Request, res: Response) {
     } catch (error) {
         console.error('Error updating profile:', error);
         return res.status(500).json({ error: 'Internal server error' });
-    } finally {
-        disConnectfromDB();
-    }
+    } 
+    // finally {
+    //     disConnectfromDB();
+    // }
 }
 
 
@@ -379,8 +376,6 @@ export async function handleUpdateUserProfile(req: Request, res: Response) {
  */
 export async function handleDeleteProject(req: Request, res: Response) {
     const projectId = req.params.projectId;
-
-    await connectToDB();
 
     try {
         // Find the project by its ID
@@ -410,10 +405,11 @@ export async function handleDeleteProject(req: Request, res: Response) {
         // Log the error and return a 500 Internal Server Error response
         console.log(`Unexpected error occurred during project deletion: ${error}`);
         return res.status(500).json({ error: "Internal Server Error" });
-    } finally {
-        // Disconnect from the database
-        disConnectfromDB();
-    }
+    } 
+    // finally {
+    //     // Disconnect from the database
+    //     disConnectfromDB();
+    // }
 }
 
 /**
@@ -440,8 +436,6 @@ export async function handleUpdateProject(req: Request, res: Response) {
         'theme',
         'techTags',
     ];
-
-    await connectToDB();
 
     try {
         const project = await PROJECT.findOne({ id: projectId });
@@ -481,9 +475,10 @@ export async function handleUpdateProject(req: Request, res: Response) {
         const errorObject = handleProjectErrors(error);
         console.log(`Error creating project: ${JSON.stringify(errorObject)}`);
         return res.status(500).json({ error: errorObject });
-    } finally {
-        disConnectfromDB();
-    }
+    } 
+    // finally {
+    //     disConnectfromDB();
+    // }
 }
 
 
@@ -505,7 +500,6 @@ export async function handleUpdateProject(req: Request, res: Response) {
  * }
  */
 export async function handleListMyProjects(req: Request, res: Response) {
-    await connectToDB();
 
     try {
         const projects: IProject[] | null | undefined = await PROJECT.find({ organizer: req.user?._id as Types.ObjectId });
@@ -532,7 +526,8 @@ export async function handleListMyProjects(req: Request, res: Response) {
     } catch (error) {
         console.log(`Internal server error while listing all the projects: ${error}`);
         return res.status(500).json({ error: "Internal Server Error" });
-    } finally {
-        disConnectfromDB();
     }
+    // finally {
+    //     disConnectfromDB();
+    // }
 }
