@@ -7,7 +7,6 @@ import { IProject, ParticipationTeam } from "../interfaces/project-interfaces";
 
 export async function handleShowProject(req: Request, res: Response) {
     try { 
-        await connectToDB();
         const projectId: string = req.params.projectId;
         if (!projectId) {
             return res.status(400).json({ message: "Project ID not provided" });

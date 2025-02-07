@@ -37,7 +37,6 @@ export async function onlyLoggedInUsers(req: Request, res: Response, next: NextF
         return res.status(302).json({ message: "Unauthorized access, first login" })
     }
 
-    await connectToDB();
 
     try {
         const user = await USER.findOne({ email: userFromToken.email });

@@ -41,6 +41,7 @@ const AdminAuth = () => {
         setError
     } = useForm<{ password: string }>();
 
+    
     const onsubmit = async (data: { password: string }) => {
         // console.log(`data to be submitted: ${data}`)
 
