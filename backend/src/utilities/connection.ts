@@ -7,9 +7,9 @@ export async  function connectToDB() {
     if (isConnected) {
         console.log('Already connected to MongoDB.');
         return;
-    }
+    } 
 
-    try {
+    try { 
         // const uri: string = process.env.DB_STRING!;
         const uri: string = "mongodb+srv://dev_sadisatsowala:rV6x65fSvugqhrq0@cluster0.y5ndt9w.mongodb.net/SCET?retryWrites=true&w=majority&appName=Cluster0";
         console.log("Connecting to the database...", uri);
