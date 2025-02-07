@@ -13,6 +13,8 @@ export async  function connectToDB() {
 
     const CONNECTION_URI = "mongodb://127.0.0.1:27017/SCET-maksad"
 
+    const CONNECTION_URI = "mongodb://127.0.0.1:27017/SCET-maksad"
+
     try {
 
         // const uri: string = process.env.DB_STRING!;
